@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Settings - HR Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="hr-layout">
+      <aside class="hr-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">GMB</div>
+          <div>
+            <h2>HR Portal</h2>
+            <p class="sidebar-company">Recruitment</p>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <a href="{{ url_for('hr_dashboard') }}" class="nav-item">
+              <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="{{ url_for('hr_jobs') }}" class="nav-item">
+              <i class="fas fa-briefcase"></i> Job Postings
+            </a>
+            <a href="{{ url_for('hr_screening') }}" class="nav-item">
+              <i class="fas fa-check-circle"></i> Screening
+            </a>
+            <a href="{{ url_for('hr_interviews') }}" class="nav-item">
+              <i class="fas fa-calendar"></i> Interviews
+            </a>
+            <a href="{{ url_for('hr_ratings') }}" class="nav-item">
+              <i class="fas fa-star"></i> Ratings
+            </a>
+            <a href="{{ url_for('hr_settings') }}" class="nav-item active">
+              <i class="fas fa-cog"></i> Settings
+            </a>
+          </div>
+        </nav>
+        
+      </aside>
+
+      <main class="hr-content">
+        <div class="dashboard-header">
+          <div class="header-top">
+            <h1>Settings</h1>
+            <div class="header-actions">
+              <button class="icon-button">🔔</button>
+              <button class="icon-button">⚙️</button>
+              <button class="icon-button">👤</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-content">
+          <form class="content-card settings-form" method="post" action="{{ url_for('hr_settings_update') }}">
+            <div class="card-header">
+              <h3>Company Configuration</h3>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="company_name">Company Name</label>
+                <input id="company_name" name="company_name" class="form-input" type="text" value="{{ settings.company_name }}" maxlength="120" required>
+              </div>
+
+              <div class="form-group">
+                <label for="support_email">Support Email</label>
+                <input id="support_email" name="support_email" class="form-input" type="email" value="{{ settings.support_email }}" required>
+              </div>
+
+              <div class="form-group">
+                <label for="default_view">Default View</label>
+                <select id="default_view" name="default_view" class="form-input">
+                  <option value="dashboard" {% if settings.default_view == 'dashboard' %}selected{% endif %}>Dashboard</option>
+                  <option value="applicants" {% if settings.default_view == 'applicants' %}selected{% endif %}>Applicants</option>
+                  <option value="screening" {% if settings.default_view == 'screening' %}selected{% endif %}>Screening</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="items_per_page">Items Per Page</label>
+                <select id="items_per_page" name="items_per_page" class="form-input">
+                  <option value="10" {% if settings.items_per_page == 10 %}selected{% endif %}>10</option>
+                  <option value="25" {% if settings.items_per_page == 25 %}selected{% endif %}>25</option>
+                  <option value="50" {% if settings.items_per_page == 50 %}selected{% endif %}>50</option>
+                  <option value="100" {% if settings.items_per_page == 100 %}selected{% endif %}>100</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="settings-list">
+              <label class="setting-item">
+                <span class="setting-label">Email Notifications</span>
+                <input type="checkbox" name="notification_email_enabled" class="toggle-switch" {% if settings.notification_email_enabled %}checked{% endif %}>
+              </label>
+              <label class="setting-item">
+                <span class="setting-label">Application Updates</span>
+                <input type="checkbox" name="application_updates_enabled" class="toggle-switch" {% if settings.application_updates_enabled %}checked{% endif %}>
+              </label>
+              <label class="setting-item">
+                <span class="setting-label">Interview Reminders</span>
+                <input type="checkbox" name="interview_reminders_enabled" class="toggle-switch" {% if settings.interview_reminders_enabled %}checked{% endif %}>
+              </label>
+              <label class="setting-item">
+                <span class="setting-label">Weekly Reports</span>
+                <input type="checkbox" name="weekly_reports_enabled" class="toggle-switch" {% if settings.weekly_reports_enabled %}checked{% endif %}>
+              </label>
+            </div>
+
+            {% if current_user and current_user.role == 'admin' %}
+              <button class="btn-primary" type="submit">Save Settings</button>
+            {% else %}
+              <p class="text-muted">Only admin users can update settings.</p>
+            {% endif %}
+          </form>
+
+          <div class="content-card">
+            <div class="card-header">
+              <h3>Operations</h3>
+            </div>
+            <div class="ops-links">
+              <a class="btn-secondary" href="{{ url_for('hr_report_summary') }}">Download Summary Report (CSV)</a>
+              {% if current_user and current_user.role == 'admin' %}
+                <a class="btn-secondary" href="{{ url_for('hr_audit_log') }}" target="_blank" rel="noopener noreferrer">View Audit Log (JSON)</a>
+              {% endif %}
+              <a class="btn-secondary" href="{{ url_for('health') }}" target="_blank" rel="noopener noreferrer">System Health</a>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <style>
+      .settings-form {
+        padding: 18px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #124e66;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: #124e66;
+        box-shadow: 0 0 0 3px rgba(18, 78, 102, 0.1);
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .btn-primary {
+        background-color: #124e66;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background-color: #0f3f52;
+      }
+
+      .btn-secondary {
+        background-color: #f3f4f6;
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+
+      .btn-secondary:hover {
+        background-color: #e5e7eb;
+      }
+
+      .settings-list {
+        padding: 10px 0 16px;
+      }
+
+      .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .setting-label {
+        font-weight: 500;
+        color: #1f2937;
+      }
+
+      .toggle-switch {
+        width: 50px;
+        height: 28px;
+        cursor: pointer;
+        accent-color: #124e66;
+      }
+
+      .ops-links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 12px 0 4px;
+      }
+
+      .text-muted {
+        color: #6b7280;
+        font-size: 14px;
+      }
+    </style>
+
+    <script>
+      function showNotification(message, type = 'success') {
+        const existing = document.querySelector('.notification-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = `notification-toast notification-${type}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      const headerButtons = document.querySelectorAll('.icon-button');
+      if (headerButtons[0]) headerButtons[0].addEventListener('click', (e) => { e.preventDefault(); showNotification('🔔 No new notifications', 'info'); });
+      if (headerButtons[1]) headerButtons[1].addEventListener('click', (e) => { e.preventDefault(); showNotification('⚙️ You are in Settings', 'info'); });
+      if (headerButtons[2]) headerButtons[2].addEventListener('click', (e) => { e.preventDefault(); showNotification('👤 Profile menu coming soon', 'info'); });
+
+      const form = document.querySelector('.settings-form');
+      if (form) {
+        form.addEventListener('submit', () => {
+          showNotification('Saving settings...', 'info');
+        });
+      }
+    </script>
+  </body>
+</html>

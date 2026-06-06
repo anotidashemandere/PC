@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Applicant — {{ application.name }} {{ application.surname }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <a href="{{ url_for('hr_dashboard') }}"><i class="fas fa-arrow-left"></i> Back to dashboard</a>
+      <section class="panel">
+        <h1>{{ application.name }} {{ application.surname }}</h1>
+        <p>{{ application.email }} • {{ application.phone }}</p>
+        <p><strong>Education:</strong> {{ application.highest_education }}</p>
+        <p>Applied: {{ application.uploaded_at.strftime('%Y-%m-%d %H:%M %Z') }}</p>
+        {% if application.note %}
+          <p class="summary"><strong>Note:</strong> {{ application.note }}</p>
+        {% endif %}
+
+        <h3>Score & recommendation</h3>
+        <p><strong>{{ application.score }}%</strong> — {{ application.recommendation }}</p>
+        <p class="summary">{{ application.summary }}</p>
+
+        <h3>Skills</h3>
+        <p><strong>Matched:</strong> {{ application.matched_skills | join(', ') if application.matched_skills else 'None' }}</p>
+        <p><strong>Missing:</strong> {{ application.missing_skills | join(', ') if application.missing_skills else 'None' }}</p>
+
+        <h3>Resume & files</h3>
+        <p><a href="{{ url_for('uploaded_file', filename=application.resume_path.name) }}">Download resume</a></p>
+        {% if application.certification_paths %}
+          <p>Certifications:</p>
+          <ul>
+            {% for c in application.certification_paths %}
+              <li><a href="{{ url_for('uploaded_file', filename=c.name) }}">{{ c.name }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        <h3>Status</h3>
+        <p>{{ application.status }}</p>
+        <div style="display:flex; gap:8px; margin-top:8px">
+          <form method="post" action="{{ url_for('hr_application_action', application_id=application.id) }}">
+            <input type="hidden" name="action" value="shortlist">
+            <button type="submit">Shortlist</button>
+          </form>
+          <form method="post" action="{{ url_for('hr_application_action', application_id=application.id) }}">
+            <input type="hidden" name="action" value="interview">
+            <button type="submit">Interview</button>
+          </form>
+          <form method="post" action="{{ url_for('hr_application_action', application_id=application.id) }}">
+            <input type="hidden" name="action" value="reject">
+            <button type="submit">Reject</button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

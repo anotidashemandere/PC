@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Applicant — {{ application.name }} {{ application.surname }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <a href="{{ url_for('job_detail', job_id=job.id) }}"><i class="fas fa-arrow-left"></i> Back to role</a>
+      <section class="panel">
+        <p class="eyebrow">Applicant page</p>
+        <h1>{{ application.name }} {{ application.surname }}</h1>
+        <p>{{ job.title }} • {{ job.department }} • {{ job.location }}</p>
+        <p>Applied: {{ application.uploaded_at.strftime('%Y-%m-%d %H:%M %Z') }}</p>
+
+        <div class="hero-card">
+          <div><span>Status</span><strong>{{ application.status }}</strong></div>
+          <div><span>Score</span><strong>{{ application.score }}%</strong></div>
+          <div><span>Recommendation</span><strong>{{ application.recommendation }}</strong></div>
+        </div>
+
+        <h3>Summary</h3>
+        <p class="summary">{{ application.summary }}</p>
+
+        <h3>Skills</h3>
+        <p><strong>Matched:</strong> {{ application.matched_skills | join(', ') if application.matched_skills else 'None' }}</p>
+        <p><strong>Missing:</strong> {{ application.missing_skills | join(', ') if application.missing_skills else 'None' }}</p>
+
+        <h3>Files</h3>
+        <p><a href="{{ url_for('uploaded_file', filename=application.resume_path.name) }}">Download resume</a></p>
+        {% if application.certification_paths %}
+          <ul>
+            {% for c in application.certification_paths %}
+              <li><a href="{{ url_for('uploaded_file', filename=c.name) }}">{{ c.name }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>

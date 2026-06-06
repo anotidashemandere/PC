@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Ratings - HR Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="hr-layout">
+      <!-- Left Sidebar -->
+      <aside class="hr-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">GMB</div>
+          <div>
+            <h2>HR Portal</h2>
+            <p class="sidebar-company">Recruitment</p>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <a href="{{ url_for('hr_dashboard') }}" class="nav-item">
+              <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="{{ url_for('hr_jobs') }}" class="nav-item">
+              <i class="fas fa-briefcase"></i> Job Postings
+            </a>
+            <a href="{{ url_for('hr_screening') }}" class="nav-item">
+              <i class="fas fa-check-circle"></i> Screening
+            </a>
+            <a href="{{ url_for('hr_interviews') }}" class="nav-item">
+              <i class="fas fa-calendar"></i> Interviews
+            </a>
+            <a href="{{ url_for('hr_ratings') }}" class="nav-item active">
+              <i class="fas fa-star"></i> Ratings
+            </a>
+            <a href="{{ url_for('hr_settings') }}" class="nav-item">
+              <i class="fas fa-cog"></i> Settings
+            </a>
+          </div>
+        </nav>
+        
+      </aside>
+
+      <!-- Main Content -->
+      <main class="hr-content">
+        <div class="dashboard-header">
+          <div class="header-top">
+            <h1>⭐ Applicant Ratings</h1>
+            <div class="header-actions">
+              <button class="icon-button">🔔</button>
+              <button class="icon-button">⚙️</button>
+              <button class="icon-button">👤</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rating Stats -->
+        <div class="dashboard-stats">
+          <div class="stat-item">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-info">
+              <div class="stat-number">
+                {% if applicants %}
+                  {% set avg_score = (applicants | map(attribute='score') | sum) / (applicants | length) %}
+                  {{ "%.1f" | format(avg_score) }}%
+                {% else %}
+                  0%
+                {% endif %}
+              </div>
+              <div class="stat-label">Average Score</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-info">
+              <div class="stat-number">
+                {% if applicants %}
+                  {% set top = applicants | map(attribute='score') | max %}
+                  {{ top }}%
+                {% else %}
+                  0%
+                {% endif %}
+              </div>
+              <div class="stat-label">Highest Score</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ applicants | length }}</div>
+              <div class="stat-label">Total Rated</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">📈</div>
+            <div class="stat-info">
+              <div class="stat-number">
+                {% if applicants %}
+                  {% set above_80 = applicants | selectattr('score', 'ge', 80) | list | length %}
+                  {{ above_80 }}
+                {% else %}
+                  0
+                {% endif %}
+              </div>
+              <div class="stat-label">Above 80%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ratings List -->
+        <div class="page-content">
+          <div class="content-card">
+            <div class="card-header">
+              <h3>⭐ Applicant Rankings</h3>
+              <p class="text-muted">Sorted by score (highest first)</p>
+            </div>
+            
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Job Title</th>
+                    <th>Score</th>
+                    <th>Rating</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if applicants %}
+                    {% for a in applicants %}
+                      <tr>
+                        <td><strong>#{{ loop.index }}</strong></td>
+                        <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
+                        <td>{{ a.email }}</td>
+                        <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
+                        <td><span class="score-badge">{{ a.score }}%</span></td>
+                        <td>
+                          {% if a.score >= 85 %}
+                            <span class="rating-badge rating-excellent">⭐⭐⭐⭐⭐</span>
+                          {% elif a.score >= 75 %}
+                            <span class="rating-badge rating-good">⭐⭐⭐⭐</span>
+                          {% elif a.score >= 60 %}
+                            <span class="rating-badge rating-average">⭐⭐⭐</span>
+                          {% elif a.score >= 45 %}
+                            <span class="rating-badge rating-fair">⭐⭐</span>
+                          {% else %}
+                            <span class="rating-badge rating-poor">⭐</span>
+                          {% endif %}
+                        </td>
+                        <td><span class="status-badge badge-{{ a.status }}">{{ a.status }}</span></td>
+                        <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">View</a></td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="8" class="text-center text-muted">No applicants to rate</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <style>
+      .rating-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .rating-excellent { background-color: #dcfce7; color: #166534; }
+      .rating-good { background-color: #dbeafe; color: #0c4a6e; }
+      .rating-average { background-color: #fef3c7; color: #92400e; }
+      .rating-fair { background-color: #fed7aa; color: #92400e; }
+      .rating-poor { background-color: #fee2e2; color: #991b1b; }
+    </style>
+
+    <script>
+      function showNotification(message, type = 'success') {
+        const existing = document.querySelector('.notification-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = `notification-toast notification-${type}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      const headerButtons = document.querySelectorAll('.icon-button');
+      if (headerButtons[0]) headerButtons[0].addEventListener('click', (e) => { e.preventDefault(); showNotification('🔔 No new notifications', 'info'); });
+      if (headerButtons[1]) headerButtons[1].addEventListener('click', (e) => { e.preventDefault(); showNotification('⚙️ Settings page loading...', 'info'); setTimeout(() => window.location.href = '/hr/settings', 800); });
+      if (headerButtons[2]) headerButtons[2].addEventListener('click', (e) => { e.preventDefault(); showNotification('👤 Profile menu coming soon', 'info'); });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f7fa;
+        }
+
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #124e66;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: #124e66;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #0a3d54;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(18, 78, 102, 0.3);
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            padding: 30px;
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            color: #124e66;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #124e66;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions button {
+            padding: 10px 20px;
+            font-size: 13px;
+        }
+
+        button.cancel {
+            background: #f39c12;
+        }
+
+        button.cancel:hover {
+            background: #e67e22;
+        }
+
+        /* Notification Toast */
+        .notification-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            animation: slideInRight 0.3s ease;
+            display: none;
+        }
+
+        .notification-toast.show {
+            display: block;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .notification-toast.error {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .notification-toast.warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .test-result {
+            padding: 15px;
+            background: #eff6ff;
+            border-left: 4px solid #124e66;
+            margin-top: 20px;
+            border-radius: 6px;
+            color: #124e66;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1><i class="fas fa-vial"></i> Modal & Notification Test</h1>
+        <p>Click the buttons below to test if modals and notifications work:</p>
+        
+        <div class="button-group">
+            <button onclick="testModal()"><i class="fas fa-window-maximize"></i> Test Modal</button>
+            <button onclick="testNotification('success')"><i class="fas fa-check"></i> Test Success Notification</button>
+            <button onclick="testNotification('error')"><i class="fas fa-times"></i> Test Error Notification</button>
+            <button onclick="testNotification('warning')"><i class="fas fa-exclamation"></i> Test Warning Notification</button>
+        </div>
+
+        <div class="test-result">
+            <h3 style="margin-top: 0; color: #124e66;">✓ Test Page Loaded Successfully</h3>
+            <p>If you can see this and the buttons above work, then the basic modal and notification systems are functioning.</p>
+        </div>
+    </div>
+
+    <!-- Test Modal -->
+    <div id="testModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span><i class="fas fa-check-circle"></i> Test Modal</span>
+                <button class="modal-close" onclick="closeModal('testModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>This is a test modal! If you can see this, the modal system is working correctly.</p>
+                <p style="font-weight: bold; color: #27ae60; margin-top: 15px;">✓ Modal is displaying properly</p>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel" onclick="closeModal('testModal')">Close</button>
+                <button onclick="closeModal('testModal')">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="notificationToast" class="notification-toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        function testModal() {
+            console.log('Opening modal...');
+            const modal = document.getElementById('testModal');
+            if (modal) {
+                modal.classList.add('show');
+                showNotification('✓ Modal opened successfully!', 'success');
+            } else {
+                showNotification('✗ Error: Modal not found!', 'error');
+            }
+        }
+
+        function closeModal(modalId) {
+            console.log('Closing modal:', modalId);
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+
+        function testNotification(type) {
+            const messages = {
+                'success': '✓ Success notification working!',
+                'error': '✗ Error notification working!',
+                'warning': '⚠ Warning notification working!'
+            };
+            showNotification(messages[type], type);
+        }
+
+        function showNotification(message, type = 'success') {
+            console.log('Showing notification:', message, type);
+            const toast = document.getElementById('notificationToast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            if (!toast || !toastMessage) {
+                console.error('Toast elements not found!');
+                return;
+            }
+
+            toast.className = `notification-toast ${type} show`;
+            toastMessage.textContent = message;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        // Close modal on outside click
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        });
+
+        // Log when page loads
+        console.log('Test page loaded. Modal and notification systems ready.');
+    </script>
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR System - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 100%;
+            margin: 20px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .login-header .logo {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .logo-container svg {
+            filter: drop-shadow(0 4px 6px rgba(243, 156, 18, 0.2));
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .login-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .login-header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 12px;
+            top: 38px;
+            color: #f39c12;
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #f39c12;
+            box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(18, 78, 102, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .alerts {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .demo-credentials {
+            background: #f5f7fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 4px solid #f39c12;
+        }
+
+        .demo-credentials h3 {
+            margin: 0 0 15px 0;
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .demo-cred {
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .demo-cred strong {
+            color: #f39c12;
+        }
+
+        .demo-cred .role {
+            display: inline-block;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .footer {
+            background: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .footer a {
+            color: #f39c12;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .login-container {
+                max-width: 100%;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .login-body {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Header -->
+        <div class="login-header">
+        <div class="logo-container" id="logoContainer" onclick="document.getElementById('logoUploadInput').click()" title="Click to change logo" style="cursor:pointer; position:relative;">
+                <img id="customLogoImg" src="" alt="" style="display:none;width:80px;height:80px;border-radius:12px;object-fit:contain;border:2px solid rgba(243,156,18,0.5);">
+                <svg id="defaultLogoSvg" width="64" height="64" viewBox="0 0 100 100" style="margin-bottom: 15px;">
+                    <!-- Background circle -->
+                    <circle cx="50" cy="50" r="48" fill="#f39c12" opacity="0.2"/>
+                    <!-- Main shape -->
+                    <rect x="25" y="25" width="50" height="50" fill="none" stroke="#f39c12" stroke-width="3" rx="8"/>
+                    <!-- G -->
+                    <text x="50" y="70" font-size="48" font-weight="700" fill="#f39c12" text-anchor="middle" font-family="Arial, sans-serif">G</text>
+                </svg>
+                <div style="position:absolute;bottom:-4px;right:-4px;background:#f39c12;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-camera" style="font-size:10px;color:white;"></i></div>
+                <input type="file" id="logoUploadInput" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)">
+            </div>
+            <div class="logo">GMB</div>
+            <h1>HR System</h1>
+            <p>Recruitment & Talent Management</p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="login-body">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alerts">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('login_post') }}">
+                <div class="form-group">
+                    <i class="fas fa-envelope"></i>
+                    <label for="email">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Enter your email"
+                        required 
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group">
+                    <i class="fas fa-lock"></i>
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        placeholder="Enter your password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="login-button"><i class="fas fa-lock"></i> Sign In</button>
+            </form>
+
+            <!-- Demo Credentials -->
+            <div class="demo-credentials">
+                <h3>Login Credentials</h3>
+                
+                <div class="demo-cred">
+                    <strong>HR Account:</strong>
+                    <div style="margin-top: 4px;">
+                        Email: <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">hr@company.com</code>
+                        <br>
+                        Pass: <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">password123</code>
+                        <span class="role">HR</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            © 2024 Global Modern Business. All rights reserved. | 
+            <a href="#">Privacy Policy</a> | 
+            <a href="#">Contact Support</a>
+        </div>
+    </div>
+    <script>
+      // Persist logo across page reloads using localStorage
+      (function() {
+        const saved = localStorage.getItem('gmb_login_logo');
+        if (saved) {
+          document.getElementById('customLogoImg').src = saved;
+          document.getElementById('customLogoImg').style.display = 'block';
+          document.getElementById('defaultLogoSvg').style.display = 'none';
+        }
+      })();
+
+      function handleLogoUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const dataUrl = e.target.result;
+          document.getElementById('customLogoImg').src = dataUrl;
+          document.getElementById('customLogoImg').style.display = 'block';
+          document.getElementById('defaultLogoSvg').style.display = 'none';
+          localStorage.setItem('gmb_login_logo', dataUrl);
+        };
+        reader.readAsDataURL(file);
+      }
+    </script>
+</body>
+</html>

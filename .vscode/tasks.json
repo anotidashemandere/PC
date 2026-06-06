@@ -1,0 +1,15 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run HR App",
+			"type": "shell",
+			"command": "C:/Users/PC/.conda/python.exe",
+			"args": [
+				"app.py"
+			],
+			"isBackground": true,
+			"group": "build"
+		}
+	]
+}

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GMB Recruitment Portal - Join Our Team</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #2d3748;
+    }
+
+    .app-header {
+      background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+      color: white;
+      padding: 40px 30px;
+      box-shadow: 0 4px 12px rgba(18, 78, 102, 0.15);
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .app-header h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+    }
+
+    .app-header .tagline {
+      margin: 0;
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px 20px;
+    }
+
+    .hero {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .hero h1 {
+      color: #124e66;
+      margin-bottom: 15px;
+      font-size: 28px;
+    }
+
+    .hero .lede {
+      color: #666;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .search-section {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-section input,
+    .search-section select {
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-section input:focus,
+    .search-section select:focus {
+      outline: none;
+      border-color: #f39c12;
+      box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+    }
+
+    .cards {
+      display: grid;
+      gap: 25px;
+    }
+
+    .candidate-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
+      border-left: 4px solid #f39c12;
+    }
+
+    .candidate-card:hover {
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .candidate-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+    }
+
+    .candidate-top h3 {
+      color: #124e66;
+      font-size: 20px;
+      margin: 0 0 8px;
+    }
+
+    .candidate-top p {
+      color: #666;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .summary {
+      color: #555;
+      line-height: 1.6;
+      margin: 15px 0;
+    }
+
+    .status-line {
+      font-size: 14px;
+      color: #666;
+      margin: 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-line i {
+      color: #f39c12;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .button {
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+      color: white;
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(243, 156, 18, 0.3);
+    }
+
+    .button-secondary {
+      background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+      color: white;
+    }
+
+    .button-secondary:hover {
+      box-shadow: 0 8px 16px rgba(18, 78, 102, 0.3);
+    }
+
+    .button i {
+      font-size: 15px;
+    }
+
+    .features {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-top: 40px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .features h2 {
+      color: #124e66;
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-item {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .feature-item i {
+      font-size: 32px;
+      color: #f39c12;
+      margin-bottom: 10px;
+    }
+
+    .feature-item h3 {
+      color: #124e66;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+
+    .feature-item p {
+      color: #666;
+      font-size: 13px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .empty-state i {
+      font-size: 64px;
+      color: #e0e0e0;
+      margin-bottom: 20px;
+    }
+
+    .empty-state p {
+      color: #999;
+      font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .app-header h1 {
+        font-size: 24px;
+      }
+
+      .hero {
+        padding: 25px;
+      }
+
+      .search-section {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-section input,
+      .search-section select {
+        min-width: auto;
+      }
+
+      .candidate-card {
+        padding: 20px;
+      }
+
+      .card-actions {
+        flex-direction: column;
+      }
+
+      .button {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Professional Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <h1><i class="fas fa-building"></i> GMB Recruitment Portal</h1>
+      <p class="tagline">Explore open positions at Global Modern Business and apply today</p>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <!-- Hero Section -->
+    <section class="hero">
+      <h1>Available Positions</h1>
+      <p class="lede">Join our growing team! Browse our open roles below, view detailed job descriptions, and submit your application. Our HR team will review your CV using AI-powered screening and get back to you soon.</p>
+    </section>
+
+    <!-- Search & Filter -->
+    <div class="search-section">
+      <input type="text" placeholder="Search jobs by title or keyword...">
+      <select>
+        <option>All Departments</option>
+        <option>Human Resources</option>
+        <option>Engineering</option>
+        <option>Sales</option>
+        <option>Marketing</option>
+        <option>Operations</option>
+      </select>
+      <select>
+        <option>All Locations</option>
+        <option>New York</option>
+        <option>San Francisco</option>
+        <option>Chicago</option>
+        <option>Remote</option>
+      </select>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts">
+          {% for category, message in messages %}
+            <div class="alert {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Job Cards -->
+    <section>
+      <div class="cards">
+        {% for job in jobs %}
+          <article class="candidate-card">
+            <div class="candidate-top">
+              <div>
+                <h3>{{ job.title }}</h3>
+                <p><i class="fas fa-map-marker-alt"></i> {{ job.department }} • {{ job.location }}</p>
+              </div>
+            </div>
+            <p class="summary">{{ job.description[:150] }}...</p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+              <p class="status-line"><i class="fas fa-calendar"></i> <strong>Apply by:</strong> {{ job.due_date.strftime('%B %d, %Y') }}</p>
+              <p class="status-line"><i class="fas fa-users"></i> <strong>Applicants:</strong> 12</p>
+            </div>
+            <div class="card-actions">
+              <a class="button button-secondary" href="{{ url_for('job_detail', job_id=job.id) }}"><i class="fas fa-eye"></i> View Details</a>
+              <a class="button" href="{{ url_for('apply', job_id=job.id) }}"><i class="fas fa-paper-plane"></i> Apply Now</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+
+      {% if not jobs %}
+        <div class="empty-state">
+          <i class="fas fa-briefcase"></i>
+          <p>No positions available at the moment. Please check back soon!</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+      <h2><i class="fas fa-star"></i> Why Apply with GMB?</h2>
+      <div class="features-grid">
+        <div class="feature-item">
+          <i class="fas fa-bolt"></i>
+          <h3>Fast Process</h3>
+          <p>AI-powered CV screening gets you responses quickly</p>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-shield-alt"></i>
+          <h3>Secure & Safe</h3>
+          <p>Your data is protected with industry-standard security</p>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-handshake"></i>
+          <h3>Fair Evaluation</h3>
+          <p>Every application receives unbiased, merit-based screening</p>
+        </div>
+        <div class="feature-item">
+          <i class="fas fa-envelope"></i>
+          <h3>Direct Communication</h3>
+          <p>Receive updates via email about your application status</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

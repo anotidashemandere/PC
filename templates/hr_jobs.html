@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Jobs & Requirements</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="hr-layout">
+      <aside class="hr-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">GMB</div>
+          <div>
+            <h2>HR Portal</h2>
+            <p class="sidebar-company">Recruitment</p>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <a href="{{ url_for('hr_dashboard') }}" class="nav-item">
+              <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="{{ url_for('hr_jobs') }}" class="nav-item active">
+              <i class="fas fa-briefcase"></i> Job Postings
+            </a>
+            <a href="{{ url_for('hr_screening') }}" class="nav-item">
+              <i class="fas fa-check-circle"></i> Screening
+            </a>
+            <a href="{{ url_for('hr_interviews') }}" class="nav-item">
+              <i class="fas fa-calendar"></i> Interviews
+            </a>
+            <a href="{{ url_for('hr_ratings') }}" class="nav-item">
+              <i class="fas fa-star"></i> Ratings
+            </a>
+            <a href="{{ url_for('hr_settings') }}" class="nav-item">
+              <i class="fas fa-cog"></i> Settings
+            </a>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="hr-content">
+        <div class="dashboard-header">
+          <div class="header-top">
+            <h1>Job Postings</h1>
+            <div class="header-actions">
+              <button class="icon-button">🔔</button>
+              <button class="icon-button">⚙️</button>
+              <button class="icon-button">👤</button>
+            </div>
+          </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="alerts">
+              {% for category, message in messages %}
+                <div class="alert {{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <div class="page-content">
+          <section class="content-card">
+            <div class="card-header">
+              <div>
+                <h3>Previous Job Posts</h3>
+                <p class="text-muted">Review previously posted jobs, requirements, and application links.</p>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Job Title</th>
+                    <th>Department</th>
+                    <th>Location</th>
+                    <th>Due Date</th>
+                    <th>Requirements</th>
+                    <th>Application Link</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if jobs %}
+                    {% for job in jobs %}
+                      <tr>
+                        <td><strong>{{ job.title }}</strong></td>
+                        <td>{{ job.department }}</td>
+                        <td>{{ job.location }}</td>
+                        <td>{{ job.due_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                          {% if job.requirements %}
+                            {{ job.requirements | join(', ') }}
+                          {% else %}
+                            <span class="text-muted">No requirements added</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if job.application_link %}
+                            <a href="{{ url_for('apply', job_id=job.id, source='hr') }}" class="job-link">Open apply page</a>
+                            <div class="text-muted" style="margin-top: 6px; font-size: 0.8rem;">Online: {{ job.application_link }}</div>
+                          {% else %}
+                            <span class="text-muted">Not generated</span>
+                          {% endif %}
+                        </td>
+                        <td>
+                          <div class="table-actions">
+                            <a href="{{ url_for('job_detail', job_id=job.id) }}" class="btn-inline btn-inline-orange">View</a>
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="7" class="text-center text-muted">No previous job posts found</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="content-card">
+            <div class="card-header">
+              <div>
+                <h3>Post New Job</h3>
+                <p class="text-muted">Fill in the role details, requirements, screening notes, and due date. The application link is generated automatically after saving.</p>
+              </div>
+            </div>
+            <form method="post" action="{{ url_for('hr_post_job') }}" class="job-form">
+              <label>
+                <span>Job Title</span>
+                <input type="text" name="title" required placeholder="e.g., HR Operations Analyst">
+              </label>
+              <label>
+                <span>Department</span>
+                <input type="text" name="department" required placeholder="e.g., Human Resources">
+              </label>
+              <label>
+                <span>Location</span>
+                <input type="text" name="location" required placeholder="e.g., Hybrid">
+              </label>
+              <label>
+                <span>Description & Requirements</span>
+                <textarea name="description" rows="6" required placeholder="Enter job description and key requirements..."></textarea>
+              </label>
+              <label>
+                <span>Key Requirements (comma-separated)</span>
+                <textarea name="requirements" rows="3" placeholder="e.g., Excel proficiency, 2+ years experience, Bachelor's degree, Strong communication"></textarea>
+                <small>List each requirement separated by commas. These will be used for AI screening.</small>
+              </label>
+              <label>
+                <span>Custom Screening Criteria (optional)</span>
+                <textarea name="screening_criteria" rows="3" placeholder="e.g., Focus on data analysis skills, prioritize candidates with project management experience"></textarea>
+                <small>Additional criteria for the AI to consider during screening.</small>
+              </label>
+              <label>
+                <span>Application Due Date</span>
+                <input type="datetime-local" name="due_date" required>
+              </label>
+              <button type="submit" class="button">Post Job</button>
+            </form>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function showNotification(message, type = 'success') {
+        const existing = document.querySelector('.notification-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = `notification-toast notification-${type}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      const headerButtons = document.querySelectorAll('.icon-button');
+      if (headerButtons[0]) headerButtons[0].addEventListener('click', (e) => { e.preventDefault(); showNotification('🔔 No new notifications', 'info'); });
+      if (headerButtons[1]) headerButtons[1].addEventListener('click', (e) => { e.preventDefault(); showNotification('⚙️ Settings page loading...', 'info'); setTimeout(() => window.location.href = '/hr/settings', 800); });
+      if (headerButtons[2]) headerButtons[2].addEventListener('click', (e) => { e.preventDefault(); showNotification('👤 Profile menu coming soon', 'info'); });
+
+      function copyLink(link) {
+        navigator.clipboard.writeText(link).then(() => {
+          showNotification('✅ Application link copied', 'success');
+        });
+      }
+    </script>
+  </body>
+</html>

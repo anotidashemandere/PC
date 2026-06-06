@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2d3748;
+        }
+
+        .audit-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .audit-sidebar {
+            background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+            color: white;
+            padding: 30px 0;
+            box-shadow: 2px 0 10px rgba(18, 78, 102, 0.2);
+            position: fixed;
+            height: 100vh;
+            width: 280px;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-company {
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #f39c12;
+        }
+
+        .sidebar-nav a.active {
+            background: rgba(243, 156, 18, 0.15);
+            color: #f39c12;
+            border-left-color: #f39c12;
+        }
+
+        .sidebar-nav a::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: currentColor;
+            margin-right: 12px;
+        }
+
+        /* Main Content */
+        .audit-content {
+            grid-column: 2;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .page-header h1 {
+            font-size: 28px;
+            color: #124e66;
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 15px;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #124e66, #f39c12);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #124e66;
+        }
+
+        .user-role {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #e67e22;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #124e66;
+        }
+
+        .stat-card.success {
+            border-left-color: #27ae60;
+        }
+
+        .stat-card.warning {
+            border-left-color: #f39c12;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #124e66;
+            margin: 0 0 8px 0;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #999;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #124e66 0%, #1a6a8f 100%);
+            color: white;
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f5f7fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #124e66;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .pagination a, .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #124e66;
+            font-size: 12px;
+        }
+
+        .pagination a:hover {
+            background: #124e66;
+            color: white;
+        }
+
+        .pagination .active {
+            background: #124e66;
+            color: white;
+            border-color: #124e66;
+        }
+
+        @media (max-width: 768px) {
+            .audit-container {
+                grid-template-columns: 1fr;
+            }
+
+            .audit-sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+            }
+
+            .audit-content {
+                grid-column: 1;
+                padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="audit-container">
+        <!-- Sidebar -->
+        <aside class="audit-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">GMB</div>
+                <h2>Audit Portal</h2>
+                <p class="sidebar-company">Compliance & Monitoring</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('audit_dashboard') }}" class="active">Activity Logs</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="audit-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>Audit Dashboard</h1>
+                <div class="user-info">
+                    <div class="user-avatar">{{ current_user.name[0] if current_user else 'U' }}</div>
+                    <div>
+                        <div class="user-name">{{ current_user.name if current_user else 'User' }}</div>
+                        <div class="user-role">{{ current_user.role.upper() if current_user else 'AUDIT' }}</div>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="btn btn-small btn-secondary" style="margin-left: 10px;">Logout</a>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_logs }}</div>
+                    <p class="stat-label">Total Activity Logs</p>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-number">{{ successful_count }}</div>
+                    <p class="stat-label">Successful Actions</p>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-number">{{ failed_count }}</div>
+                    <p class="stat-label">Failed Actions</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ unique_users }}</div>
+                    <p class="stat-label">Active Users</p>
+                </div>
+            </div>
+
+            <!-- Recent Login Timeline -->
+            {% if login_logs %}
+            <div class="card">
+                <div class="card-header">Recent Login Activity</div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in login_logs %}
+                                <tr>
+                                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>{{ log.user_id }}</td>
+                                    <td>{{ log.details }}</td>
+                                    <td><span class="badge badge-success">Success</span></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Activity Logs -->
+            <div class="card">
+                <div class="card-header">All Activity Logs</div>
+                <div class="card-body">
+                    {% if logs %}
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User ID</th>
+                                    <th>Action</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td><strong>{{ log.user_id }}</strong></td>
+                                    <td>{{ log.action }}</td>
+                                    <td>{{ log.details }}</td>
+                                    <td>
+                                        {% if log.action == 'error' %}
+                                            <span class="badge badge-danger">Error</span>
+                                        {% else %}
+                                            <span class="badge badge-success">Success</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if total_pages > 1 %}
+                    <div class="pagination">
+                        {% if page > 1 %}
+                            <a href="{{ url_for('audit_dashboard', page=page-1) }}">← Previous</a>
+                        {% endif %}
+
+                        {% for p in range(1, total_pages + 1) %}
+                            {% if p == page %}
+                                <span class="active">{{ p }}</span>
+                            {% else %}
+                                <a href="{{ url_for('audit_dashboard', page=p) }}">{{ p }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page < total_pages %}
+                            <a href="{{ url_for('audit_dashboard', page=page+1) }}">Next →</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No activity logs found</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

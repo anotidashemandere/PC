@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Careers - Global Modern Business</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .careers-hero {
+            background: linear-gradient(135deg, #124e66 0%, #1f7a96 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .careers-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+
+        .careers-hero p {
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .jobs-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .job-listing {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .job-listing:hover {
+            box-shadow: 0 4px 12px rgba(18, 78, 102, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .job-listing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .job-listing h2 {
+            font-size: 1.8rem;
+            color: #124e66;
+            margin: 0;
+        }
+
+        .job-meta {
+            display: flex;
+            gap: 2rem;
+            margin: 1rem 0;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .job-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .job-description {
+            color: #555;
+            line-height: 1.6;
+            margin: 1.5rem 0;
+        }
+
+        .job-requirements {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .job-requirements h4 {
+            margin-top: 0;
+            color: #124e66;
+        }
+
+        .job-requirements ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .job-requirements li {
+            margin: 0.3rem 0;
+            color: #555;
+        }
+
+        .job-status {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #27ae60;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .job-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-apply {
+            background: linear-gradient(135deg, #124e66, #1f7a96);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(18, 78, 102, 0.25);
+        }
+
+        .btn-more-info {
+            background: white;
+            color: #124e66;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #124e66;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .btn-more-info:hover {
+            background: #124e66;
+            color: white;
+        }
+
+        .no-jobs {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .no-jobs h3 {
+            color: #124e66;
+            margin-bottom: 1rem;
+        }
+
+        .no-jobs p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .apply-link {
+            color: #124e66;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid #124e66;
+            transition: all 0.3s ease;
+        }
+
+        .apply-link:hover {
+            color: #1f7a96;
+            border-bottom-color: #1f7a96;
+        }
+
+        @media (max-width: 768px) {
+            .careers-hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .careers-hero p {
+                font-size: 1rem;
+            }
+
+            .job-listing-header {
+                flex-direction: column;
+            }
+
+            .job-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .job-actions {
+                flex-direction: column;
+            }
+
+            .btn-apply,
+            .btn-more-info {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" style="background: linear-gradient(135deg, #124e66, #1f7a96);">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;">
+            <a href="/" style="color: white; font-size: 1.5rem; font-weight: 700; text-decoration: none;">Global Modern Business</a>
+            <div style="display: flex; gap: 2rem; list-style: none;">
+                <a href="/" style="color: white; text-decoration: none;">Home</a>
+                <a href="/careers" style="color: white; text-decoration: none; font-weight: 600; border-bottom: 2px solid white;">Careers</a>
+                <a href="/login" style="color: white; text-decoration: none;">HR Portal</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="careers-hero">
+        <h1>Join Our Team</h1>
+        <p>We're looking for talented professionals to join our growing company. Explore our open positions and apply today.</p>
+    </div>
+
+    <div class="jobs-container">
+        {% if jobs %}
+            <h2 style="margin-bottom: 2rem; color: #124e66;">{{ jobs|length }} Open Position{% if jobs|length != 1 %}s{% endif %}</h2>
+            {% for job in jobs %}
+                <div class="job-listing">
+                    <div class="job-listing-header">
+                        <div>
+                            <h2>{{ job.title }}</h2>
+                            <span class="job-status">
+                                {% if job.status == 'open' %}
+                                    Active
+                                {% else %}
+                                    Closed
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="job-meta">
+                        <div class="job-meta-item">
+                            <span>📍</span>
+                            <span>{{ job.location }}</span>
+                        </div>
+                        <div class="job-meta-item">
+                            <span>🏢</span>
+                            <span>{{ job.department }}</span>
+                        </div>
+                        <div class="job-meta-item">
+                            <span>💼</span>
+                            <span>{{ job.employment_type or 'Full-time' }}</span>
+                        </div>
+                        {% if job.salary_range %}
+                        <div class="job-meta-item">
+                            <span>💰</span>
+                            <span>{{ job.salary_range }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="job-description">
+                        {{ job.description|truncate(300, True, '...') }}
+                    </div>
+
+                    {% if job.requirements %}
+                    <div class="job-requirements">
+                        <h4>Key Requirements</h4>
+                        <ul>
+                            {% for req in job.requirements|list[:5] %}
+                                <li>{{ req }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div style="color: #999; font-size: 0.85rem; margin-bottom: 1rem;">
+                        Due: {{ job.due_date.strftime('%B %d, %Y') }}
+                    </div>
+
+                    <div class="job-actions">
+                        <a href="{{ url_for('apply_to_job', job_id=job.id) }}" class="btn-apply">Apply Now</a>
+                        <a href="{{ url_for('view_job_detail', job_id=job.id) }}" class="btn-more-info">More Info</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-jobs">
+                <h3>No Open Positions</h3>
+                <p>We currently don't have any open positions, but we're always looking for talented professionals.</p>
+                <p>
+                    <a href="/" class="apply-link">Check back soon</a> or <a href="mailto:support@company.com" class="apply-link">contact us</a> to express your interest.
+                </p>
+            </div>
+        {% endif %}
+    </div>
+
+    <footer style="background: #124e66; color: white; padding: 2rem; text-align: center; margin-top: 4rem;">
+        <p>&copy; 2024 Global Modern Business. All rights reserved.</p>
+    </footer>
+</body>
+</html>

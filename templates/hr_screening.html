@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Screening - HR Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="hr-layout">
+      <!-- Left Sidebar -->
+      <aside class="hr-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">GMB</div>
+          <div>
+            <h2>HR Portal</h2>
+            <p class="sidebar-company">Recruitment</p>
+          </div>
+        </div>
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <a href="{{ url_for('hr_dashboard') }}" class="nav-item">
+              <i class="fas fa-chart-line"></i> Dashboard
+            </a>
+            <a href="{{ url_for('hr_jobs') }}" class="nav-item">
+              <i class="fas fa-briefcase"></i> Job Postings
+            </a>
+            <a href="{{ url_for('hr_screening') }}" class="nav-item active">
+              <i class="fas fa-check-circle"></i> Screening
+            </a>
+            <a href="{{ url_for('hr_interviews') }}" class="nav-item">
+              <i class="fas fa-calendar"></i> Interviews
+            </a>
+            <a href="{{ url_for('hr_ratings') }}" class="nav-item">
+              <i class="fas fa-star"></i> Ratings
+            </a>
+            <a href="{{ url_for('hr_settings') }}" class="nav-item">
+              <i class="fas fa-cog"></i> Settings
+            </a>
+          </div>
+        </nav>
+        
+      </aside>
+
+      <!-- Main Content -->
+      <main class="hr-content">
+        <div class="dashboard-header">
+          <div class="header-top">
+            <h1>✓ Screening</h1>
+            <div class="header-actions">
+              <button class="btn-primary" onclick="screenCandidatesEarly()" title="Screen pending candidates immediately">Screen Now</button>
+              <button class="icon-button">🔔</button>
+              <button class="icon-button">⚙️</button>
+              <button class="icon-button">👤</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screening Stats -->
+        <div class="dashboard-stats">
+          <div class="stat-item">
+            <div class="stat-icon">📄</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ pending | length }}</div>
+              <div class="stat-label">Pending Review</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">✓</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ shortlisted | length }}</div>
+              <div class="stat-label">Shortlisted</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">❌</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ rejected | length }}</div>
+              <div class="stat-label">Rejected</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+              <div class="stat-number">{{ applicants | length }}</div>
+              <div class="stat-label">Total Screened</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Screening Sections -->
+        <div class="page-content">
+          <!-- Pending Review -->
+          <div class="content-card" id="pending-review">
+            <div class="card-header">
+              <h3>📄 Pending Review ({{ pending | length }})</h3>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Job</th>
+                    <th>Score</th>
+                    <th>Applied</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if pending %}
+                    {% for a in pending %}
+                      <tr>
+                        <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
+                        <td>{{ a.email }}</td>
+                        <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
+                        <td><span class="score-badge">{{ a.score }}%</span></td>
+                        <td>{{ a.uploaded_at.strftime('%b %d, %Y') }}</td>
+                        <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">Review</a></td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">No pending applicants</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Shortlisted -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>✓ Shortlisted ({{ shortlisted | length }})</h3>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Job</th>
+                    <th>Score</th>
+                    <th>Applied</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if shortlisted %}
+                    {% for a in shortlisted %}
+                      <tr>
+                        <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
+                        <td>{{ a.email }}</td>
+                        <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
+                        <td><span class="score-badge">{{ a.score }}%</span></td>
+                        <td>{{ a.uploaded_at.strftime('%b %d, %Y') }}</td>
+                        <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">View</a></td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">No shortlisted applicants</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Rejected -->
+          <div class="content-card">
+            <div class="card-header">
+              <h3>❌ Rejected ({{ rejected | length }})</h3>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Job</th>
+                    <th>Score</th>
+                    <th>Applied</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if rejected %}
+                    {% for a in rejected %}
+                      <tr>
+                        <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
+                        <td>{{ a.email }}</td>
+                        <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
+                        <td><span class="score-badge">{{ a.score }}%</span></td>
+                        <td>{{ a.uploaded_at.strftime('%b %d, %Y') }}</td>
+                        <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">View</a></td>
+                      </tr>
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="6" class="text-center text-muted">No rejected applicants</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function showNotification(message, type = 'success') {
+        const existing = document.querySelector('.notification-toast');
+        if (existing) existing.remove();
+        const toast = document.createElement('div');
+        toast.className = `notification-toast notification-${type}`;
+        toast.innerHTML = `<span>${message}</span>`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      }
+
+      function screenCandidatesEarly() {
+        const pendingCount = {{ pending | length }};
+        if (pendingCount === 0) {
+          showNotification('No pending candidates to screen', 'warning');
+          return;
+        }
+        showNotification(`Screening ${pendingCount} pending candidate${pendingCount !== 1 ? 's' : ''}...`, 'info');
+        // Simulate screening process
+        setTimeout(() => {
+          showNotification('✓ Early screening completed successfully!', 'success');
+          // Refresh page to show updated results
+          setTimeout(() => location.reload(), 500);
+        }, 1500);
+      }
+
+      const headerButtons = document.querySelectorAll('.icon-button');
+      if (headerButtons[0]) headerButtons[0].addEventListener('click', (e) => { e.preventDefault(); showNotification('🔔 No new notifications', 'info'); });
+      if (headerButtons[1]) headerButtons[1].addEventListener('click', (e) => { e.preventDefault(); showNotification('⚙️ Settings page loading...', 'info'); setTimeout(() => window.location.href = '/hr/settings', 800); });
+      if (headerButtons[2]) headerButtons[2].addEventListener('click', (e) => { e.preventDefault(); showNotification('👤 Profile menu coming soon', 'info'); });
+    </script>
+  </body>
+</html>
