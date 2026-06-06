@@ -422,10 +422,10 @@
                             <tbody>
                                 {% for log in login_logs %}
                                 <tr>
-                                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp and log.timestamp is not string else log.timestamp }}</td>
                                     <td>{{ log.user_id }}</td>
                                     <td>{{ log.details }}</td>
-                                    <td><span class="badge badge-success">Success</span></td>
+                                    <td><span class="badge badge-{{ 'success' if log.status == 'success' else 'danger' }}">{{ log.status|title }}</span></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -454,17 +454,11 @@
                             <tbody>
                                 {% for log in logs %}
                                 <tr>
-                                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp and log.timestamp is not string else log.timestamp }}</td>
                                     <td><strong>{{ log.user_id }}</strong></td>
                                     <td>{{ log.action }}</td>
                                     <td>{{ log.details }}</td>
-                                    <td>
-                                        {% if log.action == 'error' %}
-                                            <span class="badge badge-danger">Error</span>
-                                        {% else %}
-                                            <span class="badge badge-success">Success</span>
-                                        {% endif %}
-                                    </td>
+                                    <td><span class="badge badge-{{ 'danger' if log.status != 'success' else 'success' }}">{{ log.status|title }}</span></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

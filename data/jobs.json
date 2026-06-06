@@ -1,0 +1,18 @@
+{
+  "hr-001": {
+    "id": "hr-001",
+    "title": "HR Operations & People Analyst",
+    "department": "Human Resources",
+    "location": "Hybrid",
+    "description": "We are hiring an HR Operations & People Analyst with strong communication, recruitment support, Excel, data analysis, and process improvement skills. Applicants should have 2+ years of experience and a bachelor or master degree.",
+    "due_date": "2026-06-15 17:00:00+00:00",
+    "application_link": "http://127.0.0.1:5000/jobs/hr-001/apply",
+    "requirements": [
+      "Communication skills",
+      "Excel proficiency",
+      "2+ years HR experience",
+      "Bachelor's degree"
+    ],
+    "custom_screening_criteria": "Focus on data analysis skills and process improvement experience"
+  }
+}

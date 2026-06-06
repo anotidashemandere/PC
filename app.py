@@ -1,156 +1,934 @@
-from __future__ import annotations
-
-from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-import csv
-import os
-import re
-from collections import defaultdict
-from pathlib import Path
-from io import StringIO
-from uuid import uuid4
-from functools import wraps
-from time import time
-
-from flask import Flask, flash, redirect, render_template, request, url_for, send_from_directory, Response, session, jsonify
+#!/usr/bin/env python
+"""HR System Flask Application"""
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.utils import secure_filename
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+import json
+import os
 
-from services.cv_scoring import ResumeUpload, rank_candidates
+app = Flask(__name__)
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-12345")
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+app.config["SESSION_COOKIE_HTTPONLY"] = True
 
+DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR.mkdir(exist_ok=True)
 
-BASE_DIR = Path(__file__).resolve().parent
-UPLOAD_FOLDER = BASE_DIR / "uploads"
-ALLOWED_EXTENSIONS = {"pdf", "docx", "txt"}
-ALLOWED_CERT_EXTENSIONS = {"pdf", "docx", "txt", "png", "jpg", "jpeg"}
-MAX_CERTIFICATIONS = 5
-
-EMAIL_REGEX = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
-PHONE_REGEX = re.compile(r"^[0-9+()\-\s]{7,20}$")
-
-RATE_LIMIT_STORE: dict[str, list[float]] = defaultdict(list)
-RATE_LIMITS = {
-    "login": (10, 60),  # max 10 attempts/minute/IP
-    "apply": (20, 60),  # max 20 submissions/minute/IP
-}
-
-
-@dataclass
-class JobPosting:
-    id: str
-    title: str
-    department: str
-    location: str
-    description: str
-    due_date: datetime
-    application_link: str = ""
-    requirements: list[str] = field(default_factory=list)
-    custom_screening_criteria: str = ""
+# In-memory storage
+USERS = {}
+JOBS = {}
+APPLICATIONS = {}
+ACTIVITY_LOGS = []
 
 
-@dataclass
-class ApplicationRecord:
-    id: str
-    job_id: str
-    name: str
-    surname: str
-    email: str
-    phone: str
-    highest_education: str
-    uploaded_at: datetime
-    resume_path: Path
-    certification_paths: list[Path] = field(default_factory=list)
-    note: str = ""
-    score: float = 0.0
-    matched_skills: list[str] = field(default_factory=list)
-    missing_skills: list[str] = field(default_factory=list)
-    summary: str = ""
-    recommendation: str = "Pending"
-    recommendation_reason: str = ""
-    status: str = "pending"
-    screened: bool = False
-    interview_scheduled: bool = False
-    interview_date: datetime | None = None
-    interview_notes: str = ""
-    hr_rating: float = 0.0
-    hr_feedback: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+def load_all_data():
+    """Load all data from disk"""
+    # Load users
+    users_file = DATA_DIR / "users.json"
+    if users_file.exists():
+        try:
+            with open(users_file, 'r') as f:
+                USERS.update(json.load(f))
+        except Exception as e:
+            print(f"Warning: Could not load users: {e}")
+
+    # Ensure default users exist
+    if not USERS:
+        USERS["user-001"] = {
+            "id": "user-001",
+            "email": "hr@company.com",
+            "name": "HR Manager",
+            "password_hash": generate_password_hash("password123"),
+            "role": "hr"
+        }
+        USERS["user-002"] = {
+            "id": "user-002",
+            "email": "audit@company.com",
+            "name": "Audit Manager",
+            "password_hash": generate_password_hash("password123"),
+            "role": "audit"
+        }
+        try:
+            with open(users_file, 'w') as f:
+                json.dump(USERS, f, indent=2, default=str)
+        except Exception as e:
+            print(f"Warning: Could not save default users: {e}")
+
+    # Load jobs
+    jobs_file = DATA_DIR / "jobs.json"
+    if jobs_file.exists():
+        try:
+            with open(jobs_file, 'r') as f:
+                JOBS.update(json.load(f))
+        except Exception as e:
+            print(f"Warning: Could not load jobs: {e}")
+
+    # Load applications
+    apps_file = DATA_DIR / "applications.json"
+    if apps_file.exists():
+        try:
+            with open(apps_file, 'r') as f:
+                APPLICATIONS.update(json.load(f))
+        except Exception as e:
+            print(f"Warning: Could not load applications: {e}")
+
+    # Load activity logs
+    logs_file = DATA_DIR / "activity_logs.json"
+    if logs_file.exists():
+        try:
+            with open(logs_file, 'r') as f:
+                for entry in json.load(f):
+                    if isinstance(entry.get('timestamp'), str):
+                        try:
+                            entry['timestamp'] = datetime.fromisoformat(entry['timestamp'])
+                        except Exception:
+                            entry['timestamp'] = datetime.now(timezone.utc)
+                    ACTIVITY_LOGS.append(entry)
+        except Exception as e:
+            print(f"Warning: Could not load activity logs: {e}")
 
 
-@dataclass
-class HRUser:
-    id: str
-    email: str
-    name: str
-    password_hash: str
-    role: str = "hr"  # hr, admin
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_login: datetime | None = None
+load_all_data()
 
 
-@dataclass
-class ActivityLog:
-    id: str
-    user_id: str
-    applicant_id: str
-    action: str
-    details: str
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+def log_activity(user_id, action, details="", status="success"):
+    """Append an activity log entry and persist it."""
+    entry = {
+        "user_id": user_id,
+        "action": action,
+        "details": details,
+        "status": status,
+        "timestamp": datetime.now(timezone.utc),
+    }
+    ACTIVITY_LOGS.append(entry)
+    try:
+        serializable = []
+        for e in ACTIVITY_LOGS[-1000:]:
+            ec = dict(e)
+            if isinstance(ec.get('timestamp'), datetime):
+                ec['timestamp'] = ec['timestamp'].isoformat()
+            serializable.append(ec)
+        with open(DATA_DIR / "activity_logs.json", 'w') as f:
+            json.dump(serializable, f, indent=2)
+    except Exception as ex:
+        print(f"Warning: Could not save activity logs: {ex}")
 
 
-@dataclass
-class AppSettings:
-    company_name: str = "Global Modern Business"
-    support_email: str = "support@company.com"
-    notification_email_enabled: bool = True
-    application_updates_enabled: bool = True
-    interview_reminders_enabled: bool = True
-    weekly_reports_enabled: bool = False
-    default_view: str = "dashboard"
-    items_per_page: int = 25
+def get_current_user():
+    """Get currently logged-in user"""
+    if "user_id" in session:
+        return USERS.get(session["user_id"])
+    return None
 
 
-JOBS: dict[str, JobPosting] = {}
-APPLICATIONS: dict[str, ApplicationRecord] = {}
-HR_USERS: dict[str, HRUser] = {}
-ACTIVITY_LOGS: list[ActivityLog] = []
-SETTINGS = AppSettings()
+@app.context_processor
+def inject_user():
+    return {'current_user': get_current_user()}
 
 
-def seed_users() -> None:
-    """Initialize default HR users for demo."""
-    if HR_USERS:
-        return
-    
-    # Default admin user: admin@company.com / password123
-    admin = HRUser(
-        id="user-001",
-        email="admin@company.com",
-        name="Admin User",
-        password_hash=hash_password("password123"),
-        role="admin"
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+
+@app.route("/health")
+def health():
+    return jsonify({
+        "status": "ok",
+        "users": len(USERS),
+        "jobs": len(JOBS),
+        "applications": len(APPLICATIONS),
+        "logs": len(ACTIVITY_LOGS),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+
+
+@app.route("/")
+def index():
+    user = get_current_user()
+    if user:
+        if user.get("role") == "audit":
+            return redirect(url_for("audit_dashboard"))
+        return redirect(url_for("hr_dashboard"))
+    jobs = [_wrap_job(j) for j in JOBS.values()]
+    return render_template("index.html", jobs=jobs)
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
+
+        user = None
+        for u in USERS.values():
+            if u.get("email", "").lower() == email:
+                user = u
+                break
+
+        if user and check_password_hash(user.get("password_hash", ""), password):
+            session.permanent = True
+            session["user_id"] = user["id"]
+            log_activity(user["id"], "login", f"User {user.get('email')} logged in", "success")
+            if user.get("role") == "audit":
+                return redirect(url_for("audit_dashboard"))
+            return redirect(url_for("hr_dashboard"))
+        else:
+            uid = user["id"] if user else "unknown"
+            log_activity(uid, "login_failed", f"Failed login for {email}", "failed")
+            flash("Invalid email or password.", "danger")
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    user = get_current_user()
+    if user:
+        log_activity(user["id"], "logout", f"User {user.get('email')} logged out", "success")
+    session.clear()
+    flash("Logged out successfully.", "info")
+    return redirect(url_for("login"))
+
+
+@app.route("/hr")
+def hr_dashboard():
+    user = get_current_user()
+    if not user:
+        flash("Please log in.", "warning")
+        return redirect(url_for("login"))
+    if user.get("role") != "hr":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+
+    dashboards = []
+    for job_id, job in JOBS.items():
+        applicants = [a for a in APPLICATIONS.values() if a.get("job_id") == job_id]
+        dashboards.append({
+            "job": job,
+            "applicants": applicants,
+            "applicant_count": len(applicants),
+        })
+
+    all_applicants = list(APPLICATIONS.values())
+    return render_template(
+        "hr_dashboard.html",
+        dashboards=dashboards,
+        applicants=all_applicants,
+        all_applicants=all_applicants,
     )
-    HR_USERS[admin.id] = admin
-    
-    # Default HR user: hr@company.com / password123
-    hr_user = HRUser(
-        id="user-002",
-        email="hr@company.com",
-        name="HR Manager",
-        password_hash=hash_password("password123"),
-        role="hr"
+
+
+@app.route("/audit")
+def audit_dashboard():
+    user = get_current_user()
+    if not user:
+        flash("Please log in.", "warning")
+        return redirect(url_for("login"))
+    if user.get("role") != "audit":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+
+    PER_PAGE = 25
+    page = max(1, request.args.get("page", 1, type=int))
+    action_filter = request.args.get("action", "").strip().lower()
+
+    # Sort newest first
+    all_logs = sorted(
+        ACTIVITY_LOGS,
+        key=lambda x: x.get("timestamp") or datetime.min.replace(tzinfo=timezone.utc),
+        reverse=True
     )
-    HR_USERS[hr_user.id] = hr_user
-    
-    # Default audit user: audit@company.com / password123
-    audit_user = HRUser(
-        id="user-003",
-        email="audit@company.com",
-        name="Audit Manager",
-        password_hash=hash_password("password123"),
-        role="audit"
+
+    filtered = [l for l in all_logs if action_filter in l.get("action", "").lower()] if action_filter else all_logs
+
+    total_logs = len(all_logs)
+    successful_count = sum(1 for l in all_logs if l.get("status") == "success")
+    failed_count = sum(1 for l in all_logs if l.get("status") != "success")
+    unique_users = len(set(l.get("user_id") for l in all_logs if l.get("user_id")))
+
+    login_logs = [l for l in all_logs if l.get("action") in ("login", "logout")][:20]
+
+    total_pages = max(1, (len(filtered) + PER_PAGE - 1) // PER_PAGE)
+    page = min(page, total_pages)
+    logs = filtered[(page - 1) * PER_PAGE: page * PER_PAGE]
+
+    return render_template(
+        "audit_dashboard.html",
+        logs=logs,
+        login_logs=login_logs,
+        total_logs=total_logs,
+        successful_count=successful_count,
+        failed_count=failed_count,
+        unique_users=unique_users,
+        page=page,
+        total_pages=total_pages,
+        action_filter=action_filter,
     )
-    HR_USERS[audit_user.id] = audit_user
+
+
+# ─── Helper: dict wrapper for attribute access in templates ───────────────
+class _DictObj:
+    """Wrap a plain dict so Jinja2 can access fields as attributes,
+    with special handling for file paths and datetimes."""
+    def __init__(self, d):
+        object.__setattr__(self, '_d', d or {})
+
+    def __getattr__(self, name):
+        d = object.__getattribute__(self, '_d')
+        val = d.get(name)
+        if name == 'resume_path' and val:
+            return Path(val)
+        if name == 'certification_paths':
+            return [Path(p) for p in (val or [])]
+        if name == 'uploaded_at' and isinstance(val, str):
+            try:
+                return datetime.fromisoformat(val)
+            except Exception:
+                return datetime.now(timezone.utc)
+        return val
+
+    def __getitem__(self, key):
+        return object.__getattribute__(self, '_d').get(key)
+
+    def __bool__(self):
+        return bool(object.__getattribute__(self, '_d'))
+
+
+class _AppObj(_DictObj):
+    @property
+    def job_ref(self):
+        job = JOBS.get(object.__getattribute__(self, '_d').get('job_id', ''))
+        return _DictObj(job) if job else None
+
+
+def _wrap_app(d):
+    return _AppObj(d)
+
+
+def _wrap_job(d):
+    return _DictObj(d)
+
+
+def _require_hr():
+    user = get_current_user()
+    if not user:
+        flash("Please log in.", "warning")
+        return None, redirect(url_for("login"))
+    if user.get("role") != "hr":
+        flash("Access denied.", "danger")
+        return None, redirect(url_for("login"))
+    return user, None
+
+
+# ─── HR sub-pages ──────────────────────────────────────────────────────────
+@app.route("/hr/jobs", methods=["GET"])
+def hr_jobs():
+    user, err = _require_hr()
+    if err:
+        return err
+    jobs = [_wrap_job(j) for j in JOBS.values()]
+    return render_template("hr_jobs.html", jobs=jobs)
+
+
+@app.route("/hr/jobs/post", methods=["POST"])
+def hr_post_job():
+    user, err = _require_hr()
+    if err:
+        return err
+    import uuid
+    job_id = str(uuid.uuid4())
+    JOBS[job_id] = {
+        "id": job_id,
+        "title": request.form.get("title", "").strip(),
+        "department": request.form.get("department", "").strip(),
+        "location": request.form.get("location", "").strip(),
+        "description": request.form.get("description", "").strip(),
+        "requirements": request.form.get("requirements", "").strip(),
+        "due_date": request.form.get("due_date", "").strip(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        with open(DATA_DIR / "jobs.json", "w") as f:
+            json.dump(JOBS, f, indent=2)
+    except Exception as e:
+        print(f"Warning: Could not save job: {e}")
+    flash("Job posted successfully.", "success")
+    return redirect(url_for("hr_jobs"))
+
+
+@app.route("/hr/screening")
+def hr_screening():
+    user, err = _require_hr()
+    if err:
+        return err
+    all_apps = [_wrap_app(a) for a in APPLICATIONS.values()]
+    pending = [a for a in all_apps if not a.status or a.status == "pending"]
+    shortlisted = [a for a in all_apps if a.status == "shortlisted"]
+    rejected = [a for a in all_apps if a.status == "rejected"]
+    return render_template(
+        "hr_screening.html",
+        applicants=all_apps,
+        pending=pending,
+        shortlisted=shortlisted,
+        rejected=rejected,
+    )
+
+
+@app.route("/hr/interviews")
+def hr_interviews():
+    user, err = _require_hr()
+    if err:
+        return err
+    applicants = [_wrap_app(a) for a in APPLICATIONS.values()
+                  if a.get("status") in ("shortlisted", "interview")]
+    return render_template("hr_interviews.html", applicants=applicants)
+
+
+@app.route("/hr/ratings")
+def hr_ratings():
+    user, err = _require_hr()
+    if err:
+        return err
+    applicants = [_wrap_app(a) for a in APPLICATIONS.values()]
+    return render_template("hr_ratings.html", applicants=applicants)
+
+
+@app.route("/hr/settings", methods=["GET"])
+def hr_settings():
+    user, err = _require_hr()
+    if err:
+        return err
+    return render_template("hr_settings.html")
+
+
+@app.route("/hr/settings/update", methods=["POST"])
+def hr_settings_update():
+    user, err = _require_hr()
+    if err:
+        return err
+    flash("Settings saved.", "success")
+    return redirect(url_for("hr_settings"))
+
+
+@app.route("/hr/applications/<application_id>")
+def hr_application_detail(application_id):
+    user, err = _require_hr()
+    if err:
+        return err
+    app_data = APPLICATIONS.get(application_id)
+    if not app_data:
+        flash("Application not found.", "danger")
+        return redirect(url_for("hr_screening"))
+    application = _wrap_app(app_data)
+    job = _wrap_job(JOBS.get(app_data.get("job_id", "")) or {})
+    return render_template("application_detail.html", application=application, job=job)
+
+
+@app.route("/hr/applications/<application_id>/action", methods=["POST"])
+def hr_application_action(application_id):
+    user, err = _require_hr()
+    if err:
+        return err
+    action = request.form.get("action", "")
+    if application_id in APPLICATIONS:
+        APPLICATIONS[application_id]["status"] = action
+        try:
+            with open(DATA_DIR / "applications.json", "w") as f:
+                json.dump(APPLICATIONS, f, indent=2, default=str)
+        except Exception as e:
+            print(f"Warning: Could not save applications: {e}")
+        flash(f"Application marked as {action}.", "success")
+    return redirect(url_for("hr_application_detail", application_id=application_id))
+
+
+@app.route("/applicants/<application_id>")
+def applicant_page(application_id):
+    app_data = APPLICATIONS.get(application_id)
+    if not app_data:
+        flash("Application not found.", "danger")
+        return redirect(url_for("index"))
+    application = _wrap_app(app_data)
+    job = _wrap_job(JOBS.get(app_data.get("job_id", "")) or {})
+    return render_template("applicant_page.html", application=application, job=job)
+
+
+@app.route("/hr/report")
+def hr_report_summary():
+    user, err = _require_hr()
+    if err:
+        return err
+    import csv, io
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Name", "Surname", "Email", "Job", "Score", "Status", "Applied"])
+    for a in APPLICATIONS.values():
+        job = JOBS.get(a.get("job_id", ""), {})
+        writer.writerow([
+            a.get("id", ""), a.get("name", ""), a.get("surname", ""),
+            a.get("email", ""), job.get("title", ""),
+            a.get("score", ""), a.get("status", ""), a.get("uploaded_at", ""),
+        ])
+    from flask import Response
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=report.csv"},
+    )
+
+
+@app.route("/hr/audit-log")
+def hr_audit_log():
+    user, err = _require_hr()
+    if err:
+        return err
+    serializable = []
+    for e in ACTIVITY_LOGS:
+        ec = dict(e)
+        if isinstance(ec.get("timestamp"), datetime):
+            ec["timestamp"] = ec["timestamp"].isoformat()
+        serializable.append(ec)
+    return jsonify(serializable)
+
+
+# ─── Public job / apply routes ─────────────────────────────────────────────
+@app.route("/jobs/<job_id>")
+def job_detail(job_id):
+    job_data = JOBS.get(job_id)
+    if not job_data:
+        flash("Job not found.", "danger")
+        return redirect(url_for("index"))
+    job = _wrap_job(job_data)
+    applications = [_wrap_app(a) for a in APPLICATIONS.values() if a.get("job_id") == job_id]
+    return render_template("job_detail.html", job=job, applications=applications)
+
+
+@app.route("/jobs/<job_id>/apply", methods=["GET", "POST"])
+def apply(job_id):
+    job_data = JOBS.get(job_id)
+    if not job_data:
+        flash("Job not found.", "danger")
+        return redirect(url_for("index"))
+    job = _wrap_job(job_data)
+    if request.method == "POST":
+        import uuid
+        from werkzeug.utils import secure_filename
+        app_id = str(uuid.uuid4())
+        resume_path = ""
+        resume_file = request.files.get("resume")
+        if resume_file and resume_file.filename:
+            filename = secure_filename(resume_file.filename)
+            upload_dir = Path(__file__).parent / "uploads"
+            upload_dir.mkdir(exist_ok=True)
+            save_path = upload_dir / filename
+            resume_file.save(str(save_path))
+            resume_path = str(save_path)
+        APPLICATIONS[app_id] = {
+            "id": app_id,
+            "job_id": job_id,
+            "name": request.form.get("name", "").strip(),
+            "surname": request.form.get("surname", "").strip(),
+            "email": request.form.get("email", "").strip(),
+            "phone": request.form.get("phone", "").strip(),
+            "highest_education": request.form.get("highest_education", "").strip(),
+            "note": request.form.get("note", "").strip(),
+            "resume_path": resume_path,
+            "certification_paths": [],
+            "status": "pending",
+            "score": 0,
+            "summary": "",
+            "recommendation": "",
+            "matched_skills": [],
+            "missing_skills": [],
+            "uploaded_at": datetime.now(timezone.utc).isoformat(),
+        }
+        try:
+            with open(DATA_DIR / "applications.json", "w") as f:
+                json.dump(APPLICATIONS, f, indent=2, default=str)
+        except Exception as e:
+            print(f"Warning: Could not save application: {e}")
+        return redirect(url_for("success_page", application_id=app_id))
+    return render_template("apply.html", job=job)
+
+
+@app.route("/success")
+def success_page():
+    application_id = request.args.get("application_id", "")
+    app_data = APPLICATIONS.get(application_id) or {}
+    application = _wrap_app(app_data)
+    job = _wrap_job(JOBS.get(app_data.get("job_id", "")) or {})
+    return render_template("success.html", application=application, job=job)
+
+
+@app.route("/uploads/<filename>")
+def uploaded_file(filename):
+    from flask import send_from_directory
+    from werkzeug.utils import secure_filename
+    safe_name = secure_filename(filename)
+    upload_dir = Path(__file__).parent / "uploads"
+    return send_from_directory(str(upload_dir), safe_name)
+
+
+if __name__ == "__main__":
+    print("\n" + "=" * 60)
+    print("HR System - Flask Application")
+    print("=" * 60)
+    print("URL:  http://localhost:5000")
+    print("HR:   hr@company.com / password123")
+    print("Audit: audit@company.com / password123")
+    print("=" * 60 + "\n")
+    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=True)
+
+    users_file = DATA_DIR / "users.json"
+    if users_file.exists():
+        try:
+            with open(users_file, 'r') as f:
+                USERS.update(json.load(f))
+        except Exception as e:
+            print(f"Warning: Could not load users: {e}")
+    
+    # Ensure default users exist
+    if not USERS:
+        USERS["user-001"] = {
+            "id": "user-001",
+            "email": "hr@company.com",
+            "name": "HR Manager",
+            "password_hash": generate_password_hash("password123"),
+            "role": "hr"
+        }
+        USERS["user-002"] = {
+            "id": "user-002",
+            "email": "audit@company.com",
+            "name": "Audit Manager",
+            "password_hash": generate_password_hash("password123"),
+            "role": "audit"
+        }
+        # Save default users
+        try:
+            with open(users_file, 'w') as f:
+                json.dump(USERS, f, indent=2, default=str)
+        except Exception as e:
+            print(f"Warning: Could not save default users: {e}")
+    
+    # Load jobs
+    jobs_file = DATA_DIR / "jobs.json"
+    if jobs_file.exists():
+        try:
+            with open(jobs_file, 'r') as f:
+                JOBS.update(json.load(f))
+        except Exception as e:
+            print(f"Warning: Could not load jobs: {e}")
+    
+    # Load applications
+    apps_file = DATA_DIR / "applications.json"
+    if apps_file.exists():
+        try:
+            with open(apps_file, 'r') as f:
+                APPLICATIONS.update(json.load(f))
+        except Exception as e:
+            print(f"Warning: Could not load applications: {e}")
+
+    # Load activity logs
+    logs_file = DATA_DIR / "activity_logs.json"
+    if logs_file.exists():
+        try:
+            with open(logs_file, 'r') as f:
+                for entry in json.load(f):
+                    # Parse timestamp string back to datetime if needed
+                    if isinstance(entry.get('timestamp'), str):
+                        try:
+                            entry['timestamp'] = datetime.fromisoformat(entry['timestamp'])
+                        except Exception:
+                            entry['timestamp'] = datetime.now(timezone.utc)
+                    ACTIVITY_LOGS.append(entry)
+        except Exception as e:
+            print(f"Warning: Could not load activity logs: {e}")
+
+# Load data at startup
+load_all_data()
+
+def log_activity(user_id, action, details="", status="success"):
+    """Append an activity log entry and persist it."""
+    entry = {
+        "user_id": user_id,
+        "action": action,
+        "details": details,
+        "status": status,
+        "timestamp": datetime.now(timezone.utc),
+    }
+    ACTIVITY_LOGS.append(entry)
+    # Persist (keep last 1000)
+    try:
+        serializable = []
+        for e in ACTIVITY_LOGS[-1000:]:
+            ec = dict(e)
+            if isinstance(ec.get('timestamp'), datetime):
+                ec['timestamp'] = ec['timestamp'].isoformat()
+            serializable.append(ec)
+        with open(DATA_DIR / "activity_logs.json", 'w') as f:
+            json.dump(serializable, f, indent=2)
+    except Exception as ex:
+        print(f"Warning: Could not save activity logs: {ex}")
+
+def get_current_user():
+    """Get currently logged-in user"""
+    if "user_id" in session:
+        return USERS.get(session["user_id"])
+    return None
+
+@app.context_processor
+def inject_user():
+    """Make current user available in templates"""
+    return {'current_user': get_current_user()}
+
+@app.after_request
+def add_security_headers(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+@app.route("/health")
+def health():
+    """Health check"""
+    return jsonify({
+        "status": "ok",
+        "users": len(USERS),
+        "jobs": len(JOBS),
+        "applications": len(APPLICATIONS),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    })
+
+@app.route("/")
+def index():
+    """Redirect to dashboard"""
+    user = get_current_user()
+    if user:
+        if user.get("role") == "audit":
+            return redirect(url_for("audit_dashboard"))
+        else:
+            return redirect(url_for("hr_dashboard"))
+    return redirect(url_for("login"))
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Login page"""
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
+        
+        # Find user
+        user = None
+        for u in USERS.values():
+            if u.get("email", "").lower() == email:
+                user = u
+                break
+        
+        # Verify credentials
+        if user and check_password_hash(user.get("password_hash", ""), password):
+            session.permanent = True
+            session["user_id"] = user["id"]
+            
+            if user.get("role") == "audit":
+                return redirect(url_for("audit_dashboard"))
+            else:
+                return redirect(url_for("hr_dashboard"))
+        else:
+            flash("Invalid email or password.", "danger")
+    
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    """Logout"""
+    session.clear()
+    flash("Logged out successfully.", "info")
+    return redirect(url_for("login"))
+
+@app.route("/hr")
+def hr_dashboard():
+    """HR Dashboard"""
+    user = get_current_user()
+    if not user:
+        flash("Please log in.", "warning")
+        return redirect(url_for("login"))
+    
+    if user.get("role") != "hr":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+    
+    dashboards = []
+    for job_id, job in JOBS.items():
+        applicants = [a for a in APPLICATIONS.values() if a.get("job_id") == job_id]
+        dashboards.append({
+            "job": job,
+            "applicants": applicants,
+            "applicant_count": len(applicants),
+        })
+    
+    return render_template("hr_dashboard.html", dashboards=dashboards, applicants=list(APPLICATIONS.values()))
+
+@app.route("/audit")
+def audit_dashboard():
+    """Audit Dashboard"""
+    user = get_current_user()
+    if not user:
+        flash("Please log in.", "warning")
+        return redirect(url_for("login"))
+    if user.get("role") != "audit":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+
+    PER_PAGE = 25
+    page = max(1, request.args.get("page", 1, type=int))
+    action_filter = request.args.get("action", "").strip().lower()
+
+    all_logs = sorted(
+        ACTIVITY_LOGS,
+        key=lambda x: x.get("timestamp") or datetime.min.replace(tzinfo=timezone.utc),
+        reverse=True
+    )
+    filtered = [l for l in all_logs if action_filter in l.get("action", "").lower()] if action_filter else all_logs
+
+    total_logs = len(all_logs)
+    successful_count = sum(1 for l in all_logs if l.get("status") == "success")
+    failed_count = sum(1 for l in all_logs if l.get("status") != "success")
+    unique_users = len(set(l.get("user_id") for l in all_logs if l.get("user_id")))
+    login_logs = [l for l in all_logs if l.get("action") in ("login", "logout")][:20]
+
+    total_pages = max(1, (len(filtered) + PER_PAGE - 1) // PER_PAGE)
+    page = min(page, total_pages)
+    logs = filtered[(page - 1) * PER_PAGE: page * PER_PAGE]
+
+    return render_template(
+        "audit_dashboard.html",
+        logs=logs,
+        login_logs=login_logs,
+        total_logs=total_logs,
+        successful_count=successful_count,
+        failed_count=failed_count,
+        unique_users=unique_users,
+        page=page,
+        total_pages=total_pages,
+        action_filter=action_filter,
+    )
+
+if __name__ == "__main__":
+    print("\n" + "=" * 60)
+    print("HR System - Flask Application")
+    print("=" * 60)
+    print(f"Starting on http://localhost:5000")
+    print()
+    print("Default Credentials:")
+    print("  HR User:    hr@company.com / password123")
+    print("  Audit User: audit@company.com / password123")
+    print("=" * 60 + "\n")
+    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=True)
+
+
+@app.route("/audit")
+def audit_dashboard():
+    """Audit Dashboard"""
+    user = get_current_user()
+    if not user:
+        flash("Please log in.", "warning")
+        return redirect(url_for("login"))
+    
+    if user.get("role") != "audit":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+    
+    return render_template("audit_dashboard.html")
+
+if __name__ == "__main__":
+    print("\n" + "=" * 60)
+    print("HR System - Flask Application")
+    print("=" * 60)
+    print(f"Starting on http://localhost:5000")
+    print()
+    print("Default Credentials:")
+    print("  HR User:    hr@company.com / password123")
+    print("  Audit User: audit@company.com / password123")
+    print("=" * 60 + "\n")
+    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=True)
+
+
+if __name__ == "__main__":
+    print(f"Starting Flask app on port 5000...")
+    try:
+        app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    except Exception as e:
+        print(f"ERROR running app: {e}")
+        import traceback
+        traceback.print_exc()
+
+        user_dict['password_hash'] = user.password_hash  # Keep the hash
+        users_data[user_id] = user_dict
+    with open(DATA_DIR / "users.json", "w") as f:
+        json.dump(users_data, f, indent=2, default=str)
+    
+    # Save activity logs
+    logs_data = [_serialize_dataclass(log) for log in ACTIVITY_LOGS]
+    with open(DATA_DIR / "activity_logs.json", "w") as f:
+        json.dump(logs_data, f, indent=2, default=str)
+
+
+def load_persistent_data() -> None:
+    """Load jobs, applications, and users from JSON files."""
+    _ensure_data_dir()
+    
+    # Try to load jobs
+    jobs_file = DATA_DIR / "jobs.json"
+    if jobs_file.exists():
+        try:
+            with open(jobs_file, "r") as f:
+                jobs_data = json.load(f)
+                for job_id, job_dict in jobs_data.items():
+                    job_dict['due_date'] = datetime.fromisoformat(job_dict['due_date']) if job_dict.get('due_date') else None
+                    job_dict['created_at'] = datetime.fromisoformat(job_dict['created_at']) if job_dict.get('created_at') else None
+                    JOBS[job_id] = JobPosting(**job_dict)
+        except Exception as e:
+            print(f"Error loading jobs: {e}")
+    
+    # Try to load applications
+    apps_file = DATA_DIR / "applications.json"
+    if apps_file.exists():
+        try:
+            with open(apps_file, "r") as f:
+                apps_data = json.load(f)
+                for app_id, app_dict in apps_data.items():
+                    if app_dict.get('created_at'):
+                        app_dict['created_at'] = datetime.fromisoformat(app_dict['created_at'])
+                    APPLICATIONS[app_id] = ApplicationRecord(**app_dict)
+        except Exception as e:
+            print(f"Error loading applications: {e}")
+    
+    # Try to load users
+    users_file = DATA_DIR / "users.json"
+    if users_file.exists():
+        try:
+            with open(users_file, "r") as f:
+                users_data = json.load(f)
+                for user_id, user_dict in users_data.items():
+                    HR_USERS[user_id] = HRUser(**user_dict)
+        except Exception as e:
+            print(f"Error loading users: {e}")
+    
+    # Try to load activity logs
+    logs_file = DATA_DIR / "activity_logs.json"
+    if logs_file.exists():
+        try:
+            with open(logs_file, "r") as f:
+                logs_data = json.load(f)
+                for log_dict in logs_data:
+                    log_dict['timestamp'] = datetime.fromisoformat(log_dict['timestamp']) if log_dict.get('timestamp') else None
+                    ACTIVITY_LOGS.append(ActivityLog(**log_dict))
+        except Exception as e:
+            print(f"Error loading activity logs: {e}")
 
 
 def hash_password(password: str) -> str:
@@ -250,15 +1028,15 @@ def login_required(f):
 
 
 def admin_required(f):
-    """Decorator to require admin role for route."""
+    """Backward-compatible decorator that now requires HR role."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             flash('Please log in first.', 'warning')
             return redirect(url_for('login'))
         user = HR_USERS.get(session['user_id'])
-        if not user or user.role != 'admin':
-            flash('Admin access required.', 'danger')
+        if not user or user.role != 'hr':
+            flash('HR access required.', 'danger')
             return redirect(url_for('hr_dashboard'))
         return f(*args, **kwargs)
     return decorated_function
@@ -355,45 +1133,85 @@ def screen_job_applications(job_id: str) -> list[ApplicationRecord]:
 
 
 def create_app() -> Flask:
-    app = Flask(__name__)
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
-    app.config["UPLOAD_FOLDER"] = str(UPLOAD_FOLDER)
-    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
-    app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HTTPS
-    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+    try:
+        app = Flask(__name__)
+        app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
+        app.config["UPLOAD_FOLDER"] = str(UPLOAD_FOLDER)
+        app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+        app.config["SESSION_COOKIE_HTTPONLY"] = True
+        app.config["SESSION_COOKIE_SECURE"] = False  # Set to True in production with HTTPS
+        app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 
-    if os.environ.get("FLASK_ENV") == "production":
-        app.config["SESSION_COOKIE_SECURE"] = True
+        # Database Configuration - PostgreSQL
+        db_user = os.environ.get("DB_USER", "postgres")
+        db_password = os.environ.get("DB_PASSWORD", "postgres")
+        db_host = os.environ.get("DB_HOST", "localhost")
+        db_port = os.environ.get("DB_PORT", "5432")
+        db_name = os.environ.get("DB_NAME", "hr_system")
+        
+        app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+        app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+        
+        # SMTP Configuration
+        app.config["MAIL_SERVER"] = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
+        app.config["MAIL_PORT"] = int(os.environ.get("MAIL_PORT", 587))
+        app.config["MAIL_USE_TLS"] = os.environ.get("MAIL_USE_TLS", True)
+        app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME", "")
+        app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD", "")
+        app.config["MAIL_DEFAULT_SENDER"] = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@company.com")
 
-    UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
-    seed_jobs()
-    seed_users()
+        if os.environ.get("FLASK_ENV") == "production":
+            app.config["SESSION_COOKIE_SECURE"] = True
 
-    @app.context_processor
-    def inject_user():
-        """Make current user available in all templates."""
-        return {
-            'current_user': get_current_user(),
-            'settings': SETTINGS,
-        }
+        UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            load_persistent_data()  # Load from disk first
+        except Exception as e:
+            print(f"Warning: Could not load persistent data: {e}")
+        
+        try:
+            seed_jobs()  # Create defaults if no data loaded
+            seed_users()  # Create default users if none loaded
+            if not HR_USERS:
+                seed_users()  # Ensure users exist
+            save_persistent_data()  # Save initial state to disk
+        except Exception as e:
+            print(f"Warning: Could not initialize data: {e}")
 
-    @app.after_request
-    def add_security_headers(response):
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Cache-Control"] = "no-store"
-        return response
+        @app.context_processor
+        def inject_user():
+            """Make current user available in all templates."""
+            return {
+                'current_user': get_current_user(),
+                'settings': SETTINGS,
+            }
 
-    @app.get("/health")
-    def health():
-        return jsonify({
-            "status": "ok",
-            "jobs": len(JOBS),
-            "applications": len(APPLICATIONS),
-            "utc_time": datetime.now(timezone.utc).isoformat(),
-        })
+        @app.after_request
+        def add_security_headers(response):
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+            response.headers["Cache-Control"] = "no-store"
+            return response
+
+        @app.get("/health")
+        def health():
+            return jsonify({
+                "status": "ok",
+                "jobs": len(JOBS),
+                "applications": len(APPLICATIONS),
+                "utc_time": datetime.now(timezone.utc).isoformat(),
+            })
+
+        # ... rest of routes ...
+        return app
+    
+    except Exception as e:
+        print(f"CRITICAL ERROR in create_app: {e}")
+        import traceback
+        traceback.print_exc()
+        raise  # Re-raise so we know there was a problem
 
     @app.get("/login")
     def login():
@@ -418,6 +1236,10 @@ def create_app() -> Flask:
         user = find_user_by_email(email)
         if not user or not verify_password(password, user.password_hash):
             flash("Invalid email or password.", "danger")
+            return redirect(url_for("login"))
+
+        if user.role not in {"hr", "audit"}:
+            flash("This account type is not allowed to sign in.", "danger")
             return redirect(url_for("login"))
 
         session.permanent = True
@@ -583,6 +1405,7 @@ def create_app() -> Flask:
 
         application.certification_paths = saved_certs
         APPLICATIONS[application.id] = application
+        save_persistent_data()  # Persist to disk
 
         if get_current_user():
             log_activity(get_current_user().id, application.id, "application_created_internal", f"Application created for job {job_id}")
@@ -712,6 +1535,7 @@ def create_app() -> Flask:
         user = get_current_user()
         if user:
             log_activity(user.id, "-", "job_posted", f"Posted job {job.title} ({job.id})")
+        save_persistent_data()  # Persist to disk
         flash(f"Job '{title}' posted successfully. Application link: {application_link}", "success")
         return redirect(url_for("hr_jobs"))
 
@@ -1039,8 +1863,51 @@ def create_app() -> Flask:
     return app
 
 
-app = create_app()
+# Global error holder for fallback app
+_startup_error = None
+
+try:
+    print("Creating Flask app...")
+    app = create_app()
+    print("✓ Flask app created successfully")
+except Exception as e:
+    _startup_error = str(e)
+    print(f"✗ FATAL ERROR during app initialization: {e}")
+    import traceback
+    traceback.print_exc()
+    
+    # Create a minimal fallback app that shows the error
+    app = Flask(__name__)
+    app.config["SECRET_KEY"] = "fallback-key"
+    
+    error_msg = str(e)
+    
+    @app.get("/")
+    def error_page():
+        return f"""
+        <h1 style="color: red;">⚠️ Application Error</h1>
+        <p><strong>Error Message:</strong></p>
+        <pre style="background: #f0f0f0; padding: 10px; border-radius: 5px;">
+        {error_msg}
+        </pre>
+        <p><strong>Next Steps:</strong></p>
+        <ul>
+            <li>Run: <code>pip install -r requirements.txt</code></li>
+            <li>Check the console output above for details</li>
+            <li>Restart the application</li>
+        </ul>
+        """, 500
+    
+    @app.get("/login")
+    def login_error():
+        return error_page()[0], 503
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    print(f"Starting Flask app on port 5000...")
+    try:
+        app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    except Exception as e:
+        print(f"ERROR running app: {e}")
+        import traceback
+        traceback.print_exc()

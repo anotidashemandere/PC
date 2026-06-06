@@ -36,14 +36,14 @@
         }
 
         .login-header .logo {
-            font-size: 36px;
+            font-size: 18px;
             font-weight: 700;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             background: linear-gradient(135deg, #f39c12, #e67e22);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
         }
 
         .logo-container {
@@ -263,15 +263,8 @@
         <!-- Header -->
         <div class="login-header">
         <div class="logo-container" id="logoContainer" onclick="document.getElementById('logoUploadInput').click()" title="Click to change logo" style="cursor:pointer; position:relative;">
-                <img id="customLogoImg" src="" alt="" style="display:none;width:80px;height:80px;border-radius:12px;object-fit:contain;border:2px solid rgba(243,156,18,0.5);">
-                <svg id="defaultLogoSvg" width="64" height="64" viewBox="0 0 100 100" style="margin-bottom: 15px;">
-                    <!-- Background circle -->
-                    <circle cx="50" cy="50" r="48" fill="#f39c12" opacity="0.2"/>
-                    <!-- Main shape -->
-                    <rect x="25" y="25" width="50" height="50" fill="none" stroke="#f39c12" stroke-width="3" rx="8"/>
-                    <!-- G -->
-                    <text x="50" y="70" font-size="48" font-weight="700" fill="#f39c12" text-anchor="middle" font-family="Arial, sans-serif">G</text>
-                </svg>
+            <img id="customLogoImg" src="" alt="Custom logo" style="display:none;width:180px;max-width:100%;height:auto;border-radius:8px;object-fit:contain;border:2px solid rgba(243,156,18,0.5);margin-bottom:10px;background:#fff;">
+            <img id="defaultLogoImg" src="{{ url_for('static', filename='gmb-logo.png') }}" alt="GMB Logo" style="width:180px;max-width:100%;height:auto;margin-bottom:10px;border-radius:8px;background:#fff;padding:4px;">
                 <div style="position:absolute;bottom:-4px;right:-4px;background:#f39c12;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-camera" style="font-size:10px;color:white;"></i></div>
                 <input type="file" id="logoUploadInput" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)">
             </div>
@@ -287,15 +280,17 @@
                 {% if messages %}
                     <div class="alerts">
                         {% for category, message in messages %}
+                            {% if not (message is string and message.startswith('Welcome,')) %}
                             <div class="alert alert-{{ category }}">
                                 {{ message }}
                             </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 {% endif %}
             {% endwith %}
 
-            <form method="POST" action="{{ url_for('login_post') }}">
+            <form method="POST" action="{{ url_for('login') }}">
                 <div class="form-group">
                     <i class="fas fa-envelope"></i>
                     <label for="email">Email Address</label>
@@ -337,6 +332,16 @@
                         <span class="role">HR</span>
                     </div>
                 </div>
+
+                <div class="demo-cred" style="margin-top: 12px;">
+                    <strong>Audit Account:</strong>
+                    <div style="margin-top: 4px;">
+                        Email: <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">audit@company.com</code>
+                        <br>
+                        Pass: <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">password123</code>
+                        <span class="role">AUDIT</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -354,7 +359,7 @@
         if (saved) {
           document.getElementById('customLogoImg').src = saved;
           document.getElementById('customLogoImg').style.display = 'block';
-          document.getElementById('defaultLogoSvg').style.display = 'none';
+                    document.getElementById('defaultLogoImg').style.display = 'none';
         }
       })();
 
@@ -366,7 +371,7 @@
           const dataUrl = e.target.result;
           document.getElementById('customLogoImg').src = dataUrl;
           document.getElementById('customLogoImg').style.display = 'block';
-          document.getElementById('defaultLogoSvg').style.display = 'none';
+                    document.getElementById('defaultLogoImg').style.display = 'none';
           localStorage.setItem('gmb_login_logo', dataUrl);
         };
         reader.readAsDataURL(file);

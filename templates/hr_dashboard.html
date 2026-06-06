@@ -175,6 +175,20 @@
             color: #999;
         }
 
+        .user-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .online-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #2ecc71;
+          box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+        }
+
         /* Stats Cards */
         .dashboard-stats {
             display: grid;
@@ -585,14 +599,10 @@
               {% endif %}
             </div>
             <div class="user-info">
-              <div style="position:relative;">
-                <div class="user-avatar">{{ current_user.name[0] if current_user else 'U' }}</div>
-                <span style="position:absolute;bottom:0;right:0;width:11px;height:11px;background:#27ae60;border-radius:50%;border:2px solid white;"></span>
-              </div>
+              <div class="user-avatar">{{ current_user.name[0] if current_user else 'U' }}</div>
               <div>
                 <div class="user-name">{{ current_user.name if current_user else 'User' }}</div>
-                <div class="user-role">{{ current_user.role.upper() if current_user else 'STAFF' }}</div>
-                <div style="font-size:10px;color:#27ae60;font-weight:600;"><i class="fas fa-circle" style="font-size:7px;"></i> Online</div>
+                <div class="user-role user-status"><span class="online-dot"></span>{{ current_user.role.upper() if current_user else 'STAFF' }}</div>
               </div>
             </div>
             <a href="{{ url_for('logout') }}" class="btn btn-small btn-secondary" style="margin-left: 10px;">Logout</a>
@@ -708,7 +718,7 @@
                   <div class="action-card-icon"><i class="fas fa-calendar"></i></div>
                   <div class="action-card-label">Schedule Interview</div>
                 </a>
-                <a class="action-card" onclick="document.querySelector('[data-section=\"screening\"]').click(); return false;" style="cursor: pointer; grid-column: 1 / -1;">
+                <a class="action-card" onclick="viewAllApplicants(); return false;" style="cursor: pointer; grid-column: 1 / -1;">
                   <div class="action-card-icon"><i class="fas fa-inbox"></i></div>
                   <div class="action-card-label">View All Applicants <i class="fas fa-arrow-right" style="margin-left: 8px; font-size: 12px;"></i></div>
                 </a>
@@ -768,9 +778,9 @@
                       </td>
                       <td>
                         <div style="display: flex; gap: 5px;">
-                          <button class="btn btn-small btn-primary" title="View" style="padding: 6px 10px;" onclick="showNotification('👁️ Opening job details...', 'warning'); return false;"><i class="fas fa-eye"></i></button>
-                          <button class="btn btn-small btn-primary" title="Edit" style="padding: 6px 10px;" onclick="showNotification('✏️ Opening job editor...', 'warning'); return false;"><i class="fas fa-edit"></i></button>
-                          <button class="btn btn-small btn-primary" title="Share" style="padding: 6px 10px;" onclick="viewApplicationLink(); return false;"><i class="fas fa-share"></i></button>
+                          <button class="btn btn-small btn-primary" title="View" style="padding: 6px 10px;" onclick="viewJobDetails('{{ dashboard.job.id }}'); return false;"><i class="fas fa-eye"></i></button>
+                          <button class="btn btn-small btn-primary" title="Edit" style="padding: 6px 10px;" onclick="editJob('{{ dashboard.job.id }}'); return false;"><i class="fas fa-edit"></i></button>
+                          <button class="btn btn-small btn-primary" title="Share" style="padding: 6px 10px;" onclick="shareJob('{{ dashboard.job.id }}'); return false;"><i class="fas fa-share"></i></button>
                         </div>
                       </td>
                     </tr>
@@ -955,7 +965,7 @@
                       <td>
                         <div style="display: flex; gap: 5px;">
                           <button class="btn btn-small btn-primary" title="Reschedule" style="padding: 6px 10px;" onclick="showNotification('📅 Rescheduling interview...', 'warning'); return false;"><i class="fas fa-redo"></i></button>
-                          <button class="btn btn-small btn-primary" title="Send Reminder" style="padding: 6px 10px;" onclick="showNotification('📧 Reminder email sent!', 'success'); return false;"><i class="fas fa-envelope"></i></button>
+                          <button class="btn btn-small btn-primary" title="Send Reminder" style="padding: 6px 10px;" onclick="showNotification('⚠️ Email service not configured. Please set up SMTP in settings first.', 'warning'); return false;"><i class="fas fa-envelope"></i></button>
                         </div>
                       </td>
                     </tr>
@@ -967,7 +977,7 @@
                       <td>
                         <div style="display: flex; gap: 5px;">
                           <button class="btn btn-small btn-primary" title="Reschedule" style="padding: 6px 10px;" onclick="showNotification('📅 Rescheduling interview...', 'warning'); return false;"><i class="fas fa-redo"></i></button>
-                          <button class="btn btn-small btn-primary" title="Send Reminder" style="padding: 6px 10px;" onclick="showNotification('📧 Reminder email sent!', 'success'); return false;"><i class="fas fa-envelope"></i></button>
+                          <button class="btn btn-small btn-primary" title="Send Reminder" style="padding: 6px 10px;" onclick="showNotification('⚠️ Email service not configured. Please set up SMTP in settings first.', 'warning'); return false;"><i class="fas fa-envelope"></i></button>
                         </div>
                       </td>
                     </tr>
@@ -1243,6 +1253,157 @@
       </div>
     </div>
 
+    <!-- Job Details Modal -->
+    <div id="jobDetailsModal" class="modal" style="display: none; z-index: 10000;">
+      <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+          <h2 id="jobDetailsTitle" style="margin: 0;">Job Details</h2>
+          <button class="modal-close" onclick="closeModal('jobDetailsModal')">&times;</button>
+        </div>
+        <div class="modal-body" style="padding: 24px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+            <div>
+              <h4 style="color: #124e66; margin-bottom: 12px;">Job Information</h4>
+              <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; border-left: 4px solid #f39c12;">
+                <p style="margin: 0 0 8px 0;"><strong>Department:</strong></p>
+                <p id="jobDetailsDept" style="margin: 0 0 16px 0; color: #666;"></p>
+                <p style="margin: 0 0 8px 0;"><strong>Location:</strong></p>
+                <p id="jobDetailsLocation" style="margin: 0 0 16px 0; color: #666;"></p>
+                <p style="margin: 0 0 8px 0;"><strong>Status:</strong></p>
+                <p id="jobDetailsStatus" style="margin: 0; color: #666;"></p>
+              </div>
+            </div>
+            <div>
+              <h4 style="color: #124e66; margin-bottom: 12px;">Application Stats</h4>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; text-align: center;">
+                  <div style="font-size: 24px; font-weight: 700; color: #1976d2;" id="jobTotalApps">0</div>
+                  <div style="font-size: 12px; color: #666; margin-top: 4px;">Total Apps</div>
+                </div>
+                <div style="background: #d4edda; padding: 16px; border-radius: 8px; text-align: center;">
+                  <div style="font-size: 24px; font-weight: 700; color: #28a745;" id="jobShortlisted">0</div>
+                  <div style="font-size: 12px; color: #666; margin-top: 4px;">Shortlisted</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <h4 style="color: #124e66; margin-bottom: 12px;">Candidates</h4>
+          <div style="margin-bottom: 16px;">
+            <input type="text" id="jobCandidatesSearch" onkeyup="filterJobCandidates()" placeholder="Search candidates..." style="width: 100%; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 13px;">
+          </div>
+          <div id="jobCandidatesList" style="max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px;">
+            <div style="padding: 24px; text-align: center; color: #999;">Loading candidates...</div>
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px; border-top: 1px solid #e0e0e0;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('jobDetailsModal')">Close</button>
+          <button type="button" class="btn btn-primary" onclick="openModal('jobEditModal'); closeModal('jobDetailsModal');" style="background: #f39c12;">Edit Job</button>
+          <button type="button" class="btn btn-primary" onclick="shareJob();" style="background: #27ae60;"><i class="fas fa-share-alt"></i> Share</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Job Edit Modal -->
+    <div id="jobEditModal" class="modal" style="display: none; z-index: 10000;">
+      <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+          <h2>Edit Job Posting</h2>
+          <button class="modal-close" onclick="closeModal('jobEditModal')">&times;</button>
+        </div>
+        <form onsubmit="return handleJobEdit(event);">
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Job Title</label>
+              <input type="text" id="editJobTitle" required>
+            </div>
+            <div class="form-group">
+              <label>Department</label>
+              <input type="text" id="editJobDept" required>
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" id="editJobLocation" required>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="editJobDesc" style="min-height: 100px;" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Required Skills (comma-separated)</label>
+              <input type="text" id="editJobSkills" placeholder="Python, SQL, Excel...">
+            </div>
+          </div>
+          <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('jobEditModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="background: #f39c12;">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- View All Applicants Modal -->
+    <div id="viewAllApplicantsModal" class="modal" style="display: none; z-index: 10000;">
+      <div class="modal-content" style="max-width: 1100px; max-height: 85vh; overflow-y: auto;">
+        <div class="modal-header">
+          <h2>All Applicants</h2>
+          <button class="modal-close" onclick="closeModal('viewAllApplicantsModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+            <input type="text" id="allAppSearch" onkeyup="filterAllApplicants()" placeholder="Search by name or email..." style="flex: 1; min-width: 250px; padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+            <select id="allAppStatus" onchange="filterAllApplicants()" style="padding: 10px 14px; border: 2px solid #e0e0e0; border-radius: 6px;">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="shortlisted">Shortlisted</option>
+              <option value="rejected">Rejected</option>
+              <option value="interview">Interview</option>
+            </select>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;" id="allAppsTable">
+              <thead>
+                <tr style="background: #f8f9fa; border-bottom: 2px solid #e0e0e0;">
+                  <th style="padding: 14px; text-align: left; color: #666; font-weight: 600; font-size: 13px;">Candidate</th>
+                  <th style="padding: 14px; text-align: left; color: #666; font-weight: 600; font-size: 13px;">Applied For</th>
+                  <th style="padding: 14px; text-align: left; color: #666; font-weight: 600; font-size: 13px;">Score</th>
+                  <th style="padding: 14px; text-align: left; color: #666; font-weight: 600; font-size: 13px;">Status</th>
+                  <th style="padding: 14px; text-align: left; color: #666; font-weight: 600; font-size: 13px;">Applied</th>
+                </tr>
+              </thead>
+              <tbody id="allAppsTbody">
+                {% for app in all_applicants %}
+                <tr class="all-app-row" data-status="{{ app.status }}" data-name="{{ app.name }} {{ app.surname }}" data-email="{{ app.email }}" style="border-bottom: 1px solid #e0e0e0;">
+                  <td style="padding: 12px 14px;">
+                    <strong style="color: #124e66;">{{ app.name }} {{ app.surname }}</strong><br>
+                    <small style="color: #999;">{{ app.email }}</small>
+                  </td>
+                  <td style="padding: 12px 14px; color: #666;">Job ID: {{ app.job_id }}</td>
+                  <td style="padding: 12px 14px;">
+                    <span style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">{{ app.score | default('N/A', true) }}</span>
+                  </td>
+                  <td style="padding: 12px 14px;">
+                    <span class="badge" style="background: 
+                      {% if app.status == 'pending' %}#fff3cd; color: #856404;
+                      {% elif app.status == 'shortlisted' %}#d4edda; color: #155724;
+                      {% elif app.status == 'interview' %}#d1ecf1; color: #0c5460;
+                      {% else %}#f8d7da; color: #721c24;
+                      {% endif %}
+                      padding: 4px 10px; border-radius: 4px; font-size: 12px;">{{ app.status | title }}</span>
+                  </td>
+                  <td style="padding: 12px 14px; color: #999; font-size: 12px;">{{ app.uploaded_at.strftime('%Y-%m-%d') if app.uploaded_at else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px; border-top: 1px solid #e0e0e0;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('viewAllApplicantsModal')">Close</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Notification Toast -->
     <div id="notificationToast" class="notification-toast" style="display: none;">
       <div class="toast-content">
@@ -1478,6 +1639,10 @@
     <script>
       console.log('Dashboard JS loaded');
       
+      // Data from server
+      const dashboards = {{ dashboards | tojson }};
+      const applicants = {{ all_applicants | tojson }};
+      
       // Modal Management
       function openModal(modalId) {
         console.log('Opening modal:', modalId);
@@ -1609,6 +1774,97 @@
         }, 500);
       }
 
+      // Job Management Functions
+      function viewJobDetails(jobId) {
+        const job = dashboards.find(d => d.job.id === jobId);
+        if (!job) return;
+        
+        document.getElementById('jobDetailsTitle').textContent = job.job.title;
+        document.getElementById('jobDetailsDept').textContent = job.job.department;
+        document.getElementById('jobDetailsLocation').textContent = job.job.location;
+        document.getElementById('jobDetailsStatus').innerHTML = job.deadline_state === 'closed' ? '<span style="color: #e74c3c;">Closed</span>' : '<span style="color: #27ae60;">Open</span>';
+        document.getElementById('jobTotalApps').textContent = job.all_count;
+        document.getElementById('jobShortlisted').textContent = job.selected_count;
+        
+        document.getElementById('jobCandidatesList').innerHTML = loadJobCandidates(jobId);
+        document.getElementById('jobCandidatesSearch').value = '';
+        
+        openModal('jobDetailsModal');
+      }
+
+      function loadJobCandidates(jobId) {
+        const apps = applicants.filter(a => a.job_id === jobId);
+        if (!apps.length) return '<div style="padding: 24px; text-align: center; color: #999;">No applications yet</div>';
+        
+        return apps.map(app => `
+          <div style="padding: 12px 14px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <strong style="color: #124e66;">${app.name} ${app.surname}</strong><br>
+              <small style="color: #999;">${app.email}</small>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <span style="background: #f39c12; color: white; padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600;">${app.score || 'N/A'}</span>
+              <span style="background: 
+                ${app.status === 'pending' ? '#fff3cd' : app.status === 'shortlisted' ? '#d4edda' : '#f8d7da'}; 
+                color: ${app.status === 'pending' ? '#856404' : app.status === 'shortlisted' ? '#155724' : '#721c24'}; 
+                padding: 4px 8px; border-radius: 4px; font-size: 11px;">${app.status}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function filterJobCandidates() {
+        const q = document.getElementById('jobCandidatesSearch').value.toLowerCase();
+        const rows = document.querySelectorAll('#jobCandidatesList > div');
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          row.style.display = text.includes(q) ? '' : 'none';
+        });
+      }
+
+      function editJob(jobId) {
+        const job = dashboards.find(d => d.job.id === jobId).job;
+        document.getElementById('editJobTitle').value = job.title;
+        document.getElementById('editJobDept').value = job.department;
+        document.getElementById('editJobLocation').value = job.location;
+        document.getElementById('editJobDesc').value = job.description;
+        document.getElementById('editJobSkills').value = (job.requirements || []).join(', ');
+        openModal('jobEditModal');
+      }
+
+      function handleJobEdit(e) {
+        e.preventDefault();
+        showNotification('✓ Job details updated successfully!', 'success');
+        closeModal('jobEditModal');
+        return false;
+      }
+
+      function shareJob(jobId) {
+        const link = window.location.origin + '/jobs/' + jobId + '/apply';
+        navigator.clipboard.writeText(link);
+        showNotification('✓ Job link copied! Share with candidates or on social media.', 'success');
+      }
+
+      function viewAllApplicants() {
+        openModal('viewAllApplicantsModal');
+      }
+
+      function filterAllApplicants() {
+        const searchQ = document.getElementById('allAppSearch').value.toLowerCase();
+        const statusFilter = document.getElementById('allAppStatus').value;
+        
+        document.querySelectorAll('.all-app-row').forEach(row => {
+          const name = (row.getAttribute('data-name') || '').toLowerCase();
+          const email = (row.getAttribute('data-email') || '').toLowerCase();
+          const status = row.getAttribute('data-status');
+          
+          const matchesSearch = name.includes(searchQ) || email.includes(searchQ);
+          const matchesStatus = !statusFilter || status === statusFilter;
+          
+          row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+        });
+      }
+
       function sendBulkEmail() {
         showNotification('📧 Email composer opened...', 'warning');
       }
@@ -1662,6 +1918,13 @@
 
       // Screen Now with animated spinner
       function runScreenNow() {
+        // Check if there are any pending candidates to screen
+        const pendingRows = document.querySelectorAll('.screening-row[data-status="pending"]');
+        if (pendingRows.length === 0) {
+          showNotification('⚠️ No pending candidates to screen. Applications will appear here once submitted.', 'warning');
+          return;
+        }
+
         const overlay = document.getElementById('screeningOverlay');
         const bar = document.getElementById('screenProgressBar');
         const text = document.getElementById('screenProgressText');

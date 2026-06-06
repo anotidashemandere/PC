@@ -1,0 +1,16 @@
+[
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T22:33:36.318671+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T22:33:45.369167+00:00"
+  }
+]
