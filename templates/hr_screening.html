@@ -32,11 +32,14 @@
             <a href="{{ url_for('hr_interviews') }}" class="nav-item">
               <i class="fas fa-calendar"></i> Interviews
             </a>
-            <a href="{{ url_for('hr_ratings') }}" class="nav-item">
-              <i class="fas fa-star"></i> Ratings
-            </a>
             <a href="{{ url_for('hr_settings') }}" class="nav-item">
               <i class="fas fa-cog"></i> Settings
+            </a>
+            <a href="{{ url_for('hr_audit_log') }}" class="nav-item">
+              <i class="fas fa-shield-alt"></i> Audit Log
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item">
+              <i class="fas fa-sign-out-alt"></i> Sign Out
             </a>
           </div>
         </nav>
@@ -89,91 +92,26 @@
           </div>
         </div>
 
-        <!-- Screening Sections -->
+        <!-- All Applicants -->
         <div class="page-content">
-          <!-- Pending Review -->
-          <div class="content-card" id="pending-review">
-            <div class="card-header">
-              <h3>📄 Pending Review ({{ pending | length }})</h3>
+          <div class="content-card" id="all-applicants-card">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+              <h3 style="margin:0;">All Applicants ({{ applicants | length }})</h3>
+              <div style="font-size:13px;color:#6b7280;">Use search bars to quickly find candidates</div>
             </div>
-            <div class="table-wrapper">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Job</th>
-                    <th>Score</th>
-                    <th>Applied</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if pending %}
-                    {% for a in pending %}
-                      <tr>
-                        <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
-                        <td>{{ a.email }}</td>
-                        <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
-                        <td><span class="score-badge">{{ a.score }}%</span></td>
-                        <td>{{ a.uploaded_at.strftime('%b %d, %Y') }}</td>
-                        <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">Review</a></td>
-                      </tr>
-                    {% endfor %}
-                  {% else %}
-                    <tr>
-                      <td colspan="6" class="text-center text-muted">No pending applicants</td>
-                    </tr>
-                  {% endif %}
-                </tbody>
-              </table>
-            </div>
-          </div>
 
-          <!-- Shortlisted -->
-          <div class="content-card">
-            <div class="card-header">
-              <h3>✓ Shortlisted ({{ shortlisted | length }})</h3>
+            <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:10px;padding:14px 0;">
+              <input id="searchNameEmail" type="text" placeholder="Search by name or email" class="date-input" style="width:100%;">
+              <input id="searchJob" type="text" placeholder="Search by job title" class="date-input" style="width:100%;">
+              <select id="statusFilter" class="date-input" style="width:100%;">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="shortlisted">Shortlisted</option>
+                <option value="interview">Interview</option>
+                <option value="rejected">Rejected</option>
+              </select>
             </div>
-            <div class="table-wrapper">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Job</th>
-                    <th>Score</th>
-                    <th>Applied</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if shortlisted %}
-                    {% for a in shortlisted %}
-                      <tr>
-                        <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
-                        <td>{{ a.email }}</td>
-                        <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
-                        <td><span class="score-badge">{{ a.score }}%</span></td>
-                        <td>{{ a.uploaded_at.strftime('%b %d, %Y') }}</td>
-                        <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">View</a></td>
-                      </tr>
-                    {% endfor %}
-                  {% else %}
-                    <tr>
-                      <td colspan="6" class="text-center text-muted">No shortlisted applicants</td>
-                    </tr>
-                  {% endif %}
-                </tbody>
-              </table>
-            </div>
-          </div>
 
-          <!-- Rejected -->
-          <div class="content-card">
-            <div class="card-header">
-              <h3>❌ Rejected ({{ rejected | length }})</h3>
-            </div>
             <div class="table-wrapper">
               <table class="data-table">
                 <thead>
@@ -181,28 +119,47 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Job</th>
+                    <th>Status</th>
                     <th>Score</th>
                     <th>Applied</th>
                     <th>Action</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {% if rejected %}
-                    {% for a in rejected %}
-                      <tr>
+                <tbody id="allApplicantsBody">
+                  {% if applicants %}
+                    {% for a in applicants %}
+                      <tr class="applicant-row"
+                          data-name="{{ (a.name ~ ' ' ~ a.surname)|lower }}"
+                          data-email="{{ (a.email or '')|lower }}"
+                          data-job="{{ (a.job_ref.title if a.job_ref else 'N/A')|lower }}"
+                          data-status="{{ (a.status or 'pending')|lower }}">
                         <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
-                        <td>{{ a.email }}</td>
+                        <td>{{ a.email or 'No email' }}</td>
                         <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
+                        <td>
+                          {% if a.status == 'shortlisted' %}
+                            <span class="badge badge-success">Shortlisted</span>
+                          {% elif a.status == 'interview' %}
+                            <span class="badge badge-info">Interview</span>
+                          {% elif a.status == 'rejected' %}
+                            <span class="badge badge-danger">Rejected</span>
+                          {% else %}
+                            <span class="badge badge-warning">Pending</span>
+                          {% endif %}
+                        </td>
                         <td><span class="score-badge">{{ a.score }}%</span></td>
                         <td>{{ a.uploaded_at.strftime('%b %d, %Y') }}</td>
-                        <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">View</a></td>
+                        <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">Open</a></td>
                       </tr>
                     {% endfor %}
                   {% else %}
-                    <tr>
-                      <td colspan="6" class="text-center text-muted">No rejected applicants</td>
+                    <tr id="noApplicantsRow">
+                      <td colspan="7" class="text-center text-muted">No applicants found yet</td>
                     </tr>
                   {% endif %}
+                  <tr id="noSearchResultsRow" style="display:none;">
+                    <td colspan="7" class="text-center text-muted">No applicants match your search filters</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -240,6 +197,45 @@
           setTimeout(() => location.reload(), 500);
         }, 1500);
       }
+
+      function filterApplicants() {
+        const nameEmailQ = (document.getElementById('searchNameEmail').value || '').toLowerCase().trim();
+        const jobQ = (document.getElementById('searchJob').value || '').toLowerCase().trim();
+        const statusQ = (document.getElementById('statusFilter').value || '').toLowerCase().trim();
+
+        const rows = document.querySelectorAll('.applicant-row');
+        let visibleCount = 0;
+
+        rows.forEach((row) => {
+          const name = row.getAttribute('data-name') || '';
+          const email = row.getAttribute('data-email') || '';
+          const job = row.getAttribute('data-job') || '';
+          const status = row.getAttribute('data-status') || '';
+
+          const matchesNameEmail = !nameEmailQ || name.includes(nameEmailQ) || email.includes(nameEmailQ);
+          const matchesJob = !jobQ || job.includes(jobQ);
+          const matchesStatus = !statusQ || status === statusQ;
+
+          const isMatch = matchesNameEmail && matchesJob && matchesStatus;
+          row.style.display = isMatch ? '' : 'none';
+          if (isMatch) visibleCount += 1;
+        });
+
+        const noResultsRow = document.getElementById('noSearchResultsRow');
+        if (noResultsRow) {
+          noResultsRow.style.display = (rows.length > 0 && visibleCount === 0) ? '' : 'none';
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        const searchNameEmail = document.getElementById('searchNameEmail');
+        const searchJob = document.getElementById('searchJob');
+        const statusFilter = document.getElementById('statusFilter');
+
+        if (searchNameEmail) searchNameEmail.addEventListener('input', filterApplicants);
+        if (searchJob) searchJob.addEventListener('input', filterApplicants);
+        if (statusFilter) statusFilter.addEventListener('change', filterApplicants);
+      });
 
       const headerButtons = document.querySelectorAll('.icon-button');
       if (headerButtons[0]) headerButtons[0].addEventListener('click', (e) => { e.preventDefault(); showNotification('🔔 No new notifications', 'info'); });

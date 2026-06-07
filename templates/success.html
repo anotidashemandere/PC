@@ -12,8 +12,7 @@
         <p>Thank you, <strong>{{ application.name }} {{ application.surname }}</strong>. Your application for <em>{{ job.title }}</em> has been received.</p>
         <p>Reference: <strong>{{ application.id }}</strong></p>
         <p>HR will review submissions after the due date or from the dashboard.</p>
-        <p><a href="{{ url_for('applicant_page', application_id=application.id) }}"><i class="fas fa-user"></i> Open applicant page</a></p>
-        <a href="{{ url_for('index') }}"><i class="fas fa-arrow-left"></i> Back to jobs</a>
+        <p>Your submission is complete.</p>
       </section>
     </main>
   </body>

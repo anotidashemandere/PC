@@ -31,11 +31,14 @@
             <a href="{{ url_for('hr_interviews') }}" class="nav-item">
               <i class="fas fa-calendar"></i> Interviews
             </a>
-            <a href="{{ url_for('hr_ratings') }}" class="nav-item">
-              <i class="fas fa-star"></i> Ratings
-            </a>
             <a href="{{ url_for('hr_settings') }}" class="nav-item">
               <i class="fas fa-cog"></i> Settings
+            </a>
+            <a href="{{ url_for('hr_audit_log') }}" class="nav-item">
+              <i class="fas fa-shield-alt"></i> Audit Log
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item">
+              <i class="fas fa-sign-out-alt"></i> Sign Out
             </a>
           </div>
         </nav>

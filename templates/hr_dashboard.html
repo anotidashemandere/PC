@@ -71,40 +71,87 @@
         }
 
         .nav-section {
-            padding: 0;
+            padding: 0 0 10px;
+        }
+
+        .nav-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.35);
+            padding: 14px 20px 6px;
+            margin: 0;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
-            padding: 14px 20px;
-            color: rgba(255, 255, 255, 0.85);
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             border-left: 3px solid transparent;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 500;
             gap: 12px;
         }
 
         .nav-item i {
-            font-size: 16px;
-            width: 20px;
+            font-size: 15px;
+            width: 18px;
+            text-align: center;
+        }
+
+        .nav-item .nav-badge {
+            margin-left: auto;
+            background: #f39c12;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 20px;
+            min-width: 20px;
             text-align: center;
         }
 
         .nav-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.09);
             color: white;
             border-left-color: #f39c12;
-            padding-left: 18px;
         }
 
         .nav-item.active {
-            background: rgba(243, 156, 18, 0.15);
+            background: rgba(243, 156, 18, 0.18);
             color: #f39c12;
             border-left-color: #f39c12;
+            font-weight: 600;
         }
+
+        .nav-divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.07);
+            margin: 8px 20px;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin-top: auto;
+        }
+
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255,255,255,0.55);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 8px 0;
+            transition: color 0.2s;
+        }
+
+        .sidebar-footer a:hover { color: #f39c12; }
 
         .nav-item::before {
             content: '';
@@ -532,31 +579,81 @@
 <body>
     <div class="hr-layout">
       <!-- Sidebar -->
-      <aside class="hr-sidebar">
-        <div class="sidebar-header">
-          <div class="sidebar-logo">GMB</div>
-          <h2>HR Portal</h2>
-          <p class="sidebar-company">Recruitment System</p>
-        </div>
-        <nav class="sidebar-nav">
-          <div class="nav-section">
-            <a class="nav-item active" data-section="dashboard" style="cursor: pointer;">
-              <i class="fas fa-chart-line"></i> Dashboard
-            </a>
-            <a class="nav-item" data-section="jobs" style="cursor: pointer;">
-              <i class="fas fa-briefcase"></i> Job Postings
-            </a>
-            <a class="nav-item" data-section="screening" style="cursor: pointer;">
-              <i class="fas fa-check-circle"></i> Screening
-            </a>
-            <a class="nav-item" data-section="interviews" style="cursor: pointer;">
-              <i class="fas fa-calendar"></i> Interviews
-            </a>
-            <a class="nav-item" data-section="settings" style="cursor: pointer;">
-              <i class="fas fa-cog"></i> Settings
-            </a>
+      <aside class="hr-sidebar" style="display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div class="sidebar-header">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+              <div class="sidebar-logo" style="margin-bottom:0;">GMB</div>
+              <div>
+                <h2 style="font-size:16px;margin:0;">HR Portal</h2>
+                <p class="sidebar-company">Recruitment System</p>
+              </div>
+            </div>
           </div>
-        </nav>
+          <nav class="sidebar-nav">
+            <div class="nav-section">
+              <p class="nav-section-label">Main</p>
+              <a class="nav-item active" data-section="dashboard" style="cursor:pointer;">
+                <i class="fas fa-chart-line"></i> Dashboard
+              </a>
+              <a class="nav-item" data-section="jobs" style="cursor:pointer;">
+                <i class="fas fa-briefcase"></i> Job Postings
+                {% if jobs %}<span class="nav-badge">{{ jobs | length }}</span>{% endif %}
+              </a>
+              <a class="nav-item" data-section="screening" style="cursor:pointer;">
+                <i class="fas fa-user-check"></i> Screening
+                {% if all_applicants | selectattr('status','equalto','pending') | list %}
+                  <span class="nav-badge">{{ all_applicants | selectattr('status','equalto','pending') | list | length }}</span>
+                {% endif %}
+              </a>
+              <a class="nav-item" data-section="interviews" style="cursor:pointer;">
+                <i class="fas fa-calendar-alt"></i> Interviews
+                {% if interviews %}<span class="nav-badge">{{ interviews | length }}</span>{% endif %}
+              </a>
+            </div>
+            <div class="nav-section">
+              <p class="nav-section-label">Candidates</p>
+              <a class="nav-item" style="cursor:pointer;" onclick="document.querySelector('[data-section=screening]').click();document.getElementById('statusFilter-dash')&&(document.getElementById('statusFilter-dash').value='shortlisted');filterScreening('shortlisted'); return false;">
+                <i class="fas fa-star" style="color:#f39c12;"></i> Shortlisted
+                <span class="nav-badge" style="background:#27ae60;">{{ all_applicants | selectattr('status','equalto','shortlisted') | list | length }}</span>
+              </a>
+              <a class="nav-item" style="cursor:pointer;" onclick="document.querySelector('[data-section=screening]').click();filterScreening('interview'); return false;">
+                <i class="fas fa-video" style="color:#3498db;"></i> Interview Stage
+                <span class="nav-badge" style="background:#3498db;">{{ all_applicants | selectattr('status','equalto','interview') | list | length }}</span>
+              </a>
+              <a class="nav-item" style="cursor:pointer;" onclick="document.querySelector('[data-section=screening]').click();filterScreening('rejected'); return false;">
+                <i class="fas fa-times-circle" style="color:#e74c3c;"></i> Rejected
+                <span class="nav-badge" style="background:#e74c3c;">{{ all_applicants | selectattr('status','equalto','rejected') | list | length }}</span>
+              </a>
+            </div>
+            <div class="nav-section">
+              <p class="nav-section-label">Actions</p>
+              <a class="nav-item" style="cursor:pointer;" onclick="openModal('newJobModal'); return false;">
+                <i class="fas fa-plus-circle" style="color:#f39c12;"></i> Post New Job
+              </a>
+              <a class="nav-item" style="cursor:pointer;" onclick="openModal('exportReportModal'); return false;">
+                <i class="fas fa-file-download"></i> Export CSV Report
+              </a>
+              <a class="nav-item" style="cursor:pointer;" onclick="viewApplicationLink(); return false;">
+                <i class="fas fa-share-alt"></i> Copy Apply Link
+              </a>
+            </div>
+            <div class="nav-section">
+              <p class="nav-section-label">System</p>
+              <a class="nav-item" data-section="settings" style="cursor:pointer;">
+                <i class="fas fa-cog"></i> Settings
+              </a>
+              <a class="nav-item" href="{{ url_for('hr_audit_log') }}" target="_blank">
+                <i class="fas fa-shield-alt"></i> Audit Log
+              </a>
+            </div>
+          </nav>
+        </div>
+        <div class="sidebar-footer">
+          <a href="{{ url_for('logout') }}">
+            <i class="fas fa-sign-out-alt"></i> Sign Out
+          </a>
+        </div>
       </aside>
 
       <!-- Main Content -->
@@ -583,13 +680,15 @@
               </div>
               {% if all_applicants | selectattr('status', 'equalto', 'pending') | list | length > 0 %}
                 {% for app in all_applicants | selectattr('status', 'equalto', 'pending') | list %}
-                <div style="padding:12px 20px; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:12px;">
-                  <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f39c12,#e67e22);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;">{{ app.name[0] }}</div>
-                  <div>
-                    <div style="font-size:13px;font-weight:600;color:#124e66;">New Application</div>
-                    <div style="font-size:12px;color:#666;">{{ app.name }} {{ app.surname }} applied</div>
+                <a href="{{ url_for('hr_screening') }}" style="text-decoration:none;color:inherit;display:block;transition:background 0.2s ease;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='transparent'">
+                  <div style="padding:12px 20px; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; cursor:pointer;">
+                    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f39c12,#e67e22);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;">{{ app.name[0] if app.name else '?' }}</div>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#124e66;">New Application</div>
+                      <div style="font-size:12px;color:#666;">{{ app.name }} {{ app.surname }} applied</div>
+                    </div>
                   </div>
-                </div>
+                </a>
                 {% endfor %}
               {% else %}
                 <div style="padding:30px; text-align:center; color:#999;">
@@ -639,6 +738,33 @@
             </div>
           </div>
 
+          <!-- ── Applicant Portal URL banner ── -->
+          {% if dashboards %}
+          <div style="background:white;border-radius:10px;padding:14px 20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+            <i class="fas fa-link" style="color:#f39c12;font-size:16px;"></i>
+            <span style="font-size:13px;font-weight:600;color:#124e66;">Applicant Portal</span>
+            <div style="flex:1;min-width:220px;">
+              <select id="applyJobSelect" onchange="updateApplyUrl()" style="width:100%;padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;color:#444;">
+                {% for d in dashboards %}
+                <option value="{{ d.job.id }}">{{ d.job.title }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <input id="applyUrlBox" type="text" readonly
+              value="{{ request.host_url.rstrip('/') }}{{ url_for('apply', job_id=dashboards[0].job.id) }}"
+              style="flex:2;min-width:280px;padding:6px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;color:#555;background:#f9f9f9;">
+            <button onclick="copyApplyUrl()" style="padding:7px 16px;background:#f39c12;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          {% else %}
+          <div style="background:#fff8e1;border-left:4px solid #f39c12;border-radius:8px;padding:12px 18px;margin-bottom:20px;font-size:13px;color:#555;">
+            <i class="fas fa-info-circle" style="color:#f39c12;"></i>
+            Post a job first to generate an applicant portal link.
+            <a style="cursor:pointer;color:#124e66;font-weight:600;margin-left:6px;" onclick="openModal('newJobModal'); return false;">Post Job →</a>
+          </div>
+          {% endif %}
+
         <!-- Main Content Grid -->
         <div class="dashboard-main">
           <!-- Recent Applications Table -->
@@ -646,7 +772,7 @@
             <div class="card-header">
               <span>Recent Applications</span>
               <div class="card-header-actions">
-                <a href="{{ url_for('hr_screening') }}" class="action-button">View All</a>
+                <a class="action-button" style="cursor:pointer;" onclick="document.querySelector('[data-section=screening]').click(); return false;">View All</a>
               </div>
             </div>
             <div class="card-body">
@@ -682,9 +808,9 @@
                       </td>
                       <td>
                         <div style="display: flex; gap: 5px;">
-                          <button class="btn btn-small btn-primary" onclick="showNotification('👁️ Opening candidate profile...', 'warning'); return false;" title="View Profile" style="padding: 6px 10px;"><i class="fas fa-eye"></i></button>
-                          <button class="btn btn-small btn-primary" onclick="document.getElementById('candidateName').value = '{{ app.name }} {{ app.surname }}'; openModal('screenCandidateModal'); return false;" title="Screen" style="padding: 6px 10px;"><i class="fas fa-clipboard-check"></i></button>
-                          <button class="btn btn-small btn-primary" onclick="document.getElementById('interviewCandidateName').value = '{{ app.name }} {{ app.surname }}'; openModal('scheduleInterviewModal'); return false;" title="Schedule" style="padding: 6px 10px;"><i class="fas fa-calendar"></i></button>
+                          <a class="btn btn-small btn-primary" href="{{ url_for('applicant_page', application_id=app.id) if app.id else '#' }}" title="View Profile" style="padding: 6px 10px; text-decoration:none;" onclick="if(!{{ 1 if app.id else 0 }}){ showNotification('No profile available for this candidate.', 'warning'); return false; }"><i class="fas fa-eye"></i></a>
+                          <button class="btn btn-small btn-primary" onclick="openScreenModal('{{ app.id }}'); return false;" title="Screen" style="padding: 6px 10px;"><i class="fas fa-clipboard-check"></i></button>
+                          <button class="btn btn-small btn-primary" onclick="openInterviewModal('{{ app.id }}'); return false;" title="Schedule" style="padding: 6px 10px;"><i class="fas fa-calendar"></i></button>
                         </div>
                       </td>
                     </tr>
@@ -770,10 +896,15 @@
                       <td><span class="badge">{{ dashboard.all_count }}</span></td>
                       <td><span class="badge badge-success">{{ dashboard.selected_count }}</span></td>
                       <td>
-                        {% if dashboard.deadline_state == 'closed' %}
-                            <span class="badge badge-danger">Closed</span>
-                        {% else %}
+                        {% if dashboard.job.due_date %}
+                          <div style="font-size:12px;color:#124e66;font-weight:600;">{{ dashboard.job.due_date[:10] }}</div>
+                          {% if dashboard.deadline_state == 'closed' %}
+                            <span class="badge badge-danger">Due passed</span>
+                          {% else %}
                             <span class="badge badge-success">Open</span>
+                          {% endif %}
+                        {% else %}
+                          <span class="badge">No due date</span>
                         {% endif %}
                       </td>
                       <td>
@@ -812,6 +943,10 @@
             </button>
           </div>
 
+          <div style="background:#f8f9fa;border-left:4px solid #f39c12;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#555;">
+            Due date is now shown per candidate job. When a job due date arrives, pending CVs with uploaded resumes are screened automatically.
+          </div>
+
           <!-- Screening Progress Overlay (hidden by default) -->
           <div id="screeningOverlay" style="display:none;background:white;border-radius:10px;padding:50px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.1);margin-bottom:16px;">
             <div style="width:80px;height:80px;border:6px solid #f0f0f0;border-top-color:#f39c12;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;"></div>
@@ -845,6 +980,7 @@
                       <th style="padding:14px 16px;">#</th>
                       <th style="padding:14px 16px;">Candidate</th>
                       <th style="padding:14px 16px;">Applied For</th>
+                      <th style="padding:14px 16px;">Due Date</th>
                       <th style="padding:14px 16px;">Score</th>
                       <th style="padding:14px 16px;">Status</th>
                       <th style="padding:14px 16px;">Actions</th>
@@ -864,6 +1000,18 @@
                         </div>
                       </td>
                       <td style="padding:12px 16px;font-size:13px;color:#555;">{{ app.job_title if app.job_title else 'General Application' }}</td>
+                      <td style="padding:12px 16px;font-size:12px;">
+                        {% if app.job_due_date %}
+                          <div style="color:#124e66;font-weight:600;">{{ app.job_due_date[:10] }}</div>
+                          {% if app.job_deadline_state == 'closed' %}
+                            <small style="color:#e74c3c;">Due reached</small>
+                          {% else %}
+                            <small style="color:#27ae60;">Open</small>
+                          {% endif %}
+                        {% else %}
+                          <span style="color:#999;">No due date</span>
+                        {% endif %}
+                      </td>
                       <td style="padding:12px 16px;">
                         <div style="display:flex;align-items:center;gap:8px;">
                           <div style="background:#f0f0f0;border-radius:10px;height:6px;width:60px;overflow:hidden;">
@@ -885,9 +1033,9 @@
                       </td>
                       <td style="padding:12px 16px;">
                         <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                          <button class="btn btn-small btn-primary" onclick="document.getElementById('candidateName').value='{{ app.name }} {{ app.surname }}'; openModal('screenCandidateModal'); return false;" title="Screen Candidate" style="padding:5px 9px;font-size:11px;"><i class="fas fa-clipboard-check"></i> Screen</button>
-                          <button class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#27ae60;color:white;" onclick="document.getElementById('interviewCandidateName').value='{{ app.name }} {{ app.surname }}'; openModal('scheduleInterviewModal'); return false;" title="Schedule Interview"><i class="fas fa-calendar-plus"></i></button>
-                          <button class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#e74c3c;color:white;" onclick="document.getElementById('rejectCandidateName').value='{{ app.name }} {{ app.surname }}'; openModal('rejectCandidateModal'); return false;" title="Reject"><i class="fas fa-times"></i></button>
+                          <button class="btn btn-small btn-primary" onclick="openScreenModal('{{ app.id }}'); return false;" title="Screen Candidate" style="padding:5px 9px;font-size:11px;"><i class="fas fa-clipboard-check"></i> Screen</button>
+                          <button class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#27ae60;color:white;" onclick="openInterviewModal('{{ app.id }}'); return false;" title="Schedule Interview"><i class="fas fa-calendar-plus"></i></button>
+                          <button class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#e74c3c;color:white;" onclick="openRejectModal('{{ app.id }}'); return false;" title="Reject"><i class="fas fa-times"></i></button>
                           <a href="{{ url_for('applicant_page', application_id=app.id) if app.id else '#' }}" class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#3498db;color:white;text-decoration:none;" title="View Full Profile" onclick="if(!{{ 1 if app.id else 0 }}) { showNotification('No profile link available', 'warning'); return false; }"><i class="fas fa-eye"></i></a>
                         </div>
                       </td>
@@ -920,11 +1068,11 @@
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 <div style="padding: 20px; background: linear-gradient(135deg, #27ae60, #229954); color: white; border-radius: 8px;">
                   <p style="font-size: 12px; opacity: 0.9;">Scheduled Interviews</p>
-                  <h3 style="margin: 0; font-size: 32px; font-weight: 700;">8</h3>
+                  <h3 style="margin: 0; font-size: 32px; font-weight: 700;">{{ interviews | length }}</h3>
                 </div>
                 <div style="padding: 20px; background: linear-gradient(135deg, #f39c12, #e67e22); color: white; border-radius: 8px;">
                   <p style="font-size: 12px; opacity: 0.9;">This Week</p>
-                  <h3 style="margin: 0; font-size: 32px; font-weight: 700;">3</h3>
+                  <h3 style="margin: 0; font-size: 32px; font-weight: 700;">{{ interviews | length }}</h3>
                 </div>
               </div>
 
@@ -946,7 +1094,7 @@
               </div>
 
               <div class="table-responsive">
-                <table style="width: 100%;">
+                <table style="width: 100%;" id="dashboardInterviewTable">
                   <thead>
                     <tr>
                       <th>Candidate</th>
@@ -957,30 +1105,26 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td><strong>John Smith</strong><br><small>john@example.com</small></td>
-                      <td><span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-size: 12px;">Video Call</span></td>
-                      <td>June 10, 2:00 PM</td>
-                      <td><span class="badge badge-success">Confirmed</span></td>
-                      <td>
-                        <div style="display: flex; gap: 5px;">
-                          <button class="btn btn-small btn-primary" title="Reschedule" style="padding: 6px 10px;" onclick="showNotification('📅 Rescheduling interview...', 'warning'); return false;"><i class="fas fa-redo"></i></button>
-                          <button class="btn btn-small btn-primary" title="Send Reminder" style="padding: 6px 10px;" onclick="showNotification('⚠️ Email service not configured. Please set up SMTP in settings first.', 'warning'); return false;"><i class="fas fa-envelope"></i></button>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td><strong>Sarah Johnson</strong><br><small>sarah@example.com</small></td>
-                      <td><span style="background: #f3e5f5; color: #7b1fa2; padding: 4px 8px; border-radius: 4px; font-size: 12px;">In-Person</span></td>
-                      <td>June 12, 10:00 AM</td>
-                      <td><span class="badge badge-warning">Pending</span></td>
-                      <td>
-                        <div style="display: flex; gap: 5px;">
-                          <button class="btn btn-small btn-primary" title="Reschedule" style="padding: 6px 10px;" onclick="showNotification('📅 Rescheduling interview...', 'warning'); return false;"><i class="fas fa-redo"></i></button>
-                          <button class="btn btn-small btn-primary" title="Send Reminder" style="padding: 6px 10px;" onclick="showNotification('⚠️ Email service not configured. Please set up SMTP in settings first.', 'warning'); return false;"><i class="fas fa-envelope"></i></button>
-                        </div>
-                      </td>
-                    </tr>
+                    {% if interviews %}
+                      {% for interview in interviews %}
+                      <tr>
+                        <td><strong>{{ interview.name }} {{ interview.surname }}</strong><br><small>{{ interview.email }}</small></td>
+                        <td><span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-size: 12px;">{{ interview.interview_type or 'Interview' }}</span></td>
+                        <td>{{ interview.interview_date }} {{ interview.interview_time }}</td>
+                        <td><span class="badge badge-success">{{ interview.interview_status or 'Scheduled' }}</span></td>
+                        <td>
+                          <div style="display: flex; gap: 5px;">
+                            <button class="btn btn-small btn-primary" title="Reschedule" style="padding: 6px 10px;" onclick="openInterviewModal('{{ interview.id }}'); return false;"><i class="fas fa-redo"></i></button>
+                            <button class="btn btn-small btn-primary" title="Send Reminder" style="padding: 6px 10px;" onclick="sendInterviewReminder('{{ interview.id }}'); return false;"><i class="fas fa-envelope"></i></button>
+                          </div>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    {% else %}
+                      <tr>
+                        <td colspan="5" style="text-align:center;color:#999;padding:20px;">No scheduled interviews yet</td>
+                      </tr>
+                    {% endif %}
                   </tbody>
                 </table>
               </div>
@@ -1000,7 +1144,7 @@
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-envelope"></i> Email Templates</h3>
                   <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Customize email messages sent to candidates</p>
-                  <button class="btn btn-small btn-primary" onclick="showNotification('📧 Opening email templates editor...', 'warning'); return false;">Edit Templates</button>
+                  <button class="btn btn-small btn-primary" onclick="window.location.href='{{ url_for('hr_settings') }}'; return false;">Edit Templates</button>
                 </div>
 
                 <!-- Notifications -->
@@ -1019,28 +1163,28 @@
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-users-cog"></i> User Management</h3>
                   <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Add and manage HR team members</p>
-                  <button class="btn btn-small btn-primary" onclick="showNotification('👥 Adding new team member...', 'warning'); return false;">Add User</button>
+                  <button class="btn btn-small btn-primary" onclick="window.location.href='mailto:{{ settings.support_email if settings and settings.support_email else "hr@company.com" }}?subject=Add%20HR%20User%20Request'; return false;">Add User</button>
                 </div>
 
                 <!-- Reports -->
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-chart-bar"></i> Reports</h3>
                   <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Generate recruitment analytics</p>
-                  <button class="btn btn-small btn-primary" onclick="showNotification('📊 Generating monthly report...', 'warning'); return false;">Generate Report</button>
+                  <button class="btn btn-small btn-primary" onclick="openModal('exportReportModal'); return false;">Generate Report</button>
                 </div>
 
                 <!-- Security -->
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-lock"></i> Security</h3>
                   <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Change password and security settings</p>
-                  <button class="btn btn-small btn-primary" onclick="showNotification('🔐 Opening security settings...', 'warning'); return false;">Security Settings</button>
+                  <button class="btn btn-small btn-primary" onclick="window.location.href='{{ url_for('hr_settings') }}'; return false;">Security Settings</button>
                 </div>
 
                 <!-- Integrations -->
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-plug"></i> Integrations</h3>
                   <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Connect with external services</p>
-                  <button class="btn btn-small btn-primary" onclick="showNotification('🔗 Loading integrations...', 'warning'); return false;">Manage</button>
+                  <button class="btn btn-small btn-primary" onclick="window.location.href='{{ url_for('hr_settings') }}'; return false;">Manage</button>
                 </div>
               </div>
             </div>
@@ -1050,6 +1194,50 @@
     </div>
 
     <!-- MODALS -->
+    <div id="exportReportModal" class="modal" style="display: none; z-index: 10000;">
+      <div class="modal-content" style="max-width: 640px;">
+        <div class="modal-header">
+          <h2><i class="fas fa-file-csv"></i> Export CSV Report</h2>
+          <button class="modal-close" onclick="closeModal('exportReportModal')">&times;</button>
+        </div>
+        <form onsubmit="return exportCsvReport(event);">
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label>File Name</label>
+                <input type="text" id="exportFileName" value="applicants-report" placeholder="e.g. june-applicants-report">
+              </div>
+              <div class="form-group">
+                <label>Applicants To Include</label>
+                <select id="exportStatusFilter">
+                  <option value="all">All Applicants</option>
+                  <option value="pending">Under Review</option>
+                  <option value="shortlisted">Shortlisted</option>
+                  <option value="interview">Interview</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Report Title</label>
+              <input type="text" id="exportReportTitle" value="Applicants Report" placeholder="Type the report title you want inside the CSV">
+            </div>
+            <div class="form-group">
+              <label>Notes / What You Want To Write</label>
+              <textarea id="exportReportNotes" rows="4" placeholder="Write any note, comment, or summary to include at the top of the CSV"></textarea>
+            </div>
+            <div style="background:#f8f9fa;border-left:4px solid #f39c12;border-radius:8px;padding:12px 14px;font-size:13px;color:#555;">
+              The browser decides where the file is saved. This form lets you choose the file name and what text is written inside the CSV.
+            </div>
+          </div>
+          <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px; border-top: 1px solid #e0e0e0;">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('exportReportModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-download"></i> Export</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- New Job Modal -->
     <div id="newJobModal" class="modal" style="display: none;">
       <div class="modal-content">
@@ -1058,16 +1246,16 @@
           <button class="modal-close" onclick="closeModal('newJobModal')">&times;</button>
         </div>
         <div class="modal-body">
-          <form id="jobForm" onsubmit="handleJobSubmit(event)">
+          <form id="jobForm" onsubmit="handleJobSubmit(event)" action="{{ url_for('hr_post_job') }}" method="post">
             <div class="form-row">
               <div class="form-group">
                 <label>Job Title *</label>
-                <input type="text" placeholder="e.g., Senior HR Manager" required>
+                <input type="text" name="title" placeholder="e.g., Senior HR Manager" required>
               </div>
               <div class="form-group">
                 <label>Department *</label>
-                <select required>
-                  <option>Select Department</option>
+                <select name="department" required>
+                  <option value="">Select Department</option>
                   <option>Human Resources</option>
                   <option>Engineering</option>
                   <option>Sales</option>
@@ -1079,25 +1267,25 @@
             <div class="form-row">
               <div class="form-group">
                 <label>Location *</label>
-                <input type="text" placeholder="e.g., New York, NY" required>
+                <input type="text" name="location" placeholder="e.g., New York, NY" required>
               </div>
               <div class="form-group">
                 <label>Due Date *</label>
-                <input type="date" required>
+                <input type="datetime-local" name="due_date" required>
               </div>
             </div>
             <div class="form-group">
               <label>Job Description *</label>
-              <textarea placeholder="Enter job description, responsibilities, and requirements..." rows="6" required></textarea>
+              <textarea name="description" placeholder="Enter job description, responsibilities, and requirements..." rows="6" required></textarea>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Required Skills</label>
-                <input type="text" placeholder="e.g., Excel, Communication, Leadership (comma separated)">
+                <input type="text" name="requirements" placeholder="e.g., Excel, Communication, Leadership (comma separated)">
               </div>
               <div class="form-group">
-                <label>Salary Range</label>
-                <input type="text" placeholder="e.g., $60,000 - $80,000">
+                <label>Screening Criteria</label>
+                <input type="text" name="screening_criteria" placeholder="e.g., prioritize Excel and recruitment experience">
               </div>
             </div>
             <div class="modal-actions">
@@ -1121,6 +1309,9 @@
             <div class="form-group">
               <label>Candidate Name</label>
               <input type="text" id="candidateName" disabled style="background: #f0f0f0;">
+              <input type="hidden" id="screenCandidateId">
+              <input type="hidden" id="screenCandidateEmail">
+              <input type="hidden" id="screenCandidateResume">
             </div>
             <div class="form-row">
               <div class="form-group">
@@ -1135,7 +1326,7 @@
               </div>
               <div class="form-group">
                 <label>Status *</label>
-                <select required>
+                <select id="screenStatus" required>
                   <option>Select Status</option>
                   <option>Shortlisted</option>
                   <option>Pending Review</option>
@@ -1146,7 +1337,7 @@
             </div>
             <div class="form-group">
               <label>Feedback & Notes</label>
-              <textarea placeholder="Add screening notes, observations, or concerns..." rows="5"></textarea>
+              <textarea id="screenNotes" placeholder="Add screening notes, observations, or concerns..." rows="5"></textarea>
             </div>
             <div class="modal-actions">
               <button type="button" class="btn btn-secondary" onclick="closeModal('screenCandidateModal')">Cancel</button>
@@ -1169,21 +1360,23 @@
             <div class="form-group">
               <label>Candidate Name</label>
               <input type="text" id="interviewCandidateName" disabled style="background: #f0f0f0;">
+              <input type="hidden" id="interviewCandidateId">
+              <input type="hidden" id="interviewCandidateEmail">
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Interview Date *</label>
-                <input type="date" required>
+                <input type="date" id="interviewDate" required>
               </div>
               <div class="form-group">
                 <label>Interview Time *</label>
-                <input type="time" required>
+                <input type="time" id="interviewTime" required>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Interview Type *</label>
-                <select required>
+                <select id="interviewType" required>
                   <option>Select Type</option>
                   <option>Phone Screening</option>
                   <option>Video Call</option>
@@ -1193,15 +1386,19 @@
               </div>
               <div class="form-group">
                 <label>Interviewer</label>
-                <input type="text" placeholder="e.g., John Smith">
+                <input type="text" id="interviewerName" placeholder="e.g., John Smith">
               </div>
             </div>
             <div class="form-group">
               <label>Interview Link/Location</label>
-              <input type="text" placeholder="e.g., https://zoom.us/... or Conference Room A">
+              <input type="text" id="interviewLocation" placeholder="e.g., https://zoom.us/... or Conference Room A">
             </div>
             <div class="form-group">
-              <label><input type="checkbox"> Send Interview Confirmation Email</label>
+              <label>Interview Email Message</label>
+              <textarea id="interviewMessage" rows="6" placeholder="Write the interview email to the candidate..."></textarea>
+            </div>
+            <div class="form-group">
+              <label><input type="checkbox" id="sendInterviewEmail" checked> Send Interview Confirmation Email</label>
             </div>
             <div class="modal-actions">
               <button type="button" class="btn btn-secondary" onclick="closeModal('scheduleInterviewModal')">Cancel</button>
@@ -1224,10 +1421,12 @@
             <div class="form-group">
               <label>Candidate Name</label>
               <input type="text" id="rejectCandidateName" disabled style="background: #f0f0f0;">
+              <input type="hidden" id="rejectCandidateId">
+              <input type="hidden" id="rejectCandidateEmail">
             </div>
             <div class="form-group">
               <label>Rejection Reason *</label>
-              <select required>
+              <select id="rejectReason" required>
                 <option>Select Reason</option>
                 <option>Insufficient Experience</option>
                 <option>Does Not Meet Requirements</option>
@@ -1239,10 +1438,10 @@
             </div>
             <div class="form-group">
               <label>Rejection Message</label>
-              <textarea placeholder="Personal note or feedback for candidate..." rows="4"></textarea>
+              <textarea id="rejectMessage" placeholder="Personal note or feedback for candidate..." rows="4"></textarea>
             </div>
             <div class="form-group">
-              <label><input type="checkbox"> Send Rejection Email to Candidate</label>
+              <label><input type="checkbox" id="sendRejectEmail" checked> Send Rejection Email to Candidate</label>
             </div>
             <div class="modal-actions">
               <button type="button" class="btn btn-secondary" onclick="closeModal('rejectCandidateModal')">Cancel</button>
@@ -1642,6 +1841,83 @@
       // Data from server
       const dashboards = {{ dashboards | tojson }};
       const applicants = {{ all_applicants | tojson }};
+      const interviews = {{ interviews | tojson }};
+      let currentJobId = null;
+
+      function getApplicantById(applicantId) {
+        return applicants.find(a => String(a.id) === String(applicantId));
+      }
+
+      function hasValidEmail(email) {
+        return !!email && String(email).includes('@');
+      }
+
+      function hasResume(applicant) {
+        return !!(applicant && applicant.resume_path && String(applicant.resume_path).trim());
+      }
+
+      function displayCandidateName(applicant) {
+        if (!applicant) return 'Unknown Candidate';
+        return `${applicant.name || ''} ${applicant.surname || ''}`.trim() || 'Unknown Candidate';
+      }
+
+      function openScreenModal(applicantId) {
+        const applicant = getApplicantById(applicantId);
+        if (!applicant) {
+          showNotification('Candidate not found.', 'danger');
+          return;
+        }
+        if (!hasResume(applicant)) {
+          showNotification('Cannot screen this candidate: CV/resume is missing.', 'warning');
+          return;
+        }
+
+        document.getElementById('candidateName').value = displayCandidateName(applicant);
+        document.getElementById('screenCandidateId').value = applicant.id || '';
+        document.getElementById('screenCandidateEmail').value = applicant.email || '';
+        document.getElementById('screenCandidateResume').value = applicant.resume_path || '';
+        openModal('screenCandidateModal');
+      }
+
+      function openInterviewModal(applicantId) {
+        const applicant = getApplicantById(applicantId);
+        if (!applicant) {
+          showNotification('Candidate not found.', 'danger');
+          return;
+        }
+
+        document.getElementById('interviewCandidateName').value = displayCandidateName(applicant);
+        document.getElementById('interviewCandidateId').value = applicant.id || '';
+        document.getElementById('interviewCandidateEmail').value = applicant.email || '';
+        document.getElementById('interviewDate').value = applicant.interview_date || '';
+        document.getElementById('interviewTime').value = applicant.interview_time || '';
+        document.getElementById('interviewType').value = applicant.interview_type || 'Video Call';
+        document.getElementById('interviewerName').value = applicant.interviewer || '';
+        document.getElementById('interviewLocation').value = applicant.interview_location || '';
+        document.getElementById('interviewMessage').value = applicant.interview_message || 'Dear {candidate_name},\n\nYou are invited to an interview for the {job_title} role on {interview_date} at {interview_time}.\nInterview type: {interview_type}.\nLocation/Link: {interview_location}.\n\nRegards,\nHR Team';
+        openModal('scheduleInterviewModal');
+
+        if (!hasValidEmail(applicant.email)) {
+          showNotification('This candidate has no valid email. You can schedule, but email cannot be sent.', 'warning');
+        }
+      }
+
+      function openRejectModal(applicantId) {
+        const applicant = getApplicantById(applicantId);
+        if (!applicant) {
+          showNotification('Candidate not found.', 'danger');
+          return;
+        }
+
+        document.getElementById('rejectCandidateName').value = displayCandidateName(applicant);
+        document.getElementById('rejectCandidateId').value = applicant.id || '';
+        document.getElementById('rejectCandidateEmail').value = applicant.email || '';
+        openModal('rejectCandidateModal');
+
+        if (!hasValidEmail(applicant.email)) {
+          showNotification('This candidate has no valid email. Rejection can be saved without email.', 'warning');
+        }
+      }
       
       // Modal Management
       function openModal(modalId) {
@@ -1656,6 +1932,22 @@
         } else {
           console.error('Modal not found:', modalId);
         }
+      }
+
+      function exportCsvReport(event) {
+        if (event) event.preventDefault();
+
+        const params = new URLSearchParams({
+          filename: (document.getElementById('exportFileName')?.value || 'report').trim(),
+          status: document.getElementById('exportStatusFilter')?.value || 'all',
+          report_title: (document.getElementById('exportReportTitle')?.value || 'Applicants Report').trim(),
+          notes: (document.getElementById('exportReportNotes')?.value || '').trim()
+        });
+
+        closeModal('exportReportModal');
+        showNotification('Preparing CSV export...', 'warning');
+        window.location.href = `{{ url_for('hr_report_summary') }}?${params.toString()}`;
+        return false;
       }
 
       function closeModal(modalId) {
@@ -1707,30 +1999,126 @@
       // Form Handlers
       function handleJobSubmit(e) {
         e.preventDefault();
-        const formData = new FormData(e.target);
-        showNotification('✓ Job posted successfully! Applications will start coming in.', 'success');
-        closeModal('newJobModal');
-        setTimeout(() => {
-          e.target.reset();
-        }, 500);
+        const form = e.target;
+        const formData = new FormData(form);
+        fetch(form.action, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: formData,
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (!data.ok) {
+              throw new Error(data.error || 'Failed to create job');
+            }
+            showNotification('✓ Job posted successfully! The job listing is now live.', 'success');
+            closeModal('newJobModal');
+            form.reset();
+            setTimeout(() => window.location.reload(), 500);
+          })
+          .catch(error => {
+            showNotification(error.message || 'Unable to post job.', 'danger');
+          });
+        return false;
       }
 
       function handleScreeningSubmit(e) {
         e.preventDefault();
-        showNotification('✓ Candidate screening submitted successfully!', 'success');
-        closeModal('screenCandidateModal');
+        const candidateId = document.getElementById('screenCandidateId').value;
+        const applicant = getApplicantById(candidateId);
+        if (!applicant) {
+          showNotification('Unable to submit: candidate record not found.', 'danger');
+          return;
+        }
+        if (!hasResume(applicant)) {
+          showNotification('Cannot submit screening: CV/resume is missing.', 'warning');
+          return;
+        }
+        fetch(`/hr/applications/${candidateId}/screen`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rating: document.querySelector('input[name="rating"]:checked')?.value || '',
+            status: document.getElementById('screenStatus').value,
+            notes: document.getElementById('screenNotes').value,
+          }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (!data.ok) {
+              throw new Error(data.error || 'Failed to screen candidate');
+            }
+            showNotification('✓ Candidate screening submitted successfully!', 'success');
+            closeModal('screenCandidateModal');
+            window.location.reload();
+          })
+          .catch(error => {
+            showNotification(error.message || 'Unable to save screening.', 'danger');
+          });
       }
 
       function handleInterviewSubmit(e) {
         e.preventDefault();
-        showNotification('✓ Interview scheduled! Confirmation email sent to candidate.', 'success');
-        closeModal('scheduleInterviewModal');
+        const applicationId = document.getElementById('interviewCandidateId').value;
+        fetch('/hr/interviews/schedule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            application_id: applicationId,
+            interview_date: document.getElementById('interviewDate').value,
+            interview_time: document.getElementById('interviewTime').value,
+            interview_type: document.getElementById('interviewType').value,
+            interviewer: document.getElementById('interviewerName').value,
+            interview_location: document.getElementById('interviewLocation').value,
+            message: document.getElementById('interviewMessage').value,
+            send_email: document.getElementById('sendInterviewEmail').checked,
+          }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (!data.ok) {
+              throw new Error(data.error || 'Failed to schedule interview');
+            }
+            const sent = data.email && data.email.sent;
+            if (document.getElementById('sendInterviewEmail').checked && sent) {
+              showNotification('✓ Interview scheduled and email sent.', 'success');
+            } else if (document.getElementById('sendInterviewEmail').checked && data.email && data.email.error) {
+              showNotification(`Interview saved, but email failed: ${data.email.error}`, 'warning');
+            } else {
+              showNotification('✓ Interview scheduled successfully.', 'success');
+            }
+            closeModal('scheduleInterviewModal');
+            window.location.reload();
+          })
+          .catch(error => {
+            showNotification(error.message || 'Unable to schedule interview.', 'danger');
+          });
       }
 
       function handleRejectSubmit(e) {
         e.preventDefault();
-        showNotification('✓ Candidate rejection processed and email sent.', 'success');
-        closeModal('rejectCandidateModal');
+        const applicationId = document.getElementById('rejectCandidateId').value;
+        fetch(`/hr/applications/${applicationId}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reason: document.getElementById('rejectReason').value,
+            message: document.getElementById('rejectMessage').value,
+            send_email: document.getElementById('sendRejectEmail').checked,
+          }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (!data.ok) {
+              throw new Error(data.error || 'Failed to reject candidate');
+            }
+            showNotification('✓ Candidate rejection processed.', 'success');
+            closeModal('rejectCandidateModal');
+            window.location.reload();
+          })
+          .catch(error => {
+            showNotification(error.message || 'Unable to reject candidate.', 'danger');
+          });
       }
 
       // Quick Action Functions
@@ -1761,30 +2149,66 @@
         showNotification('📊 Loading analytics dashboard...', 'warning');
       }
 
+      function sendInterviewReminder(applicationId) {
+        const applicant = getApplicantById(applicationId);
+        if (!applicant) {
+          showNotification('Candidate not found.', 'danger');
+          return;
+        }
+        openInterviewModal(applicationId);
+        showNotification('Review the message and click Schedule Interview to resend/update it.', 'info');
+      }
+
       function scheduleAndEmail() {
         openModal('scheduleInterviewModal');
       }
 
       function viewApplicationLink() {
-        const link = '{{ url_for("index") }}';
-        showNotification('🔗 Copying application link...', 'warning');
-        navigator.clipboard.writeText(window.location.origin + link);
-        setTimeout(() => {
-          showNotification('✓ Application link copied to clipboard!', 'success');
-        }, 500);
+        const link = window.location.origin + '{{ url_for("index") }}';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(link)
+            .then(() => showNotification('✓ Application link copied to clipboard!', 'success'))
+            .catch(() => { window.prompt('Copy this job link:', link); });
+        } else {
+          window.prompt('Copy this job link:', link);
+        }
+      }
+
+      function updateApplyUrl() {
+        const sel = document.getElementById('applyJobSelect');
+        const box = document.getElementById('applyUrlBox');
+        if (!sel || !box) return;
+        const jobId = sel.value;
+        box.value = window.location.origin + '/jobs/' + jobId + '/apply';
+      }
+
+      function copyApplyUrl() {
+        const box = document.getElementById('applyUrlBox');
+        if (!box) return;
+        const link = box.value;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(link)
+            .then(() => showNotification('✓ Apply link copied to clipboard!', 'success'))
+            .catch(() => { window.prompt('Copy this link:', link); });
+        } else {
+          window.prompt('Copy this link:', link);
+        }
       }
 
       // Job Management Functions
       function viewJobDetails(jobId) {
         const job = dashboards.find(d => d.job.id === jobId);
         if (!job) return;
+        currentJobId = jobId;
         
         document.getElementById('jobDetailsTitle').textContent = job.job.title;
         document.getElementById('jobDetailsDept').textContent = job.job.department;
         document.getElementById('jobDetailsLocation').textContent = job.job.location;
         document.getElementById('jobDetailsStatus').innerHTML = job.deadline_state === 'closed' ? '<span style="color: #e74c3c;">Closed</span>' : '<span style="color: #27ae60;">Open</span>';
-        document.getElementById('jobTotalApps').textContent = job.all_count;
-        document.getElementById('jobShortlisted').textContent = job.selected_count;
+        document.getElementById('jobTotalApps').textContent = typeof job.all_count !== 'undefined' ? job.all_count : (job.applicant_count || 0);
+        document.getElementById('jobShortlisted').textContent = typeof job.selected_count !== 'undefined'
+          ? job.selected_count
+          : (Array.isArray(job.applicants) ? job.applicants.filter(a => a.status === 'shortlisted').length : 0);
         
         document.getElementById('jobCandidatesList').innerHTML = loadJobCandidates(jobId);
         document.getElementById('jobCandidatesSearch').value = '';
@@ -1823,12 +2247,18 @@
       }
 
       function editJob(jobId) {
-        const job = dashboards.find(d => d.job.id === jobId).job;
+        const found = dashboards.find(d => d.job.id === jobId);
+        if (!found) {
+          showNotification('Job not found.', 'danger');
+          return;
+        }
+        const job = found.job;
         document.getElementById('editJobTitle').value = job.title;
         document.getElementById('editJobDept').value = job.department;
         document.getElementById('editJobLocation').value = job.location;
         document.getElementById('editJobDesc').value = job.description;
-        document.getElementById('editJobSkills').value = (job.requirements || []).join(', ');
+        const req = job.requirements;
+        document.getElementById('editJobSkills').value = Array.isArray(req) ? req.join(', ') : (req || '');
         openModal('jobEditModal');
       }
 
@@ -1840,9 +2270,23 @@
       }
 
       function shareJob(jobId) {
-        const link = window.location.origin + '/jobs/' + jobId + '/apply';
-        navigator.clipboard.writeText(link);
-        showNotification('✓ Job link copied! Share with candidates or on social media.', 'success');
+        const targetJobId = jobId || currentJobId;
+        if (!targetJobId) {
+          showNotification('No job selected to share.', 'warning');
+          return;
+        }
+        const link = window.location.origin + '/jobs/' + targetJobId + '/apply';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(link)
+            .then(() => showNotification('✓ Job link copied! Share with candidates or on social media.', 'success'))
+            .catch(() => {
+              window.prompt('Copy this job link:', link);
+              showNotification('Copy prompt opened.', 'info');
+            });
+        } else {
+          window.prompt('Copy this job link:', link);
+          showNotification('Copy prompt opened.', 'info');
+        }
       }
 
       function viewAllApplicants() {
@@ -1918,11 +2362,19 @@
 
       // Screen Now with animated spinner
       function runScreenNow() {
-        // Check if there are any pending candidates to screen
         const pendingRows = document.querySelectorAll('.screening-row[data-status="pending"]');
         if (pendingRows.length === 0) {
           showNotification('⚠️ No pending candidates to screen. Applications will appear here once submitted.', 'warning');
           return;
+        }
+
+        const pendingWithoutCv = applicants.filter(a => (a.status === 'pending') && !hasResume(a)).length;
+        if (pendingWithoutCv === pendingRows.length) {
+          showNotification('Cannot run screening: pending candidates do not have uploaded CVs.', 'warning');
+          return;
+        }
+        if (pendingWithoutCv > 0) {
+          showNotification(`Proceeding with available CVs. ${pendingWithoutCv} pending candidate(s) missing CV were skipped.`, 'warning');
         }
 
         const overlay = document.getElementById('screeningOverlay');
@@ -1931,28 +2383,31 @@
         if (!overlay) return;
 
         overlay.style.display = 'block';
-        let progress = 0;
-        const steps = [
-          'Analysing CVs...', 'Checking qualifications...', 'Scoring candidates...',
-          'Comparing profiles...', 'Finalising results...'
-        ];
-        const interval = setInterval(() => {
-          progress += Math.random() * 18 + 5;
-          if (progress >= 100) {
-            progress = 100;
-            clearInterval(interval);
+        bar.style.width = '25%';
+        text.textContent = 'Analysing CVs...';
+
+        fetch('/hr/screening/run-now', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (!data.ok) {
+              throw new Error(data.error || 'Failed to run screening');
+            }
             bar.style.width = '100%';
             text.textContent = '100% complete!';
             setTimeout(() => {
               overlay.style.display = 'none';
-              showNotification('✅ Screening complete! All candidates have been scored and ranked.', 'success');
-            }, 800);
-          } else {
-            bar.style.width = progress + '%';
-            const stepIdx = Math.floor((progress / 100) * steps.length);
-            text.textContent = Math.round(progress) + '% — ' + (steps[stepIdx] || 'Processing...');
-          }
-        }, 400);
+              showNotification(`✅ Screening complete! ${data.processed || 0} candidate(s) processed.`, 'success');
+              window.location.reload();
+            }, 500);
+          })
+          .catch(error => {
+            overlay.style.display = 'none';
+            showNotification(error.message || 'Unable to run screening.', 'danger');
+          });
       }
 
       // Dashboard Section Navigation with Enhanced Functionality

@@ -14,5 +14,34 @@
       "Bachelor's degree"
     ],
     "custom_screening_criteria": "Focus on data analysis skills and process improvement experience"
+  },
+  "99ca0df6-ab25-4cf3-8b91-76640b44cf3b": {
+    "id": "99ca0df6-ab25-4cf3-8b91-76640b44cf3b",
+    "title": "Test HR Analyst",
+    "department": "Human Resources",
+    "location": "Remote",
+    "description": "Need HR analyst with excel and communication skills",
+    "requirements": [
+      "Excel",
+      "Communication"
+    ],
+    "screening_criteria": "Prioritize excel",
+    "due_date": "2026-06-20T10:00",
+    "created_at": "2026-06-06T23:35:59.159635+00:00",
+    "application_link": "/jobs/99ca0df6-ab25-4cf3-8b91-76640b44cf3b/apply"
+  },
+  "2d314532-5926-42fd-bbfc-fda1b74ac36d": {
+    "id": "2d314532-5926-42fd-bbfc-fda1b74ac36d",
+    "title": "ce",
+    "department": "Operations",
+    "location": "binga",
+    "description": "bachela in IT",
+    "requirements": [
+      "leadership"
+    ],
+    "screening_criteria": "years of experience",
+    "due_date": "2026-06-08T01:42",
+    "created_at": "2026-06-06T23:43:12.884650+00:00",
+    "application_link": "/jobs/2d314532-5926-42fd-bbfc-fda1b74ac36d/apply"
   }
 }

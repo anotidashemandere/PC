@@ -4,8 +4,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from email.message import EmailMessage
 import json
 import os
+import smtplib
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-12345")
@@ -20,6 +22,210 @@ USERS = {}
 JOBS = {}
 APPLICATIONS = {}
 ACTIVITY_LOGS = []
+SETTINGS = {}
+
+DEFAULT_SETTINGS = {
+    "company_name": "GMB",
+    "support_email": "hr@company.com",
+    "default_view": "dashboard",
+    "items_per_page": 25,
+    "notification_email_enabled": True,
+    "application_updates_enabled": True,
+    "interview_reminders_enabled": True,
+    "weekly_reports_enabled": False,
+    "mail_server": os.environ.get("MAIL_SERVER", "smtp.gmail.com"),
+    "mail_port": int(os.environ.get("MAIL_PORT", 587)),
+    "mail_use_tls": str(os.environ.get("MAIL_USE_TLS", "true")).lower() in ("1", "true", "yes", "on"),
+    "mail_username": os.environ.get("MAIL_USERNAME", ""),
+    "mail_password": os.environ.get("MAIL_PASSWORD", ""),
+    "mail_default_sender": os.environ.get("MAIL_DEFAULT_SENDER", os.environ.get("MAIL_USERNAME", "noreply@company.com")),
+    "interview_default_message": (
+        "Dear {candidate_name},\n\n"
+        "You are invited to an interview for the {job_title} role on {interview_date} at {interview_time}.\n"
+        "Interview type: {interview_type}.\n"
+        "Location/Link: {interview_location}.\n\n"
+        "Regards,\nHR Team"
+    ),
+}
+
+
+def _settings_file():
+    return DATA_DIR / "settings.json"
+
+
+def _save_json(path, payload):
+    with open(path, "w") as file_obj:
+        json.dump(payload, file_obj, indent=2, default=str)
+
+
+def _to_bool(value):
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _normalize_requirements(value):
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    if isinstance(value, str):
+        return [item.strip() for item in value.split(",") if item.strip()]
+    return []
+
+
+def _parse_iso_datetime(value):
+    if isinstance(value, datetime):
+        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if isinstance(value, str) and value:
+        try:
+            parsed = datetime.fromisoformat(value)
+            return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+        except Exception:
+            return None
+    return None
+
+
+def _screening_text_for_job(job):
+    requirements = _normalize_requirements(job.get("requirements"))
+    custom_criteria = (job.get("screening_criteria") or job.get("custom_screening_criteria") or "").strip()
+    parts = [
+        job.get("title", ""),
+        job.get("description", ""),
+        f"Requirements: {', '.join(requirements)}" if requirements else "",
+        custom_criteria,
+    ]
+    return "\n".join(part for part in parts if part)
+
+
+def _normalize_screening_status(raw_status):
+    status = str(raw_status or "pending").strip().lower()
+    status_map = {
+        "shortlisted": "shortlisted",
+        "review": "pending",
+        "pending review": "pending",
+        "interview": "interview",
+        "rejected": "rejected",
+    }
+    return status_map.get(status, status or "pending")
+
+
+def _screen_pending_applications(job_ids, trigger="manual"):
+    try:
+        from services.cv_scoring import ResumeUpload, rank_candidates
+    except Exception as exc:
+        print(f"Warning: CV scoring service unavailable: {exc}")
+        return {"processed": 0, "jobs": []}
+
+    processed = 0
+    touched_jobs = []
+
+    for job_id in job_ids:
+        job = JOBS.get(job_id)
+        if not job:
+            continue
+
+        screening_text = _screening_text_for_job(job)
+        if not screening_text.strip():
+            continue
+
+        job_processed = 0
+        for app_data in APPLICATIONS.values():
+            if app_data.get("job_id") != job_id:
+                continue
+            if str(app_data.get("status") or "pending").strip().lower() != "pending":
+                continue
+
+            resume_path = Path(app_data.get("resume_path") or "")
+            if not resume_path.exists():
+                continue
+
+            try:
+                result = rank_candidates(
+                    screening_text,
+                    [ResumeUpload(label=app_data.get("id", "candidate"), path=resume_path)],
+                )[0]
+            except Exception as exc:
+                print(f"Warning: Could not screen application {app_data.get('id')}: {exc}")
+                continue
+
+            app_data["score"] = result.score
+            app_data["summary"] = result.summary
+            app_data["recommendation"] = result.recommendation
+            app_data["recommendation_reason"] = result.recommendation_reason
+            app_data["matched_skills"] = result.matched_skills
+            app_data["missing_skills"] = result.missing_skills
+            app_data["status"] = _normalize_screening_status(result.status)
+            app_data["screened_at"] = datetime.now(timezone.utc).isoformat()
+            app_data["screening_trigger"] = trigger
+            job_processed += 1
+            processed += 1
+
+        if job_processed:
+            touched_jobs.append({"job_id": job_id, "job_title": job.get("title", "Job"), "processed": job_processed})
+
+    if processed:
+        save_applications()
+
+    return {"processed": processed, "jobs": touched_jobs}
+
+
+def _screen_due_jobs():
+    now = datetime.now(timezone.utc)
+    due_job_ids = []
+    for job_id, job in JOBS.items():
+        due_date = _parse_iso_datetime(job.get("due_date"))
+        if due_date and due_date <= now:
+            due_job_ids.append(job_id)
+    return _screen_pending_applications(due_job_ids, trigger="due_date") if due_job_ids else {"processed": 0, "jobs": []}
+
+
+def save_jobs():
+    _save_json(DATA_DIR / "jobs.json", JOBS)
+
+
+def save_applications():
+    _save_json(DATA_DIR / "applications.json", APPLICATIONS)
+
+
+def save_settings():
+    _save_json(_settings_file(), SETTINGS)
+
+
+def _mail_settings():
+    return {
+        "server": SETTINGS.get("mail_server") or DEFAULT_SETTINGS["mail_server"],
+        "port": int(SETTINGS.get("mail_port") or DEFAULT_SETTINGS["mail_port"]),
+        "use_tls": _to_bool(SETTINGS.get("mail_use_tls", DEFAULT_SETTINGS["mail_use_tls"])),
+        "username": SETTINGS.get("mail_username") or DEFAULT_SETTINGS["mail_username"],
+        "password": SETTINGS.get("mail_password") or DEFAULT_SETTINGS["mail_password"],
+        "sender": SETTINGS.get("mail_default_sender") or DEFAULT_SETTINGS["mail_default_sender"],
+    }
+
+
+def send_email_message(recipient, subject, body):
+    if not recipient:
+        return False, "Candidate email is missing"
+
+    mail = _mail_settings()
+    if not mail["server"] or not mail["port"] or not mail["sender"]:
+        return False, "SMTP settings are incomplete"
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = mail["sender"]
+    message["To"] = recipient
+    message.set_content(body)
+
+    try:
+        with smtplib.SMTP(mail["server"], mail["port"], timeout=20) as smtp:
+            if mail["use_tls"]:
+                smtp.starttls()
+            if mail["username"]:
+                smtp.login(mail["username"], mail["password"])
+            smtp.send_message(message)
+        return True, None
+    except Exception as exc:
+        print(f"Warning: Could not send email: {exc}")
+        return False, str(exc)
 
 
 def load_all_data():
@@ -87,6 +293,15 @@ def load_all_data():
                     ACTIVITY_LOGS.append(entry)
         except Exception as e:
             print(f"Warning: Could not load activity logs: {e}")
+
+    settings_file = _settings_file()
+    SETTINGS.update(DEFAULT_SETTINGS)
+    if settings_file.exists():
+        try:
+            with open(settings_file, 'r') as f:
+                SETTINGS.update(json.load(f))
+        except Exception as e:
+            print(f"Warning: Could not load settings: {e}")
 
 
 load_all_data()
@@ -205,21 +420,43 @@ def hr_dashboard():
         flash("Access denied.", "danger")
         return redirect(url_for("login"))
 
+    _screen_due_jobs()
+
     dashboards = []
     for job_id, job in JOBS.items():
-        applicants = [a for a in APPLICATIONS.values() if a.get("job_id") == job_id]
+        applicants = [_enrich_application(a) for a in APPLICATIONS.values() if a.get("job_id") == job_id]
+        enriched_job = _enrich_job(job)
+        # Convert uploaded_at strings to datetime objects
+        for a in applicants:
+            if isinstance(a.get("uploaded_at"), str):
+                try:
+                    a["uploaded_at"] = datetime.fromisoformat(a["uploaded_at"])
+                except Exception:
+                    a["uploaded_at"] = datetime.now(timezone.utc)
         dashboards.append({
-            "job": job,
+            "job": enriched_job,
             "applicants": applicants,
             "applicant_count": len(applicants),
+            "all_count": len(applicants),
+            "selected_count": len([a for a in applicants if a.get("status") == "shortlisted"]),
+            "deadline_state": enriched_job.get("deadline_state", "open"),
         })
 
-    all_applicants = list(APPLICATIONS.values())
+    all_applicants_data = [_enrich_application(app_data) for app_data in APPLICATIONS.values()]
+    # Convert uploaded_at strings to datetime objects
+    for a in all_applicants_data:
+        if isinstance(a.get("uploaded_at"), str):
+            try:
+                a["uploaded_at"] = datetime.fromisoformat(a["uploaded_at"])
+            except Exception:
+                a["uploaded_at"] = datetime.now(timezone.utc)
     return render_template(
         "hr_dashboard.html",
         dashboards=dashboards,
-        applicants=all_applicants,
-        all_applicants=all_applicants,
+        applicants=all_applicants_data,
+        all_applicants=all_applicants_data,
+        interviews=_scheduled_interviews(),
+        settings=SETTINGS,
     )
 
 
@@ -229,7 +466,7 @@ def audit_dashboard():
     if not user:
         flash("Please log in.", "warning")
         return redirect(url_for("login"))
-    if user.get("role") != "audit":
+    if user.get("role") not in ("audit", "hr"):
         flash("Access denied.", "danger")
         return redirect(url_for("login"))
 
@@ -237,12 +474,28 @@ def audit_dashboard():
     page = max(1, request.args.get("page", 1, type=int))
     action_filter = request.args.get("action", "").strip().lower()
 
+    def _normalize_log(entry):
+        item = dict(entry or {})
+        ts = item.get("timestamp")
+        if isinstance(ts, str):
+            try:
+                ts = datetime.fromisoformat(ts)
+            except Exception:
+                ts = datetime.now(timezone.utc)
+        if not isinstance(ts, datetime):
+            ts = datetime.now(timezone.utc)
+
+        user_ref = USERS.get(item.get("user_id"), {})
+        item["timestamp"] = ts
+        item["created_at"] = ts
+        item["user"] = {
+            "full_name": user_ref.get("name") or item.get("user_id") or "Unknown User",
+            "email": user_ref.get("email") or "unknown@local",
+        }
+        return item
+
     # Sort newest first
-    all_logs = sorted(
-        ACTIVITY_LOGS,
-        key=lambda x: x.get("timestamp") or datetime.min.replace(tzinfo=timezone.utc),
-        reverse=True
-    )
+    all_logs = sorted([_normalize_log(log) for log in ACTIVITY_LOGS], key=lambda x: x.get("timestamp"), reverse=True)
 
     filtered = [l for l in all_logs if action_filter in l.get("action", "").lower()] if action_filter else all_logs
 
@@ -261,11 +514,13 @@ def audit_dashboard():
         "audit_dashboard.html",
         logs=logs,
         login_logs=login_logs,
+        login_activities=login_logs,
         total_logs=total_logs,
         successful_count=successful_count,
         failed_count=failed_count,
         unique_users=unique_users,
         page=page,
+        current_page=page,
         total_pages=total_pages,
         action_filter=action_filter,
     )
@@ -290,6 +545,12 @@ class _DictObj:
                 return datetime.fromisoformat(val)
             except Exception:
                 return datetime.now(timezone.utc)
+        if name in ('due_date', 'interview_at') and isinstance(val, str):
+            parsed = _parse_iso_datetime(val)
+            if parsed:
+                return parsed
+        if name == 'requirements':
+            return _normalize_requirements(val)
         return val
 
     def __getitem__(self, key):
@@ -297,6 +558,10 @@ class _DictObj:
 
     def __bool__(self):
         return bool(object.__getattribute__(self, '_d'))
+
+    def get(self, key, default=None):
+        """Dict-like get method"""
+        return object.__getattribute__(self, '_d').get(key, default)
 
 
 class _AppObj(_DictObj):
@@ -312,6 +577,48 @@ def _wrap_app(d):
 
 def _wrap_job(d):
     return _DictObj(d)
+
+
+def _enrich_job(job):
+    item = dict(job or {})
+    item["requirements"] = _normalize_requirements(item.get("requirements"))
+    due_date = _parse_iso_datetime(item.get("due_date"))
+    item["due_date"] = due_date.isoformat() if due_date else item.get("due_date")
+    item["application_link"] = item.get("application_link") or url_for("apply", job_id=item.get("id", ""))
+    item["deadline_state"] = "closed" if due_date and due_date < datetime.now(timezone.utc) else "open"
+    return item
+
+
+def _enrich_application(app_data):
+    item = dict(app_data or {})
+    job = JOBS.get(item.get("job_id", ""), {})
+    item["job_title"] = job.get("title") or "General Application"
+    job_due_date = _parse_iso_datetime(job.get("due_date"))
+    item["job_due_date"] = job_due_date.isoformat() if job_due_date else ""
+    item["job_deadline_state"] = "closed" if job_due_date and job_due_date <= datetime.now(timezone.utc) else "open"
+    interview_date = (item.get("interview_date") or "").strip()
+    interview_time = (item.get("interview_time") or "").strip()
+    if interview_date and interview_time:
+        item["interview_at"] = f"{interview_date}T{interview_time}"
+    elif interview_date:
+        item["interview_at"] = interview_date
+    return item
+
+
+def _scheduled_interviews():
+    interviews = []
+    for app_data in APPLICATIONS.values():
+        if app_data.get("interview_date"):
+            enriched = _enrich_application(app_data)
+            # Ensure interview_at is a datetime object
+            if isinstance(enriched.get("interview_at"), str):
+                try:
+                    enriched["interview_at"] = datetime.fromisoformat(enriched["interview_at"])
+                except Exception:
+                    pass
+            interviews.append(enriched)
+    interviews.sort(key=lambda item: (item.get("interview_date", ""), item.get("interview_time", "")))
+    return interviews
 
 
 def _require_hr():
@@ -331,7 +638,8 @@ def hr_jobs():
     user, err = _require_hr()
     if err:
         return err
-    jobs = [_wrap_job(j) for j in JOBS.values()]
+    _screen_due_jobs()
+    jobs = [_wrap_job(_enrich_job(j)) for j in JOBS.values()]
     return render_template("hr_jobs.html", jobs=jobs)
 
 
@@ -348,15 +656,18 @@ def hr_post_job():
         "department": request.form.get("department", "").strip(),
         "location": request.form.get("location", "").strip(),
         "description": request.form.get("description", "").strip(),
-        "requirements": request.form.get("requirements", "").strip(),
+        "requirements": _normalize_requirements(request.form.get("requirements", "")),
+        "screening_criteria": request.form.get("screening_criteria", "").strip(),
         "due_date": request.form.get("due_date", "").strip(),
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "application_link": url_for("apply", job_id=job_id),
     }
     try:
-        with open(DATA_DIR / "jobs.json", "w") as f:
-            json.dump(JOBS, f, indent=2)
+        save_jobs()
     except Exception as e:
         print(f"Warning: Could not save job: {e}")
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"ok": True, "job": _enrich_job(JOBS[job_id])})
     flash("Job posted successfully.", "success")
     return redirect(url_for("hr_jobs"))
 
@@ -366,7 +677,8 @@ def hr_screening():
     user, err = _require_hr()
     if err:
         return err
-    all_apps = [_wrap_app(a) for a in APPLICATIONS.values()]
+    screening_summary = _screen_due_jobs()
+    all_apps = [_wrap_app(_enrich_application(a)) for a in APPLICATIONS.values()]
     pending = [a for a in all_apps if not a.status or a.status == "pending"]
     shortlisted = [a for a in all_apps if a.status == "shortlisted"]
     rejected = [a for a in all_apps if a.status == "rejected"]
@@ -376,7 +688,18 @@ def hr_screening():
         pending=pending,
         shortlisted=shortlisted,
         rejected=rejected,
+        screening_summary=screening_summary,
     )
+
+
+@app.route("/hr/screening/run-now", methods=["POST"])
+def hr_screening_run_now():
+    user, err = _require_hr()
+    if err:
+        return err
+    summary = _screen_pending_applications(list(JOBS.keys()), trigger="manual")
+    log_activity(user["id"], "screen_due_candidates", f"Processed {summary['processed']} candidate(s)", "success")
+    return jsonify({"ok": True, **summary})
 
 
 @app.route("/hr/interviews")
@@ -384,9 +707,9 @@ def hr_interviews():
     user, err = _require_hr()
     if err:
         return err
-    applicants = [_wrap_app(a) for a in APPLICATIONS.values()
-                  if a.get("status") in ("shortlisted", "interview")]
-    return render_template("hr_interviews.html", applicants=applicants)
+    applicants = [_wrap_app(_enrich_application(a)) for a in _scheduled_interviews()]
+    candidates = [_wrap_app(_enrich_application(a)) for a in APPLICATIONS.values() if a.get("status") in ("shortlisted", "interview", "pending")]
+    return render_template("hr_interviews.html", applicants=applicants, candidates=candidates, settings=SETTINGS)
 
 
 @app.route("/hr/ratings")
@@ -403,7 +726,7 @@ def hr_settings():
     user, err = _require_hr()
     if err:
         return err
-    return render_template("hr_settings.html")
+    return render_template("hr_settings.html", settings=SETTINGS)
 
 
 @app.route("/hr/settings/update", methods=["POST"])
@@ -411,6 +734,17 @@ def hr_settings_update():
     user, err = _require_hr()
     if err:
         return err
+    SETTINGS.update({
+        "company_name": request.form.get("company_name", SETTINGS.get("company_name", DEFAULT_SETTINGS["company_name"])).strip(),
+        "support_email": request.form.get("support_email", SETTINGS.get("support_email", DEFAULT_SETTINGS["support_email"])).strip(),
+        "default_view": request.form.get("default_view", SETTINGS.get("default_view", DEFAULT_SETTINGS["default_view"])).strip(),
+        "items_per_page": int(request.form.get("items_per_page", SETTINGS.get("items_per_page", DEFAULT_SETTINGS["items_per_page"]))),
+        "notification_email_enabled": "notification_email_enabled" in request.form,
+        "application_updates_enabled": "application_updates_enabled" in request.form,
+        "interview_reminders_enabled": "interview_reminders_enabled" in request.form,
+        "weekly_reports_enabled": "weekly_reports_enabled" in request.form,
+    })
+    save_settings()
     flash("Settings saved.", "success")
     return redirect(url_for("hr_settings"))
 
@@ -446,6 +780,128 @@ def hr_application_action(application_id):
     return redirect(url_for("hr_application_detail", application_id=application_id))
 
 
+@app.route("/hr/applications/<application_id>/screen", methods=["POST"])
+def hr_application_screen(application_id):
+    user, err = _require_hr()
+    if err:
+        return err
+
+    app_data = APPLICATIONS.get(application_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+
+    payload = request.get_json(silent=True) or request.form
+    raw_status = (payload.get("status") or "pending").strip().lower()
+    status_map = {
+        "shortlisted": "shortlisted",
+        "pending review": "pending",
+        "pending": "pending",
+        "rejected": "rejected",
+        "interview ready": "interview",
+        "interview": "interview",
+    }
+    app_data["status"] = status_map.get(raw_status, raw_status or "pending")
+    app_data["screening_rating"] = payload.get("rating")
+    app_data["screening_notes"] = (payload.get("notes") or "").strip()
+    app_data["screened_at"] = datetime.now(timezone.utc).isoformat()
+    save_applications()
+    log_activity(user["id"], "screen_candidate", f"Screened {application_id}", "success")
+    return jsonify({"ok": True, "status": app_data["status"]})
+
+
+@app.route("/hr/applications/<application_id>/reject", methods=["POST"])
+def hr_application_reject(application_id):
+    user, err = _require_hr()
+    if err:
+        return err
+
+    app_data = APPLICATIONS.get(application_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+
+    payload = request.get_json(silent=True) or request.form
+    send_email = _to_bool(payload.get("send_email", False))
+    app_data["status"] = "rejected"
+    app_data["rejection_reason"] = (payload.get("reason") or "").strip()
+    app_data["rejection_message"] = (payload.get("message") or "").strip()
+    app_data["rejected_at"] = datetime.now(timezone.utc).isoformat()
+
+    email_result = None
+    if send_email and app_data.get("email"):
+        subject = f"Application Update - {app_data.get('name', 'Candidate')}"
+        body = app_data["rejection_message"] or "Thank you for your application. We will not move forward at this time."
+        sent, error = send_email_message(app_data.get("email"), subject, body)
+        email_result = {"sent": sent, "error": error}
+        app_data["rejection_email_sent"] = sent
+
+    save_applications()
+    log_activity(user["id"], "reject_candidate", f"Rejected {application_id}", "success")
+    return jsonify({"ok": True, "email": email_result})
+
+
+@app.route("/hr/interviews/schedule", methods=["POST"])
+def hr_schedule_interview():
+    user, err = _require_hr()
+    if err:
+        return err
+
+    payload = request.get_json(silent=True) or request.form
+    application_id = (payload.get("application_id") or "").strip()
+    app_data = APPLICATIONS.get(application_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+
+    interview_date = (payload.get("interview_date") or "").strip()
+    interview_time = (payload.get("interview_time") or "").strip()
+    if not interview_date or not interview_time:
+        return jsonify({"ok": False, "error": "Interview date and time are required"}), 400
+
+    app_data["status"] = "interview"
+    app_data["interview_date"] = interview_date
+    app_data["interview_time"] = interview_time
+    app_data["interview_type"] = (payload.get("interview_type") or "Interview").strip()
+    app_data["interviewer"] = (payload.get("interviewer") or "").strip()
+    app_data["interview_location"] = (payload.get("interview_location") or "").strip()
+    app_data["interview_message"] = (payload.get("message") or "").strip()
+    app_data["interview_status"] = "scheduled"
+    app_data["interview_scheduled_at"] = datetime.now(timezone.utc).isoformat()
+
+    email_result = None
+    send_email = _to_bool(payload.get("send_email", False))
+    if send_email and app_data.get("email"):
+        job = JOBS.get(app_data.get("job_id", ""), {})
+        template = app_data["interview_message"] or SETTINGS.get("interview_default_message", DEFAULT_SETTINGS["interview_default_message"])
+        format_values = {
+            "candidate_name": f"{app_data.get('name', '')} {app_data.get('surname', '')}".strip(),
+            "job_title": job.get("title", "the position"),
+            "interview_date": interview_date,
+            "interview_time": interview_time,
+            "interview_type": app_data.get("interview_type", "Interview"),
+            "interview_location": app_data.get("interview_location", "To be confirmed"),
+        }
+        try:
+            body = template.format(**format_values)
+        except Exception:
+            body = template
+        if interview_date not in body or interview_time not in body:
+            body = (
+                f"{body}\n\nInterview schedule:\n"
+                f"Date: {interview_date}\n"
+                f"Time: {interview_time}\n"
+                f"Type: {format_values['interview_type']}\n"
+                f"Location/Link: {format_values['interview_location']}"
+            )
+        subject = f"Interview Invitation - {job.get('title', 'Application')}"
+        sent, error = send_email_message(app_data.get("email"), subject, body)
+        email_result = {"sent": sent, "error": error}
+        app_data["interview_email_sent"] = sent
+        app_data["interview_email_error"] = error
+
+    save_applications()
+    log_activity(user["id"], "schedule_interview", f"Scheduled interview for {application_id}", "success")
+    return jsonify({"ok": True, "email": email_result, "application": _enrich_application(app_data)})
+
+
 @app.route("/applicants/<application_id>")
 def applicant_page(application_id):
     app_data = APPLICATIONS.get(application_id)
@@ -463,10 +919,37 @@ def hr_report_summary():
     if err:
         return err
     import csv, io
+
+    status_filter = (request.args.get("status") or "all").strip().lower()
+    report_title = (request.args.get("report_title") or "Applicants Report").strip()
+    report_notes = (request.args.get("notes") or "").strip()
+    requested_filename = (request.args.get("filename") or "report").strip()
+
+    safe_filename = "".join(
+        ch for ch in requested_filename if ch.isalnum() or ch in ("-", "_", " ")
+    ).strip() or "report"
+    if not safe_filename.lower().endswith(".csv"):
+        safe_filename = f"{safe_filename}.csv"
+
+    filtered_applications = []
+    for app_data in APPLICATIONS.values():
+        app_status = str(app_data.get("status", "")).strip().lower()
+        if status_filter != "all" and app_status != status_filter:
+            continue
+        filtered_applications.append(app_data)
+
     output = io.StringIO()
     writer = csv.writer(output)
+
+    writer.writerow(["Report Title", report_title])
+    writer.writerow(["Generated At", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+    writer.writerow(["Generated By", user.get("name", "HR User")])
+    writer.writerow(["Status Filter", status_filter.title() if status_filter != "all" else "All Applicants"])
+    if report_notes:
+        writer.writerow(["Notes", report_notes])
+    writer.writerow([])
     writer.writerow(["ID", "Name", "Surname", "Email", "Job", "Score", "Status", "Applied"])
-    for a in APPLICATIONS.values():
+    for a in filtered_applications:
         job = JOBS.get(a.get("job_id", ""), {})
         writer.writerow([
             a.get("id", ""), a.get("name", ""), a.get("surname", ""),
@@ -477,7 +960,7 @@ def hr_report_summary():
     return Response(
         output.getvalue(),
         mimetype="text/csv",
-        headers={"Content-Disposition": "attachment; filename=report.csv"},
+        headers={"Content-Disposition": f'attachment; filename="{safe_filename}"'},
     )
 
 
@@ -486,13 +969,7 @@ def hr_audit_log():
     user, err = _require_hr()
     if err:
         return err
-    serializable = []
-    for e in ACTIVITY_LOGS:
-        ec = dict(e)
-        if isinstance(ec.get("timestamp"), datetime):
-            ec["timestamp"] = ec["timestamp"].isoformat()
-        serializable.append(ec)
-    return jsonify(serializable)
+    return redirect(url_for("audit_dashboard"))
 
 
 # ─── Public job / apply routes ─────────────────────────────────────────────
@@ -502,7 +979,7 @@ def job_detail(job_id):
     if not job_data:
         flash("Job not found.", "danger")
         return redirect(url_for("index"))
-    job = _wrap_job(job_data)
+    job = _wrap_job(_enrich_job(job_data))
     applications = [_wrap_app(a) for a in APPLICATIONS.values() if a.get("job_id") == job_id]
     return render_template("job_detail.html", job=job, applications=applications)
 
@@ -513,20 +990,40 @@ def apply(job_id):
     if not job_data:
         flash("Job not found.", "danger")
         return redirect(url_for("index"))
-    job = _wrap_job(job_data)
+    source = (request.args.get("source") or "").strip().lower()
+    show_hr_sidebar = source == "hr"
+    education_options = ["High School", "Diploma", "Bachelor's Degree", "Master's Degree", "PhD"]
+    job = _wrap_job(_enrich_job(job_data))
     if request.method == "POST":
         import uuid
         from werkzeug.utils import secure_filename
         app_id = str(uuid.uuid4())
         resume_path = ""
+        certification_paths = []
+        upload_dir = Path(__file__).parent / "uploads"
+        upload_dir.mkdir(exist_ok=True)
+
         resume_file = request.files.get("resume")
-        if resume_file and resume_file.filename:
-            filename = secure_filename(resume_file.filename)
-            upload_dir = Path(__file__).parent / "uploads"
-            upload_dir.mkdir(exist_ok=True)
-            save_path = upload_dir / filename
-            resume_file.save(str(save_path))
-            resume_path = str(save_path)
+        if not resume_file or not resume_file.filename:
+            flash("Please upload exactly one CV file.", "danger")
+            return redirect(request.url)
+
+        filename = secure_filename(resume_file.filename)
+        save_path = upload_dir / f"{app_id}_cv_{filename}"
+        resume_file.save(str(save_path))
+        resume_path = str(save_path)
+
+        cert_files = [f for f in request.files.getlist("certifications") if f and f.filename]
+        if len(cert_files) > 200:
+            flash("You can upload a maximum of 200 supporting files.", "danger")
+            return redirect(request.url)
+
+        for index, cert_file in enumerate(cert_files, start=1):
+            cert_filename = secure_filename(cert_file.filename)
+            cert_path = upload_dir / f"{app_id}_cert_{index}_{cert_filename}"
+            cert_file.save(str(cert_path))
+            certification_paths.append(str(cert_path))
+
         APPLICATIONS[app_id] = {
             "id": app_id,
             "job_id": job_id,
@@ -537,7 +1034,7 @@ def apply(job_id):
             "highest_education": request.form.get("highest_education", "").strip(),
             "note": request.form.get("note", "").strip(),
             "resume_path": resume_path,
-            "certification_paths": [],
+            "certification_paths": certification_paths,
             "status": "pending",
             "score": 0,
             "summary": "",
@@ -552,7 +1049,12 @@ def apply(job_id):
         except Exception as e:
             print(f"Warning: Could not save application: {e}")
         return redirect(url_for("success_page", application_id=app_id))
-    return render_template("apply.html", job=job)
+    return render_template(
+        "apply.html",
+        job=job,
+        education_options=education_options,
+        show_hr_sidebar=show_hr_sidebar,
+    )
 
 
 @app.route("/success")
@@ -749,28 +1251,6 @@ def logout():
     flash("Logged out successfully.", "info")
     return redirect(url_for("login"))
 
-@app.route("/hr")
-def hr_dashboard():
-    """HR Dashboard"""
-    user = get_current_user()
-    if not user:
-        flash("Please log in.", "warning")
-        return redirect(url_for("login"))
-    
-    if user.get("role") != "hr":
-        flash("Access denied.", "danger")
-        return redirect(url_for("login"))
-    
-    dashboards = []
-    for job_id, job in JOBS.items():
-        applicants = [a for a in APPLICATIONS.values() if a.get("job_id") == job_id]
-        dashboards.append({
-            "job": job,
-            "applicants": applicants,
-            "applicant_count": len(applicants),
-        })
-    
-    return render_template("hr_dashboard.html", dashboards=dashboards, applicants=list(APPLICATIONS.values()))
 
 @app.route("/audit")
 def audit_dashboard():

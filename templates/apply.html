@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+      body {
+        background: #f5f7fa;
+        color: #2d3748;
+      }
+
       .app-header {
         background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
         color: white;
@@ -31,13 +36,26 @@
         margin: 0 auto;
       }
       .form-grid button {
-        background: linear-gradient(135deg, #f39c12, #e67e22);
+        background: linear-gradient(135deg, #124e66, #0a2338);
         display: flex;
         align-items: center;
         gap: 8px;
       }
       .form-grid button:hover {
-        background: linear-gradient(135deg, #e67e22, #d35400);
+        background: linear-gradient(135deg, #0f3f52, #081a2b);
+      }
+
+      .upload-help {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 6px;
+      }
+
+      .upload-warning {
+        color: #b42318;
+        font-size: 12px;
+        margin-top: 6px;
+        display: none;
       }
     </style>
   </head>
@@ -66,11 +84,14 @@
               <a href="{{ url_for('hr_interviews') }}" class="nav-item">
                 <span class="icon">📞</span> Interviews
               </a>
-              <a href="{{ url_for('hr_ratings') }}" class="nav-item">
-                <span class="icon">⭐</span> Ratings
-              </a>
               <a href="{{ url_for('hr_settings') }}" class="nav-item">
                 <span class="icon">⚙️</span> Settings
+              </a>
+              <a href="{{ url_for('hr_audit_log') }}" class="nav-item">
+                <span class="icon">🛡️</span> Audit Log
+              </a>
+              <a href="{{ url_for('logout') }}" class="nav-item">
+                <span class="icon">🚪</span> Sign Out
               </a>
             </div>
           </nav>
@@ -90,7 +111,6 @@
 
           <div class="page-content">
             <section class="content-card apply-card">
-              <a href="#" class="job-link" onclick="window.history.back(); return false;">← Back</a>
               <p class="eyebrow">Candidate Application</p>
               <h1 class="apply-title">Apply: {{ job.title }}</h1>
               <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates.</p>
@@ -122,12 +142,15 @@
                 </label>
                 <label>
                   <span>Upload CV (PDF / DOCX / TXT)</span>
-                  <input type="file" name="resume" accept=".pdf,.docx,.txt" required>
+                  <input type="file" id="resumeFileHr" name="resume" accept=".pdf,.docx,.txt" required>
+                  <small class="upload-help">Exactly 1 CV file is required.</small>
+                  <small id="resumeWarningHr" class="upload-warning">Please select exactly 1 CV file.</small>
                 </label>
                 <label>
                   <span>Upload certificates / transcripts (optional)</span>
-                  <input type="file" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
-                  <small>Upload certificates, transcripts, or other supporting documents.</small>
+                  <input type="file" id="certFilesHr" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
+                  <small class="upload-help">You can upload up to 200 supporting files.</small>
+                  <small id="certWarningHr" class="upload-warning">Maximum 200 supporting files are allowed.</small>
                 </label>
                 <label>
                   <span>Cover note / comments (optional)</span>
@@ -148,7 +171,6 @@
 
       <main class="shell apply-shell">
         <section class="content-card apply-card public-apply-card">
-          <a href="{{ url_for('job_detail', job_id=job.id) }}" class="job-link"><i class="fas fa-arrow-left"></i> Back to job</a>
           <p class="eyebrow">Candidate Application</p>
           <h1 class="apply-title">Apply: {{ job.title }}</h1>
           <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates.</p>
@@ -180,12 +202,15 @@
             </label>
             <label>
               <span><i class="fas fa-file-pdf"></i> Upload CV (PDF / DOCX / TXT)</span>
-              <input type="file" name="resume" accept=".pdf,.docx,.txt" required>
+              <input type="file" id="resumeFilePublic" name="resume" accept=".pdf,.docx,.txt" required>
+              <small class="upload-help">Exactly 1 CV file is required.</small>
+              <small id="resumeWarningPublic" class="upload-warning">Please select exactly 1 CV file.</small>
             </label>
             <label>
               <span><i class="fas fa-certificate"></i> Upload certificates / transcripts (optional)</span>
-              <input type="file" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
-              <small>Upload certificates, transcripts, or other supporting documents.</small>
+              <input type="file" id="certFilesPublic" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
+              <small class="upload-help">You can upload up to 200 supporting files.</small>
+              <small id="certWarningPublic" class="upload-warning">Maximum 200 supporting files are allowed.</small>
             </label>
             <label>
               <span><i class="fas fa-pen"></i> Cover note / comments (optional)</span>
@@ -196,154 +221,47 @@
         </section>
       </main>
     {% endif %}
-  </body>
-</html>
-      <div class="hr-layout">
-        <aside class="hr-sidebar">
-          <div class="sidebar-header">
-            <div class="sidebar-logo">GMB</div>
-            <div>
-              <h2>HR Portal</h2>
-              <p class="sidebar-company">Recruitment</p>
-            </div>
-          </div>
-          <nav class="sidebar-nav">
-            <div class="nav-section">
-              <a href="{{ url_for('hr_dashboard') }}" class="nav-item">
-                <span class="icon">📋</span> Dashboard
-              </a>
-              <a href="{{ url_for('hr_jobs') }}" class="nav-item active">
-                <span class="icon">💼</span> Job Postings
-              </a>
-              <a href="{{ url_for('hr_screening') }}" class="nav-item">
-                <span class="icon">✓</span> Screening
-              </a>
-              <a href="{{ url_for('hr_interviews') }}" class="nav-item">
-                <span class="icon">📞</span> Interviews
-              </a>
-              <a href="{{ url_for('hr_ratings') }}" class="nav-item">
-                <span class="icon">⭐</span> Ratings
-              </a>
-              <a href="{{ url_for('hr_settings') }}" class="nav-item">
-                <span class="icon">⚙️</span> Settings
-              </a>
-            </div>
-          </nav>
-        </aside>
 
-        <main class="hr-content apply-content">
-          <div class="dashboard-header">
-            <div class="header-top">
-              <h1>Candidate Application</h1>
-              <div class="header-actions">
-                <button class="icon-button">🔔</button>
-                <button class="icon-button">⚙️</button>
-                <button class="icon-button">👤</button>
-              </div>
-            </div>
-          </div>
+    <script>
+      function validateUploadLimits(form, resumeInputId, certInputId, resumeWarningId, certWarningId) {
+        if (!form) return;
+        form.addEventListener('submit', function (e) {
+          const resumeInput = document.getElementById(resumeInputId);
+          const certInput = document.getElementById(certInputId);
+          const resumeWarning = document.getElementById(resumeWarningId);
+          const certWarning = document.getElementById(certWarningId);
 
-          <div class="page-content">
-            <section class="content-card apply-card">
-              <a href="#" class="job-link" onclick="window.history.back(); return false;">← Back</a>
-              <p class="eyebrow">Candidate Application</p>
-              <h1 class="apply-title">Apply: {{ job.title }}</h1>
-              <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates.</p>
-              <form action="" method="post" enctype="multipart/form-data" class="screening-form form-grid">
-                <label>
-                  <span>Full name</span>
-                  <input type="text" name="name" required>
-                </label>
-                <label>
-                  <span>Surname</span>
-                  <input type="text" name="surname" required>
-                </label>
-                <label>
-                  <span>Email</span>
-                  <input type="email" name="email" required>
-                </label>
-                <label>
-                  <span>Phone number</span>
-                  <input type="tel" name="phone" required>
-                </label>
-                <label>
-                  <span>Highest level of education</span>
-                  <select name="highest_education" required>
-                    <option value="">Select education</option>
-                    {% for option in education_options %}
-                      <option value="{{ option }}">{{ option }}</option>
-                    {% endfor %}
-                  </select>
-                </label>
-                <label>
-                  <span>Upload CV (PDF / DOCX / TXT)</span>
-                  <input type="file" name="resume" accept=".pdf,.docx,.txt" required>
-                </label>
-                <label>
-                  <span>Upload certificates / transcripts (optional)</span>
-                  <input type="file" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
-                  <small>Upload certificates, transcripts, or other supporting documents.</small>
-                </label>
-                <label>
-                  <span>Cover note / comments (optional)</span>
-                  <textarea name="note" rows="4" placeholder="Short note to HR"></textarea>
-                </label>
-                <button type="submit">Submit application</button>
-              </form>
-            </section>
-          </div>
-        </main>
-      </div>
-    {% else %}
-      <main class="shell apply-shell">
-        <section class="content-card apply-card public-apply-card">
-          <a href="{{ url_for('job_detail', job_id=job.id) }}" class="job-link">← Back to job</a>
-          <p class="eyebrow">Candidate Application</p>
-          <h1 class="apply-title">Apply: {{ job.title }}</h1>
-          <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates.</p>
-          <form action="" method="post" enctype="multipart/form-data" class="screening-form form-grid">
-            <label>
-              <span>Full name</span>
-              <input type="text" name="name" required>
-            </label>
-            <label>
-              <span>Surname</span>
-              <input type="text" name="surname" required>
-            </label>
-            <label>
-              <span>Email</span>
-              <input type="email" name="email" required>
-            </label>
-            <label>
-              <span>Phone number</span>
-              <input type="tel" name="phone" required>
-            </label>
-            <label>
-              <span>Highest level of education</span>
-              <select name="highest_education" required>
-                <option value="">Select education</option>
-                {% for option in education_options %}
-                  <option value="{{ option }}">{{ option }}</option>
-                {% endfor %}
-              </select>
-            </label>
-            <label>
-              <span>Upload CV (PDF / DOCX / TXT)</span>
-              <input type="file" name="resume" accept=".pdf,.docx,.txt" required>
-            </label>
-            <label>
-              <span>Upload certificates / transcripts (optional)</span>
-              <input type="file" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
-              <small>Upload certificates, transcripts, or other supporting documents.</small>
-            </label>
-            <label>
-              <span>Cover note / comments (optional)</span>
-              <textarea name="note" rows="4" placeholder="Short note to HR"></textarea>
-            </label>
-            <button type="submit">Submit application</button>
-          </form>
-        </section>
-      </main>
-    {% endif %}
+          const resumeCount = resumeInput && resumeInput.files ? resumeInput.files.length : 0;
+          const certCount = certInput && certInput.files ? certInput.files.length : 0;
+
+          let valid = true;
+
+          if (resumeWarning) resumeWarning.style.display = 'none';
+          if (certWarning) certWarning.style.display = 'none';
+
+          if (resumeCount !== 1) {
+            valid = false;
+            if (resumeWarning) resumeWarning.style.display = 'block';
+          }
+
+          if (certCount > 200) {
+            valid = false;
+            if (certWarning) certWarning.style.display = 'block';
+          }
+
+          if (!valid) {
+            e.preventDefault();
+          }
+        });
+      }
+
+      const forms = document.querySelectorAll('form.screening-form');
+      if (forms.length > 0) {
+        validateUploadLimits(forms[0], 'resumeFileHr', 'certFilesHr', 'resumeWarningHr', 'certWarningHr');
+      }
+      if (forms.length > 1) {
+        validateUploadLimits(forms[1], 'resumeFilePublic', 'certFilesPublic', 'resumeWarningPublic', 'certWarningPublic');
+      }
+    </script>
   </body>
 </html>
