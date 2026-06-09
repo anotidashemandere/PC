@@ -68,5 +68,1783 @@
     "details": "Processed 1 candidate(s)",
     "status": "success",
     "timestamp": "2026-06-07T00:04:24.811915+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:09:40.958145+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T08:13:57.409935+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:35:21.801680+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:35:32.603707+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T09:01:45.948788+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T09:04:16.677403+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T09:19:04.727603+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-07T10:39:11.769423+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T11:16:23.455493+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T11:35:48.331584+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@company.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:07.172713+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:23.245998+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:36.035256+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T11:36:42.843313+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T12:21:18.108823+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T12:21:40.768405+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "logout",
+    "details": "User audit@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T12:28:58.165443+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:31:54.373045+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:31:56.572278+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:03.111277+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:06.164144+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:06.304524+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:28.974440+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:29.400457+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. ffacd0b85a97d-4601f2dcae2sm47694774f8f.6 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T18:49:38.791059+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T18:49:38.806632+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. 5b1f17b1804b1-490bc391aaasm383662695e9.1 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T18:59:11.335975+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T18:59:11.351551+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. 5b1f17b1804b1-490bc39eb04sm336353765e9.6 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:00:25.774699+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T19:00:25.832572+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. ffacd0b85a97d-4601f351ac0sm81150172f8f.27 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:08:43.380268+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T19:08:43.395847+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T19:11:35.652575+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for anomandere@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:11:50.610151+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for anomandere@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:12:12.648813+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T19:36:05.260094+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:37:10.852716+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:37:11.567898+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T14:41:25.437616+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:45:58.630575+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:46:10.168632+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T16:50:20.916396+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T16:50:24.147733+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "add_user",
+    "details": "Added new user: anomandere@gmail.com (hr_staff)",
+    "status": "success",
+    "timestamp": "2026-06-08T17:06:45.886276+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T17:06:50.517967+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T17:07:09.148280+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: Connection unexpectedly closed",
+    "status": "failed",
+    "timestamp": "2026-06-08T18:38:07.603635+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-08T18:38:07.626574+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T19:02:40.266447+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T19:48:38.645894+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T20:22:52.065627+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:22:58.340126+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:25:17.383030+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T22:33:36.318671+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T22:33:45.369167+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-06T23:04:39.540125+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:04:54.842972+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-06T23:33:03.752289+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:33:12.247490+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:35:15.093383+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:41:34.848056+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:54:26.305055+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T00:04:24.811915+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:09:40.958145+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T08:13:57.409935+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:35:21.801680+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:35:32.603707+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T09:01:45.948788+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T09:04:16.677403+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T09:19:04.727603+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-07T10:39:11.769423+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T11:16:23.455493+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T11:35:48.331584+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@company.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:07.172713+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:23.245998+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:36.035256+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T11:36:42.843313+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T12:21:18.108823+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T12:21:40.768405+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "logout",
+    "details": "User audit@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T12:28:58.165443+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:31:54.373045+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:31:56.572278+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:03.111277+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:06.164144+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:06.304524+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:28.974440+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:29.400457+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. ffacd0b85a97d-4601f2dcae2sm47694774f8f.6 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T18:49:38.791059+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T18:49:38.806632+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. 5b1f17b1804b1-490bc391aaasm383662695e9.1 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T18:59:11.335975+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T18:59:11.351551+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. 5b1f17b1804b1-490bc39eb04sm336353765e9.6 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:00:25.774699+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T19:00:25.832572+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. ffacd0b85a97d-4601f351ac0sm81150172f8f.27 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:08:43.380268+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T19:08:43.395847+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T19:11:35.652575+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for anomandere@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:11:50.610151+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for anomandere@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:12:12.648813+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T19:36:05.260094+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:37:10.852716+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:37:11.567898+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T14:41:25.437616+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:45:58.630575+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:46:10.168632+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T16:50:20.916396+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T16:50:24.147733+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "add_user",
+    "details": "Added new user: anomandere@gmail.com (hr_staff)",
+    "status": "success",
+    "timestamp": "2026-06-08T17:06:45.886276+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T17:06:50.517967+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T17:07:09.148280+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: Connection unexpectedly closed",
+    "status": "failed",
+    "timestamp": "2026-06-08T18:38:07.603635+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-08T18:38:07.626574+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T19:02:40.266447+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T19:48:38.645894+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T20:22:52.065627+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:22:58.340126+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:25:17.383030+00:00"
+  },
+  {
+    "user_id": "hr-1",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere@gmail.com: GMB Test",
+    "status": "success",
+    "timestamp": "2026-06-08T20:28:19.887187+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:28:43.428916+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere@gmail.com: Hie sweetie",
+    "status": "success",
+    "timestamp": "2026-06-08T20:40:13.065675+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 1 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-08T20:40:13.081297+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T22:33:36.318671+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T22:33:45.369167+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-06T23:04:39.540125+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:04:54.842972+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-06T23:33:03.752289+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:33:12.247490+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:35:15.093383+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:41:34.848056+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:54:26.305055+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T00:04:24.811915+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:09:40.958145+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T08:13:57.409935+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:35:21.801680+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:35:32.603707+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T09:01:45.948788+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T09:04:16.677403+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T09:19:04.727603+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-07T10:39:11.769423+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T11:16:23.455493+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T11:35:48.331584+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@company.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:07.172713+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:23.245998+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:36.035256+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T11:36:42.843313+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T12:21:18.108823+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T12:21:40.768405+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "logout",
+    "details": "User audit@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T12:28:58.165443+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:31:54.373045+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:31:56.572278+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:03.111277+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:06.164144+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:06.304524+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:28.974440+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:29.400457+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. ffacd0b85a97d-4601f2dcae2sm47694774f8f.6 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T18:49:38.791059+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T18:49:38.806632+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. 5b1f17b1804b1-490bc391aaasm383662695e9.1 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T18:59:11.335975+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T18:59:11.351551+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. 5b1f17b1804b1-490bc39eb04sm336353765e9.6 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:00:25.774699+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T19:00:25.832572+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. ffacd0b85a97d-4601f351ac0sm81150172f8f.27 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:08:43.380268+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T19:08:43.395847+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T19:11:35.652575+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for anomandere@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:11:50.610151+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for anomandere@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:12:12.648813+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T19:36:05.260094+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:37:10.852716+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:37:11.567898+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T14:41:25.437616+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:45:58.630575+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:46:10.168632+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T16:50:20.916396+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T16:50:24.147733+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "add_user",
+    "details": "Added new user: anomandere@gmail.com (hr_staff)",
+    "status": "success",
+    "timestamp": "2026-06-08T17:06:45.886276+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T17:06:50.517967+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T17:07:09.148280+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: Connection unexpectedly closed",
+    "status": "failed",
+    "timestamp": "2026-06-08T18:38:07.603635+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-08T18:38:07.626574+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T19:02:40.266447+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T19:48:38.645894+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T20:22:52.065627+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:22:58.340126+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:25:17.383030+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T22:33:36.318671+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T22:33:45.369167+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-06T23:04:39.540125+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:04:54.842972+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-06T23:33:03.752289+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:33:12.247490+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:35:15.093383+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:41:34.848056+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-06T23:54:26.305055+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T00:04:24.811915+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:09:40.958145+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T08:13:57.409935+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:35:21.801680+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T08:35:32.603707+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T09:01:45.948788+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 1 candidate(s)",
+    "status": "success",
+    "timestamp": "2026-06-07T09:04:16.677403+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T09:19:04.727603+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-07T10:39:11.769423+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T11:16:23.455493+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T11:35:48.331584+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@company.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:07.172713+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:23.245998+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for ano@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T11:36:36.035256+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T11:36:42.843313+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T12:21:18.108823+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "login",
+    "details": "User audit@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T12:21:40.768405+00:00"
+  },
+  {
+    "user_id": "user-002",
+    "action": "logout",
+    "details": "User audit@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T12:28:58.165443+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:31:54.373045+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:31:56.572278+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:03.111277+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:06.164144+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:06.304524+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:28.974440+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T16:32:29.400457+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. ffacd0b85a97d-4601f2dcae2sm47694774f8f.6 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T18:49:38.791059+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T18:49:38.806632+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. 5b1f17b1804b1-490bc391aaasm383662695e9.1 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T18:59:11.335975+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T18:59:11.351551+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. 5b1f17b1804b1-490bc39eb04sm336353765e9.6 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:00:25.774699+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T19:00:25.832572+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: (530, b'5.7.0 Authentication Required. For more information, go to\\n5.7.0  https://support.google.com/accounts/troubleshooter/2402620. ffacd0b85a97d-4601f351ac0sm81150172f8f.27 - gsmtp', 'noreply@company.com')",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:08:43.380268+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: all)",
+    "status": "success",
+    "timestamp": "2026-06-07T19:08:43.395847+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-07T19:11:35.652575+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for anomandere@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:11:50.610151+00:00"
+  },
+  {
+    "user_id": "unknown",
+    "action": "login_failed",
+    "details": "Failed login for anomandere@gmail.com",
+    "status": "failed",
+    "timestamp": "2026-06-07T19:12:12.648813+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-07T19:36:05.260094+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:37:10.852716+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:37:11.567898+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T14:41:25.437616+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:45:58.630575+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T14:46:10.168632+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T16:50:20.916396+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T16:50:24.147733+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "add_user",
+    "details": "Added new user: anomandere@gmail.com (hr_staff)",
+    "status": "success",
+    "timestamp": "2026-06-08T17:06:45.886276+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T17:06:50.517967+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T17:07:09.148280+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "email_failed",
+    "details": "Failed to send email to anotidashemandere@gmail.com: Connection unexpectedly closed",
+    "status": "failed",
+    "timestamp": "2026-06-08T18:38:07.603635+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 0 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-08T18:38:07.626574+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T19:02:40.266447+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T19:48:38.645894+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-08T20:22:52.065627+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:22:58.340126+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:25:17.383030+00:00"
+  },
+  {
+    "user_id": "hr-1",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere@gmail.com: GMB Test",
+    "status": "success",
+    "timestamp": "2026-06-08T20:28:19.887187+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T20:28:43.428916+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere@gmail.com: Hie sweetie",
+    "status": "success",
+    "timestamp": "2026-06-08T20:40:13.065675+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 1 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-08T20:40:13.081297+00:00"
+  },
+  {
+    "user_id": "system",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere@gmail.com: Logo test",
+    "status": "success",
+    "timestamp": "2026-06-08T20:47:29.922596+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere@gmail.com: feedbec",
+    "status": "success",
+    "timestamp": "2026-06-08T20:56:42.917300+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "bulk_email",
+    "details": "Sent bulk email to 1 applicants (filter: rejected)",
+    "status": "success",
+    "timestamp": "2026-06-08T20:56:42.929057+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-08T21:00:45.745962+00:00"
   }
 ]

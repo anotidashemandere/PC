@@ -6,151 +6,107 @@
     <title>{{ job.title }} — Job Details</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+      body { background: #f5f7fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #2d3748; margin: 0; }
+      .app-header {
+        background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+        color: white;
+        padding: 18px 30px;
+        box-shadow: 0 4px 12px rgba(18, 78, 102, 0.15);
+      }
+      .header-container { max-width: 1200px; margin: 0 auto; }
+      .portal-brand { display: flex; align-items: center; gap: 16px; }
+      .portal-logo { height: 48px; width: auto; max-width: 120px; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px; }
+      .app-header h1 { margin: 0; font-size: 24px; font-weight: 700; }
+      .app-header .tagline { margin: 4px 0 0; font-size: 14px; opacity: 0.9; }
+      .main-container { max-width: 900px; margin: 0 auto; padding: 30px 20px 50px; }
+      .job-card {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #124e66;
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+      .back-link:hover { text-decoration: underline; }
+      .job-meta { color: #666; margin: 12px 0 20px; font-size: 15px; }
+      .job-detail-section { margin-top: 28px; }
+      .job-detail-section h3 { color: #124e66; margin-bottom: 12px; }
+      .job-requirements-list { padding-left: 20px; line-height: 1.8; }
+      .lede { line-height: 1.7; color: #444; }
+      .apply-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 24px;
+        padding: 14px 28px;
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .apply-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(243, 156, 18, 0.35); }
+    </style>
   </head>
   <body>
-    <div class="hr-layout">
-      <aside class="hr-sidebar">
-        <div class="sidebar-header">
-          <div class="sidebar-logo">GMB</div>
+    <header class="app-header">
+      <div class="header-container">
+        <div class="portal-brand">
+          <img src="{{ portal_logo_src }}" alt="Company logo" class="portal-logo">
           <div>
-            <h2>HR Portal</h2>
-            <p class="sidebar-company">Recruitment</p>
+            <h1>GMB Recruitment Portal</h1>
+            <p class="tagline">View job details and apply online</p>
           </div>
         </div>
-        <nav class="sidebar-nav">
-          <div class="nav-section">
-            <a href="{{ url_for('hr_dashboard') }}" class="nav-item">
-              <i class="fas fa-chart-line"></i> Dashboard
-            </a>
-            <a href="{{ url_for('hr_jobs') }}" class="nav-item active">
-              <i class="fas fa-briefcase"></i> Job Postings
-            </a>
-            <a href="{{ url_for('hr_screening') }}" class="nav-item">
-              <i class="fas fa-check-circle"></i> Screening
-            </a>
-            <a href="{{ url_for('hr_interviews') }}" class="nav-item">
-              <i class="fas fa-calendar"></i> Interviews
-            </a>
-            <a href="{{ url_for('hr_settings') }}" class="nav-item">
-              <i class="fas fa-cog"></i> Settings
-            </a>
-            <a href="{{ url_for('hr_audit_log') }}" class="nav-item">
-              <i class="fas fa-shield-alt"></i> Audit Log
-            </a>
-            <a href="{{ url_for('logout') }}" class="nav-item">
-              <i class="fas fa-sign-out-alt"></i> Sign Out
-            </a>
-          </div>
-        </nav>
-      </aside>
+      </div>
+    </header>
 
-      <main class="hr-content">
-        <div class="dashboard-header">
-          <div class="header-top">
-            <h1>Job Details</h1>
-            <div class="header-actions">
-              <button class="icon-button">🔔</button>
-              <button class="icon-button">⚙️</button>
-              <button class="icon-button">👤</button>
-            </div>
-          </div>
+    <main class="main-container">
+      <a class="back-link" href="{{ url_for('applicant_portal') }}"><i class="fas fa-arrow-left"></i> Back to open positions</a>
+
+      <section class="job-card">
+        <h2 style="color:#124e66;margin:0 0 8px;">{{ job.title }}</h2>
+        <p class="job-meta">
+          <strong>Department:</strong> {{ job.department or '—' }} &bull;
+          <strong>Location:</strong> {{ job.location or '—' }}
+          {% if job.due_date %}
+          &bull; <strong>Closes:</strong> {{ job.due_date.strftime('%b %d, %Y') }}
+          {% endif %}
+        </p>
+        <p class="lede">{{ job.description }}</p>
+
+        {% if job.requirements %}
+        <div class="job-detail-section">
+          <h3>Requirements</h3>
+          <ul class="job-requirements-list">
+            {% for req in job.requirements %}
+            <li>{{ req }}</li>
+            {% endfor %}
+          </ul>
         </div>
+        {% endif %}
 
-        <div class="page-content">
-          <section class="content-card">
-            <div class="card-header">
-              <div>
-                <a href="#" class="job-link" onclick="window.history.back(); return false;"><i class="fas fa-arrow-left"></i> Back</a>
-              </div>
-            </div>
-
-            <h2>{{ job.title }}</h2>
-            <p><strong>Department:</strong> {{ job.department }} • <strong>Location:</strong> {{ job.location }}</p>
-            <p><strong>Due date:</strong> {{ job.due_date.strftime('%Y-%m-%d %H:%M %Z') }}</p>
-            <p class="lede">{{ job.description }}</p>
-
-            {% if job.requirements %}
-              <div class="job-detail-section">
-                <h3>Requirements</h3>
-                <ul class="job-requirements-list">
-                  {% for req in job.requirements %}
-                    <li>{{ req }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
-            {% endif %}
-
-            {% if job.custom_screening_criteria %}
-              <div class="job-detail-section">
-                <h3>Screening Notes</h3>
-                <p class="lede">{{ job.custom_screening_criteria }}</p>
-              </div>
-            {% endif %}
-
-            <div class="job-detail-section">
-              <h3>Application Link</h3>
-              <p><a href="{{ application_link }}" class="job-link">{{ application_link }}</a></p>
-            </div>
-
-            <div class="job-detail-section">
-              <div class="card-header">
-                <h3>Applicants for this Job</h3>
-              </div>
-              <div class="table-wrapper">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Score</th>
-                      <th>Status</th>
-                      <th>Applied</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% if applicants %}
-                      {% for applicant in applicants %}
-                        <tr>
-                          <td><strong>{{ applicant.name }} {{ applicant.surname }}</strong></td>
-                          <td>{{ applicant.email }}</td>
-                          <td><span class="score-badge">{{ applicant.score }}%</span></td>
-                          <td><span class="status-badge badge-{{ applicant.status }}">{{ applicant.status }}</span></td>
-                          <td>{{ applicant.uploaded_at.strftime('%b %d, %Y') }}</td>
-                        </tr>
-                      {% endfor %}
-                    {% else %}
-                      <tr>
-                        <td colspan="5" class="text-center text-muted">No applicants have applied yet</td>
-                      </tr>
-                    {% endif %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </section>
+        {% if job.custom_screening_criteria %}
+        <div class="job-detail-section">
+          <h3>Additional Information</h3>
+          <p class="lede">{{ job.custom_screening_criteria }}</p>
         </div>
-      </main>
-    </div>
+        {% endif %}
 
-    <script>
-      function showNotification(message, type = 'success') {
-        const existing = document.querySelector('.notification-toast');
-        if (existing) existing.remove();
-        const toast = document.createElement('div');
-        toast.className = `notification-toast notification-${type}`;
-        toast.innerHTML = `<span>${message}</span>`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-          toast.classList.remove('show');
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
-      }
-
-      const headerButtons = document.querySelectorAll('.icon-button');
-      if (headerButtons[0]) headerButtons[0].addEventListener('click', (e) => { e.preventDefault(); showNotification('🔔 No new notifications', 'info'); });
-      if (headerButtons[1]) headerButtons[1].addEventListener('click', (e) => { e.preventDefault(); showNotification('⚙️ Settings page loading...', 'info'); setTimeout(() => window.location.href = '/hr/settings', 800); });
-      if (headerButtons[2]) headerButtons[2].addEventListener('click', (e) => { e.preventDefault(); showNotification('👤 Profile menu coming soon', 'info'); });
-    </script>
+        <a href="{{ url_for('apply', job_id=job.id) }}" class="apply-btn">
+          <i class="fas fa-paper-plane"></i> Apply for this position
+        </a>
+      </section>
+    </main>
   </body>
 </html>

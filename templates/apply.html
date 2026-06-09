@@ -34,6 +34,7 @@
       .apply-shell {
         max-width: 800px;
         margin: 0 auto;
+        padding: 0 20px 40px;
       }
       .form-grid button {
         background: linear-gradient(135deg, #124e66, #0a2338);
@@ -44,224 +45,125 @@
       .form-grid button:hover {
         background: linear-gradient(135deg, #0f3f52, #081a2b);
       }
-
       .upload-help {
         font-size: 12px;
         color: #6b7280;
         margin-top: 6px;
       }
-
       .upload-warning {
         color: #b42318;
         font-size: 12px;
         margin-top: 6px;
         display: none;
       }
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #124e66;
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
     </style>
   </head>
   <body>
-    {% if show_hr_sidebar %}
-      <div class="hr-layout">
-        <aside class="hr-sidebar">
-          <div class="sidebar-header">
-            <div class="sidebar-logo">GMB</div>
-            <div>
-              <h2>HR Portal</h2>
-              <p class="sidebar-company">Recruitment</p>
-            </div>
-          </div>
-          <nav class="sidebar-nav">
-            <div class="nav-section">
-              <a href="{{ url_for('hr_dashboard') }}" class="nav-item">
-                <span class="icon">📋</span> Dashboard
-              </a>
-              <a href="{{ url_for('hr_jobs') }}" class="nav-item active">
-                <span class="icon">💼</span> Job Postings
-              </a>
-              <a href="{{ url_for('hr_screening') }}" class="nav-item">
-                <span class="icon">✓</span> Screening
-              </a>
-              <a href="{{ url_for('hr_interviews') }}" class="nav-item">
-                <span class="icon">📞</span> Interviews
-              </a>
-              <a href="{{ url_for('hr_settings') }}" class="nav-item">
-                <span class="icon">⚙️</span> Settings
-              </a>
-              <a href="{{ url_for('hr_audit_log') }}" class="nav-item">
-                <span class="icon">🛡️</span> Audit Log
-              </a>
-              <a href="{{ url_for('logout') }}" class="nav-item">
-                <span class="icon">🚪</span> Sign Out
-              </a>
-            </div>
-          </nav>
-        </aside>
-
-        <main class="hr-content apply-content">
-          <div class="dashboard-header">
-            <div class="header-top">
-              <h1>Candidate Application</h1>
-              <div class="header-actions">
-                <button class="icon-button">🔔</button>
-                <button class="icon-button">⚙️</button>
-                <button class="icon-button">👤</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="page-content">
-            <section class="content-card apply-card">
-              <p class="eyebrow">Candidate Application</p>
-              <h1 class="apply-title">Apply: {{ job.title }}</h1>
-              <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates.</p>
-              <form action="" method="post" enctype="multipart/form-data" class="screening-form form-grid">
-                <label>
-                  <span>Full name</span>
-                  <input type="text" name="name" required>
-                </label>
-                <label>
-                  <span>Surname</span>
-                  <input type="text" name="surname" required>
-                </label>
-                <label>
-                  <span>Email</span>
-                  <input type="email" name="email" required>
-                </label>
-                <label>
-                  <span>Phone number</span>
-                  <input type="tel" name="phone" required>
-                </label>
-                <label>
-                  <span>Highest level of education</span>
-                  <select name="highest_education" required>
-                    <option value="">Select education</option>
-                    {% for option in education_options %}
-                      <option value="{{ option }}">{{ option }}</option>
-                    {% endfor %}
-                  </select>
-                </label>
-                <label>
-                  <span>Upload CV (PDF / DOCX / TXT)</span>
-                  <input type="file" id="resumeFileHr" name="resume" accept=".pdf,.docx,.txt" required>
-                  <small class="upload-help">Exactly 1 CV file is required.</small>
-                  <small id="resumeWarningHr" class="upload-warning">Please select exactly 1 CV file.</small>
-                </label>
-                <label>
-                  <span>Upload certificates / transcripts (optional)</span>
-                  <input type="file" id="certFilesHr" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
-                  <small class="upload-help">You can upload up to 200 supporting files.</small>
-                  <small id="certWarningHr" class="upload-warning">Maximum 200 supporting files are allowed.</small>
-                </label>
-                <label>
-                  <span>Cover note / comments (optional)</span>
-                  <textarea name="note" rows="4" placeholder="Short note to HR"></textarea>
-                </label>
-                <button type="submit"><i class="fas fa-envelope"></i> Submit Application</button>
-              </form>
-            </section>
-          </div>
-        </main>
+    <header class="app-header">
+      <div style="max-width:800px;margin:0 auto;display:flex;align-items:center;gap:14px;">
+        <img src="{{ portal_logo_src }}" alt="Company logo" style="height:48px;width:auto;max-width:110px;object-fit:contain;background:#fff;border-radius:8px;padding:4px;">
+        <div>
+          <h1 style="margin:0;">GMB Recruitment Portal</h1>
+          <p class="tagline">Apply for the position of {{ job.title }}</p>
+        </div>
       </div>
-    {% else %}
-      <!-- Applicant Header -->
-      <header class="app-header">
-        <h1><i class="fas fa-briefcase"></i> GMB Recruitment</h1>
-        <p class="tagline">Apply for the position of {{ job.title }}</p>
-      </header>
+    </header>
 
-      <main class="shell apply-shell">
-        <section class="content-card apply-card public-apply-card">
-          <p class="eyebrow">Candidate Application</p>
-          <h1 class="apply-title">Apply: {{ job.title }}</h1>
-          <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates.</p>
-          <form action="" method="post" enctype="multipart/form-data" class="screening-form form-grid">
-            <label>
-              <span><i class="fas fa-user"></i> Full name</span>
-              <input type="text" name="name" required>
-            </label>
-            <label>
-              <span><i class="fas fa-user"></i> Surname</span>
-              <input type="text" name="surname" required>
-            </label>
-            <label>
-              <span><i class="fas fa-envelope"></i> Email</span>
-              <input type="email" name="email" required>
-            </label>
-            <label>
-              <span><i class="fas fa-phone"></i> Phone number</span>
-              <input type="tel" name="phone" required>
-            </label>
-            <label>
-              <span><i class="fas fa-graduation-cap"></i> Highest level of education</span>
-              <select name="highest_education" required>
-                <option value="">Select education</option>
-                {% for option in education_options %}
-                  <option value="{{ option }}">{{ option }}</option>
-                {% endfor %}
-              </select>
-            </label>
-            <label>
-              <span><i class="fas fa-file-pdf"></i> Upload CV (PDF / DOCX / TXT)</span>
-              <input type="file" id="resumeFilePublic" name="resume" accept=".pdf,.docx,.txt" required>
-              <small class="upload-help">Exactly 1 CV file is required.</small>
-              <small id="resumeWarningPublic" class="upload-warning">Please select exactly 1 CV file.</small>
-            </label>
-            <label>
-              <span><i class="fas fa-certificate"></i> Upload certificates / transcripts (optional)</span>
-              <input type="file" id="certFilesPublic" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
-              <small class="upload-help">You can upload up to 200 supporting files.</small>
-              <small id="certWarningPublic" class="upload-warning">Maximum 200 supporting files are allowed.</small>
-            </label>
-            <label>
-              <span><i class="fas fa-pen"></i> Cover note / comments (optional)</span>
-              <textarea name="note" rows="4" placeholder="Short note to HR"></textarea>
-            </label>
-            <button type="submit"><i class="fas fa-envelope"></i> Submit Application</button>
-          </form>
-        </section>
-      </main>
-    {% endif %}
+    <main class="shell apply-shell">
+      <a class="back-link" href="{{ url_for('applicant_portal') }}"><i class="fas fa-arrow-left"></i> View all open positions</a>
+      <section class="content-card apply-card public-apply-card">
+        <p class="eyebrow">Candidate Application</p>
+        <h1 class="apply-title">Apply: {{ job.title }}</h1>
+              <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates. Your CV and certificates must include the same name, email, phone, and education you enter here.</p>
+        <form action="" method="post" enctype="multipart/form-data" class="screening-form form-grid" id="applyForm">
+          <label>
+            <span><i class="fas fa-user"></i> Full name</span>
+            <input type="text" name="name" required>
+          </label>
+          <label>
+            <span><i class="fas fa-user"></i> Surname</span>
+            <input type="text" name="surname" required>
+          </label>
+          <label>
+            <span><i class="fas fa-envelope"></i> Email</span>
+            <input type="email" name="email" id="emailPublic" required placeholder="your@gmail.com">
+            <small id="emailWarningPublic" class="upload-warning">Email must end with @gmail.com</small>
+          </label>
+          <label>
+            <span><i class="fas fa-phone"></i> Phone number</span>
+            <input type="tel" name="phone" id="phonePublic" required placeholder="07xxxxxxxxx" pattern="^07[0-9]{8}$">
+            <small id="phoneWarningPublic" class="upload-warning">Phone must be 10 digits starting with 07</small>
+          </label>
+          <label>
+            <span><i class="fas fa-graduation-cap"></i> Highest level of education</span>
+            <select name="highest_education" required>
+              <option value="">Select education</option>
+              {% for option in education_options %}
+                <option value="{{ option }}">{{ option }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            <span><i class="fas fa-file-pdf"></i> Upload CV (PDF / DOCX / TXT)</span>
+            <input type="file" id="resumeFilePublic" name="resume" accept=".pdf,.docx,.txt" required>
+            <small class="upload-help">Exactly 1 CV file is required.</small>
+            <small id="resumeWarningPublic" class="upload-warning">Please select exactly 1 CV file.</small>
+          </label>
+          <label>
+            <span><i class="fas fa-certificate"></i> Upload certificates / transcripts (optional)</span>
+            <input type="file" id="certFilesPublic" name="certifications" multiple accept=".pdf,.docx,.jpg,.png,.txt">
+              <small class="upload-help">You can upload up to 100 certificate files. Each file should match your name and education.</small>
+              <small id="certWarningPublic" class="upload-warning">Maximum 100 certificate files are allowed.</small>
+          </label>
+          <label>
+            <span><i class="fas fa-pen"></i> Cover note / comments (optional)</span>
+            <textarea name="note" rows="4" placeholder="Short note to HR"></textarea>
+          </label>
+          <button type="submit"><i class="fas fa-paper-plane"></i> Submit Application</button>
+        </form>
+      </section>
+    </main>
 
     <script>
-      function validateUploadLimits(form, resumeInputId, certInputId, resumeWarningId, certWarningId) {
-        if (!form) return;
-        form.addEventListener('submit', function (e) {
-          const resumeInput = document.getElementById(resumeInputId);
-          const certInput = document.getElementById(certInputId);
-          const resumeWarning = document.getElementById(resumeWarningId);
-          const certWarning = document.getElementById(certWarningId);
+      document.getElementById('applyForm').addEventListener('submit', function (e) {
+        const email = document.getElementById('emailPublic').value.trim();
+        const phone = document.getElementById('phonePublic').value.trim();
+        const resumeCount = document.getElementById('resumeFilePublic').files.length;
+        const certCount = document.getElementById('certFilesPublic').files.length;
+        let valid = true;
 
-          const resumeCount = resumeInput && resumeInput.files ? resumeInput.files.length : 0;
-          const certCount = certInput && certInput.files ? certInput.files.length : 0;
+        document.getElementById('emailWarningPublic').style.display = 'none';
+        document.getElementById('phoneWarningPublic').style.display = 'none';
+        document.getElementById('resumeWarningPublic').style.display = 'none';
+        document.getElementById('certWarningPublic').style.display = 'none';
 
-          let valid = true;
-
-          if (resumeWarning) resumeWarning.style.display = 'none';
-          if (certWarning) certWarning.style.display = 'none';
-
-          if (resumeCount !== 1) {
-            valid = false;
-            if (resumeWarning) resumeWarning.style.display = 'block';
-          }
-
-          if (certCount > 200) {
-            valid = false;
-            if (certWarning) certWarning.style.display = 'block';
-          }
-
-          if (!valid) {
-            e.preventDefault();
-          }
-        });
-      }
-
-      const forms = document.querySelectorAll('form.screening-form');
-      if (forms.length > 0) {
-        validateUploadLimits(forms[0], 'resumeFileHr', 'certFilesHr', 'resumeWarningHr', 'certWarningHr');
-      }
-      if (forms.length > 1) {
-        validateUploadLimits(forms[1], 'resumeFilePublic', 'certFilesPublic', 'resumeWarningPublic', 'certWarningPublic');
-      }
+        if (email && !email.endsWith('@gmail.com')) {
+          valid = false;
+          document.getElementById('emailWarningPublic').style.display = 'block';
+        }
+        if (phone && !/^07[0-9]{8}$/.test(phone)) {
+          valid = false;
+          document.getElementById('phoneWarningPublic').style.display = 'block';
+        }
+        if (resumeCount !== 1) {
+          valid = false;
+          document.getElementById('resumeWarningPublic').style.display = 'block';
+        }
+        if (certCount > 100) {
+          valid = false;
+          document.getElementById('certWarningPublic').style.display = 'block';
+        }
+        if (!valid) e.preventDefault();
+      });
     </script>
   </body>
 </html>

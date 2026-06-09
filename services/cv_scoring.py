@@ -81,7 +81,8 @@ def rank_candidates(job_description: str, resume_paths: Iterable[ResumeUpload | 
     resume_texts = [extract_resume_text(item.path) for item in resume_items]
     documents = [job_description] + resume_texts
 
-    vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2))
+    # Optimized TF-IDF for faster processing
+    vectorizer = TfidfVectorizer(stop_words="english", max_features=500, ngram_range=(1, 2))
     tfidf_matrix = vectorizer.fit_transform(documents)
     job_vector = tfidf_matrix[0:1]
 
@@ -102,13 +103,17 @@ def rank_candidates(job_description: str, resume_paths: Iterable[ResumeUpload | 
         years_score = score_years(resume_text, required_years)
         education_score = score_education(resume_text, required_education)
 
+        # Boost semantic score based on skill matches
+        skill_boost = 0.3 if len(matched_skills) > 0 else 0
+        boosted_semantic = min(semantic_score + skill_boost, 1.0)
+
         final_score = round(
             100
             * (
-                0.50 * semantic_score
-                + 0.30 * skill_score
-                + 0.12 * years_score
-                + 0.08 * education_score
+                0.35 * boosted_semantic
+                + 0.40 * skill_score
+                + 0.15 * years_score
+                + 0.10 * education_score
             ),
             1,
         )

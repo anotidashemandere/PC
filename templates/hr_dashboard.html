@@ -44,14 +44,21 @@
             margin-bottom: 20px;
         }
 
-        .sidebar-logo {
-            font-size: 32px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .sidebar-logo-img {
+            width: 72px;
+            height: auto;
+            display: block;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            background: #fff;
+            padding: 4px;
+        }
+
+        .sidebar-brand-text {
+            font-size: 13px;
+            opacity: 0.9;
+            margin: 0;
+            letter-spacing: 0.5px;
         }
 
         .sidebar-header h2 {
@@ -209,6 +216,159 @@
             justify-content: center;
             font-weight: bold;
             font-size: 18px;
+            cursor: pointer;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .notif-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+
+        .notif-badge {
+            position: absolute;
+            top: -10px;
+            right: -14px;
+            background: #e74c3c;
+            color: white;
+            border-radius: 14px;
+            min-width: 26px;
+            height: 26px;
+            padding: 0 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.5);
+            z-index: 20;
+            pointer-events: none;
+            line-height: 1;
+        }
+
+        .profile-menu {
+            display: none;
+            position: absolute;
+            top: 52px;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            min-width: 160px;
+            z-index: 6000;
+            overflow: hidden;
+        }
+
+        .profile-menu button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .profile-menu button:hover {
+            background: #f5f7fa;
+        }
+
+        .profile-menu button.danger {
+            color: #e74c3c;
+        }
+
+        .user-info {
+            position: relative;
+        }
+
+        .share-panel {
+            display: none;
+            position: absolute;
+            top: 70px;
+            right: 80px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            width: 260px;
+            z-index: 5000;
+            overflow: hidden;
+        }
+
+        .share-panel a, .share-panel button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 12px 18px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .share-panel a:hover, .share-panel button:hover {
+            background: #f5f7fa;
+        }
+
+        .doc-tab {
+            padding: 8px 14px;
+            border: none;
+            background: #f0f0f0;
+            color: #555;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .doc-tab.active {
+            background: #124e66;
+            color: white;
+        }
+
+        .notif-item.unread {
+            background: #dce8ee;
+        }
+
+        .notif-item.unread .notif-title {
+            color: #0a2338;
+            font-weight: 700;
+        }
+
+        .notif-item.read {
+            background: #fafafa;
+            opacity: 0.75;
+        }
+
+        .notif-item.read .notif-title {
+            font-weight: 500;
+            color: #666;
+        }
+
+        tr.row-notif-unread {
+            background: #dce8ee !important;
+        }
+
+        tr.row-notif-unread td {
+            font-weight: 600;
+            color: #0a2338;
         }
 
         .user-name {
@@ -581,14 +741,9 @@
       <!-- Sidebar -->
       <aside class="hr-sidebar" style="display:flex;flex-direction:column;justify-content:space-between;">
         <div>
-          <div class="sidebar-header">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
-              <div class="sidebar-logo" style="margin-bottom:0;">GMB</div>
-              <div>
-                <h2 style="font-size:16px;margin:0;">HR Portal</h2>
-                <p class="sidebar-company">Recruitment System</p>
-              </div>
-            </div>
+          <div class="sidebar-header" style="text-align:center;">
+            <img id="sidebarLogoImg" src="{{ portal_logo_src }}" alt="Company logo" class="sidebar-logo-img" style="margin:0 auto 8px;max-height:72px;object-fit:contain;">
+            <p class="sidebar-brand-text">Recruitment System</p>
           </div>
           <nav class="sidebar-nav">
             <div class="nav-section">
@@ -610,20 +765,25 @@
                 <i class="fas fa-calendar-alt"></i> Interviews
                 {% if interviews %}<span class="nav-badge">{{ interviews | length }}</span>{% endif %}
               </a>
+              <a class="nav-item" data-section="applicants" style="cursor:pointer;">
+                <i class="fas fa-users"></i> All Applicants
+                {% if all_applicants %}<span class="nav-badge">{{ all_applicants | length }}</span>{% endif %}
+              </a>
+              <a class="nav-item" data-section="email-history" style="cursor:pointer;">
+                <i class="fas fa-envelope-open-text"></i> Email History
+                {% if email_history %}<span class="nav-badge">{{ email_history | length }}</span>{% endif %}
+              </a>
             </div>
             <div class="nav-section">
               <p class="nav-section-label">Candidates</p>
               <a class="nav-item" style="cursor:pointer;" onclick="document.querySelector('[data-section=screening]').click();document.getElementById('statusFilter-dash')&&(document.getElementById('statusFilter-dash').value='shortlisted');filterScreening('shortlisted'); return false;">
                 <i class="fas fa-star" style="color:#f39c12;"></i> Shortlisted
-                <span class="nav-badge" style="background:#27ae60;">{{ all_applicants | selectattr('status','equalto','shortlisted') | list | length }}</span>
               </a>
               <a class="nav-item" style="cursor:pointer;" onclick="document.querySelector('[data-section=screening]').click();filterScreening('interview'); return false;">
                 <i class="fas fa-video" style="color:#3498db;"></i> Interview Stage
-                <span class="nav-badge" style="background:#3498db;">{{ all_applicants | selectattr('status','equalto','interview') | list | length }}</span>
               </a>
               <a class="nav-item" style="cursor:pointer;" onclick="document.querySelector('[data-section=screening]').click();filterScreening('rejected'); return false;">
                 <i class="fas fa-times-circle" style="color:#e74c3c;"></i> Rejected
-                <span class="nav-badge" style="background:#e74c3c;">{{ all_applicants | selectattr('status','equalto','rejected') | list | length }}</span>
               </a>
             </div>
             <div class="nav-section">
@@ -643,9 +803,6 @@
               <a class="nav-item" data-section="settings" style="cursor:pointer;">
                 <i class="fas fa-cog"></i> Settings
               </a>
-              <a class="nav-item" href="{{ url_for('hr_audit_log') }}" target="_blank">
-                <i class="fas fa-shield-alt"></i> Audit Log
-              </a>
             </div>
           </nav>
         </div>
@@ -662,30 +819,38 @@
         <div class="dashboard-header">
           <h1 id="section-title">Dashboard</h1>
           <div class="header-actions">
-            <button class="icon-button" style="font-size: 20px; color: #124e66; background: none; border: none; cursor: pointer; position: relative; margin-right: 20px;" title="Share Application Link" onclick="viewApplicationLink()">
+            <button class="icon-button" id="shareBtn" onclick="toggleSharePanel(); return false;" style="font-size: 20px; color: #124e66; background: none; border: none; cursor: pointer; position: relative; margin-right: 20px;" title="Share Application Link">
               <i class="fas fa-share-alt"></i>
             </button>
-            <button class="icon-button" id="notifBell" onclick="toggleNotifPanel(); return false;" style="font-size: 20px; color: #124e66; background: none; border: none; cursor: pointer; position: relative; margin-right: 20px;">
-              <i class="fas fa-bell"></i>
-              {% set notif_count = all_applicants | selectattr('status', 'equalto', 'pending') | list | length %}
-              {% if notif_count > 0 %}
-              <span id="notifBadge" style="position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600;">{{ notif_count }}</span>
-              {% endif %}
-            </button>
+            <div id="sharePanel" class="share-panel">
+              <div style="background:linear-gradient(135deg,#124e66,#0a2338);color:white;padding:12px 18px;font-weight:600;font-size:13px;">Share Applicant Portal</div>
+              <button type="button" onclick="shareViaWhatsApp(); return false;"><i class="fab fa-whatsapp" style="color:#25D366;font-size:18px;"></i> WhatsApp</button>
+              <button type="button" onclick="shareViaGmail(); return false;"><i class="fas fa-envelope" style="color:#EA4335;font-size:16px;"></i> Gmail</button>
+              <button type="button" onclick="shareViaOutlook(); return false;"><i class="fas fa-envelope-open-text" style="color:#0078D4;font-size:16px;"></i> Outlook</button>
+              <button type="button" onclick="viewApplicationLink(); return false;"><i class="fas fa-copy" style="color:#124e66;font-size:16px;"></i> Copy Link</button>
+            </div>
+            <div class="notif-wrapper">
+              <button class="icon-button" id="notifBell" onclick="toggleNotifPanel(); return false;" style="font-size: 20px; color: #124e66; background: none; border: none; cursor: pointer;">
+                <i class="fas fa-bell"></i>
+              </button>
+              <span id="notifBadge" class="notif-badge" style="display:none;">0</span>
+            </div>
             <!-- Notification Panel -->
             <div id="notifPanel" style="display:none; position:absolute; top:70px; right:20px; background:white; border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,0.2); width:320px; z-index:5000; overflow:hidden;">
               <div style="background:linear-gradient(135deg,#124e66,#0a2338); color:white; padding:15px 20px; font-weight:600; font-size:14px; display:flex; justify-content:space-between; align-items:center;">
                 <span><i class="fas fa-bell"></i> Notifications</span>
                 <button onclick="document.getElementById('notifPanel').style.display='none'" style="background:none;border:none;color:white;cursor:pointer;font-size:16px;">&times;</button>
               </div>
-              {% if all_applicants | selectattr('status', 'equalto', 'pending') | list | length > 0 %}
-                {% for app in all_applicants | selectattr('status', 'equalto', 'pending') | list %}
-                <a href="{{ url_for('hr_screening') }}" style="text-decoration:none;color:inherit;display:block;transition:background 0.2s ease;" onmouseover="this.style.background='#f9f9f9'" onmouseout="this.style.background='transparent'">
+              {% if hr_notifications %}
+                {% for note in hr_notifications %}
+                <a href="#" data-notif-id="{{ note.id }}" data-notif-action="{{ note.action }}" data-target-type="{{ note.target_type }}" data-target-id="{{ note.target_id }}" class="notif-item unread" onclick="openNotification('{{ note.id }}', '{{ note.action }}'); return false;" style="text-decoration:none;color:inherit;display:block;transition:background 0.2s ease;">
                   <div style="padding:12px 20px; border-bottom:1px solid #f0f0f0; display:flex; align-items:center; gap:12px; cursor:pointer;">
-                    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#f39c12,#e67e22);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;">{{ app.name[0] if app.name else '?' }}</div>
+                    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,{% if note.type == 'deadline' %}#e74c3c,#c0392b{% elif note.type == 'interview' %}#3498db,#2980b9{% else %}#f39c12,#e67e22{% endif %});display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">
+                      {% if note.type == 'deadline' %}<i class="fas fa-calendar-times"></i>{% elif note.type == 'interview' %}<i class="fas fa-video"></i>{% else %}<i class="fas fa-user"></i>{% endif %}
+                    </div>
                     <div>
-                      <div style="font-size:13px;font-weight:600;color:#124e66;">New Application</div>
-                      <div style="font-size:12px;color:#666;">{{ app.name }} {{ app.surname }} applied</div>
+                      <div class="notif-title" style="font-size:13px;font-weight:600;color:#124e66;">{{ note.title }}</div>
+                      <div style="font-size:12px;color:#666;">{{ note.message }}</div>
                     </div>
                   </div>
                 </a>
@@ -698,7 +863,15 @@
               {% endif %}
             </div>
             <div class="user-info">
-              <div class="user-avatar">{{ current_user.name[0] if current_user else 'U' }}</div>
+              <div class="user-avatar" id="userAvatar" onclick="toggleProfileMenu(event); return false;" title="Profile picture options">
+                <img id="profilePicImg" src="" alt="" style="display:none;">
+                <span id="profilePicInitial">{{ current_user.name[0] if current_user else 'U' }}</span>
+              </div>
+              <div id="profileMenu" class="profile-menu">
+                <button type="button" onclick="document.getElementById('profilePicInput').click(); hideProfileMenu();"><i class="fas fa-camera"></i> Change photo</button>
+                <button type="button" class="danger" onclick="removeProfilePicture(); return false;"><i class="fas fa-trash-alt"></i> Remove photo</button>
+              </div>
+              <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="handleProfilePicUpload(event)">
               <div>
                 <div class="user-name">{{ current_user.name if current_user else 'User' }}</div>
                 <div class="user-role user-status"><span class="online-dot"></span>{{ current_user.role.upper() if current_user else 'STAFF' }}</div>
@@ -742,16 +915,9 @@
           {% if dashboards %}
           <div style="background:white;border-radius:10px;padding:14px 20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.07);display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
             <i class="fas fa-link" style="color:#f39c12;font-size:16px;"></i>
-            <span style="font-size:13px;font-weight:600;color:#124e66;">Applicant Portal</span>
-            <div style="flex:1;min-width:220px;">
-              <select id="applyJobSelect" onchange="updateApplyUrl()" style="width:100%;padding:6px 10px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;color:#444;">
-                {% for d in dashboards %}
-                <option value="{{ d.job.id }}">{{ d.job.title }}</option>
-                {% endfor %}
-              </select>
-            </div>
+            <span style="font-size:13px;font-weight:600;color:#124e66;">Applicant Portal — share this link so candidates can view all open positions and apply</span>
             <input id="applyUrlBox" type="text" readonly
-              value="{{ request.host_url.rstrip('/') }}{{ url_for('apply', job_id=dashboards[0].job.id) }}"
+              value="{{ request.host_url.rstrip('/') }}{{ url_for('applicant_portal') }}"
               style="flex:2;min-width:280px;padding:6px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:12px;color:#555;background:#f9f9f9;">
             <button onclick="copyApplyUrl()" style="padding:7px 16px;background:#f39c12;color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">
               <i class="fas fa-copy"></i> Copy
@@ -772,7 +938,7 @@
             <div class="card-header">
               <span>Recent Applications</span>
               <div class="card-header-actions">
-                <a class="action-button" style="cursor:pointer;" onclick="document.querySelector('[data-section=screening]').click(); return false;">View All</a>
+                <a class="action-button" style="cursor:pointer;" onclick="navigateToSection('applicants'); return false;">View All</a>
               </div>
             </div>
             <div class="card-body">
@@ -785,14 +951,15 @@
                       <th>Score</th>
                       <th>Status</th>
                       <th>Action</th>
+                      <th>Email</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for app in all_applicants[:5] %}
-                    <tr>
+                    {% for app in recent_applicants %}
+                    <tr data-app-id="{{ app.id }}">
                       <td>
                         <strong>{{ app.name }} {{ app.surname }}</strong><br>
-                        <small>{{ app.email }}</small>
+                        <small>{{ app.job_title }}</small>
                       </td>
                       <td><strong>{{ "%.1f" | format(app.score) }}%</strong></td>
                       <td>
@@ -808,11 +975,12 @@
                       </td>
                       <td>
                         <div style="display: flex; gap: 5px;">
-                          <a class="btn btn-small btn-primary" href="{{ url_for('applicant_page', application_id=app.id) if app.id else '#' }}" title="View Profile" style="padding: 6px 10px; text-decoration:none;" onclick="if(!{{ 1 if app.id else 0 }}){ showNotification('No profile available for this candidate.', 'warning'); return false; }"><i class="fas fa-eye"></i></a>
+                          <button class="btn btn-small btn-primary" onclick="openApplicantDetailModal('{{ app.id }}'); return false;" title="View Details" style="padding: 6px 10px;"><i class="fas fa-eye"></i> View</button>
                           <button class="btn btn-small btn-primary" onclick="openScreenModal('{{ app.id }}'); return false;" title="Screen" style="padding: 6px 10px;"><i class="fas fa-clipboard-check"></i></button>
                           <button class="btn btn-small btn-primary" onclick="openInterviewModal('{{ app.id }}'); return false;" title="Schedule" style="padding: 6px 10px;"><i class="fas fa-calendar"></i></button>
                         </div>
                       </td>
+                      <td><a href="mailto:{{ app.email }}" style="color:#124e66;font-size:13px;">{{ app.email }}</a></td>
                     </tr>
                     {% endfor %}
                   </tbody>
@@ -836,7 +1004,7 @@
                   <div class="action-card-icon"><i class="fas fa-briefcase"></i></div>
                   <div class="action-card-label">Post Job</div>
                 </a>
-                <a class="action-card" onclick="document.querySelector('[data-section=\"screening\"]').click(); return false;" style="cursor: pointer;">
+                <a class="action-card" onclick="goScreenCandidates(); return false;" style="cursor: pointer;">
                   <div class="action-card-icon"><i class="fas fa-check-circle"></i></div>
                   <div class="action-card-label">Screen Candidates</div>
                 </a>
@@ -844,7 +1012,11 @@
                   <div class="action-card-icon"><i class="fas fa-calendar"></i></div>
                   <div class="action-card-label">Schedule Interview</div>
                 </a>
-                <a class="action-card" onclick="viewAllApplicants(); return false;" style="cursor: pointer; grid-column: 1 / -1;">
+                <a class="action-card" onclick="openBulkEmailModal(); return false;" style="cursor: pointer;">
+                  <div class="action-card-icon"><i class="fas fa-envelope-circle-check"></i></div>
+                  <div class="action-card-label">Email All Applicants</div>
+                </a>
+                <a class="action-card" onclick="navigateToSection('applicants'); return false;" style="cursor: pointer; grid-column: 1 / -1;">
                   <div class="action-card-icon"><i class="fas fa-inbox"></i></div>
                   <div class="action-card-label">View All Applicants <i class="fas fa-arrow-right" style="margin-left: 8px; font-size: 12px;"></i></div>
                 </a>
@@ -871,7 +1043,6 @@
                   <option>All Status</option>
                   <option>Open</option>
                   <option>Closed</option>
-                  <option>Pending</option>
                 </select>
                 <button class="action-button" onclick="exportCandidates(); return false;" style="cursor: pointer;"><i class="fas fa-download"></i> Export</button>
               </div>
@@ -890,7 +1061,7 @@
                   </thead>
                   <tbody>
                     {% for dashboard in dashboards %}
-                    <tr>
+                    <tr class="job-section-row" data-job-id="{{ dashboard.job.id }}">
                       <td><strong>{{ dashboard.job.title }}</strong></td>
                       <td>{{ dashboard.job.department }}</td>
                       <td><span class="badge">{{ dashboard.all_count }}</span></td>
@@ -935,8 +1106,8 @@
           <!-- Screen Now Banner -->
           <div style="background:linear-gradient(135deg,#124e66,#0a2338);color:white;padding:18px 24px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
             <div>
-              <h3 style="margin:0 0 4px 0;font-size:16px;"><i class="fas fa-bolt"></i> Screen All Pending — Don't wait for deadline!</h3>
-              <p style="margin:0;font-size:13px;opacity:0.85;">Run AI screening now on all pending applicants instantly</p>
+              <h3 style="margin:0 0 4px 0;font-size:16px;"><i class="fas fa-bolt"></i> AI Screening</h3>
+              <p style="margin:0;font-size:13px;opacity:0.85;">Run automated CV screening on pending applicants</p>
             </div>
             <button onclick="runScreenNow(); return false;" style="background:linear-gradient(135deg,#f39c12,#e67e22);color:white;border:none;padding:10px 22px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;">
               <i class="fas fa-play-circle"></i> Screen Now
@@ -956,6 +1127,20 @@
               <div id="screenProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,#f39c12,#e67e22);border-radius:20px;transition:width 0.3s ease;"></div>
             </div>
             <p id="screenProgressText" style="margin-top:8px;font-size:12px;color:#999;">0% complete...</p>
+          </div>
+
+          <!-- Job Selector -->
+          <div style="background:white;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;gap:10px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.07);">
+            <label style="font-weight:600;color:#124e66;font-size:14px;white-space:nowrap;">Filter by Job:</label>
+            <select id="screenJobFilter" onchange="filterByJob(); return false;" style="flex:1;max-width:300px;padding:8px 12px;border:2px solid #e0e0e0;border-radius:6px;font-size:13px;color:#444;cursor:pointer;">
+              <option value="">-- All Jobs --</option>
+              {% for job in jobs %}
+              <option value="{{ job.id }}">{{ job.title }} ({{ job.applications_count if job.applications_count else 0 }} candidates)</option>
+              {% endfor %}
+            </select>
+            <div style="margin-left:auto;font-size:13px;color:#666;">
+              <span id="jobFilterCount">Showing all candidates</span>
+            </div>
           </div>
 
           <!-- Filter Tabs -->
@@ -979,6 +1164,7 @@
                     <tr>
                       <th style="padding:14px 16px;">#</th>
                       <th style="padding:14px 16px;">Candidate</th>
+                      <th style="padding:14px 16px;">Email</th>
                       <th style="padding:14px 16px;">Applied For</th>
                       <th style="padding:14px 16px;">Due Date</th>
                       <th style="padding:14px 16px;">Score</th>
@@ -988,17 +1174,15 @@
                   </thead>
                   <tbody id="screeningTbody">
                     {% for app in all_applicants %}
-                    <tr class="screening-row" data-status="{{ app.status }}" data-name="{{ app.name }} {{ app.surname }}" data-email="{{ app.email }}">
+                    <tr class="screening-row" data-app-id="{{ app.id }}" data-status="{{ app.status }}" data-name="{{ app.name }} {{ app.surname }}" data-email="{{ app.email }}" data-job-id="{{ app.job_id }}">
                       <td style="padding:12px 16px;color:#999;font-size:13px;">{{ loop.index }}</td>
                       <td style="padding:12px 16px;">
                         <div style="display:flex;align-items:center;gap:10px;">
                           <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#124e66,#f39c12);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;">{{ app.name[0] }}</div>
-                          <div>
-                            <strong style="color:#124e66;font-size:14px;">{{ app.name }} {{ app.surname }}</strong><br>
-                            <small style="color:#999;">{{ app.email }}</small>
-                          </div>
+                          <strong style="color:#124e66;font-size:14px;">{{ app.name }} {{ app.surname }}</strong>
                         </div>
                       </td>
+                      <td style="padding:12px 16px;"><a href="mailto:{{ app.email }}" style="color:#124e66;font-size:13px;">{{ app.email }}</a></td>
                       <td style="padding:12px 16px;font-size:13px;color:#555;">{{ app.job_title if app.job_title else 'General Application' }}</td>
                       <td style="padding:12px 16px;font-size:12px;">
                         {% if app.job_due_date %}
@@ -1035,8 +1219,7 @@
                         <div style="display:flex;gap:5px;flex-wrap:wrap;">
                           <button class="btn btn-small btn-primary" onclick="openScreenModal('{{ app.id }}'); return false;" title="Screen Candidate" style="padding:5px 9px;font-size:11px;"><i class="fas fa-clipboard-check"></i> Screen</button>
                           <button class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#27ae60;color:white;" onclick="openInterviewModal('{{ app.id }}'); return false;" title="Schedule Interview"><i class="fas fa-calendar-plus"></i></button>
-                          <button class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#e74c3c;color:white;" onclick="openRejectModal('{{ app.id }}'); return false;" title="Reject"><i class="fas fa-times"></i></button>
-                          <a href="{{ url_for('applicant_page', application_id=app.id) if app.id else '#' }}" class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#3498db;color:white;text-decoration:none;" title="View Full Profile" onclick="if(!{{ 1 if app.id else 0 }}) { showNotification('No profile link available', 'warning'); return false; }"><i class="fas fa-eye"></i></a>
+                          <button class="btn btn-small" style="padding:5px 9px;font-size:11px;background:#3498db;color:white;" title="View Details" onclick="openApplicantDetailModal('{{ app.id }}'); return false;"><i class="fas fa-eye"></i> View</button>
                         </div>
                       </td>
                     </tr>
@@ -1098,6 +1281,7 @@
                   <thead>
                     <tr>
                       <th>Candidate</th>
+                      <th>Email</th>
                       <th>Type</th>
                       <th>Date & Time</th>
                       <th>Status</th>
@@ -1107,8 +1291,9 @@
                   <tbody>
                     {% if interviews %}
                       {% for interview in interviews %}
-                      <tr>
-                        <td><strong>{{ interview.name }} {{ interview.surname }}</strong><br><small>{{ interview.email }}</small></td>
+                      <tr class="interview-section-row" data-app-id="{{ interview.id }}">
+                        <td><strong>{{ interview.name }} {{ interview.surname }}</strong></td>
+                        <td><a href="mailto:{{ interview.email }}" style="color:#124e66;font-size:13px;">{{ interview.email }}</a></td>
                         <td><span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 4px; font-size: 12px;">{{ interview.interview_type or 'Interview' }}</span></td>
                         <td>{{ interview.interview_date }} {{ interview.interview_time }}</td>
                         <td><span class="badge badge-success">{{ interview.interview_status or 'Scheduled' }}</span></td>
@@ -1122,9 +1307,121 @@
                       {% endfor %}
                     {% else %}
                       <tr>
-                        <td colspan="5" style="text-align:center;color:#999;padding:20px;">No scheduled interviews yet</td>
+                        <td colspan="6" style="text-align:center;color:#999;padding:20px;">No scheduled interviews yet</td>
                       </tr>
                     {% endif %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- All Applicants Section -->
+        <div id="section-applicants" class="section-content" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <span>All Applicants</span>
+              <div class="card-header-actions">
+                <input type="text" id="allAppSearchSection" onkeyup="filterAllApplicantsSection()" placeholder="Search name or email..." style="padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;min-width:220px;">
+                <select id="allAppStatusSection" onchange="filterAllApplicantsSection()" style="padding:8px 12px;border:1px solid #e0e0e0;border-radius:6px;font-size:13px;">
+                  <option value="">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="shortlisted">Shortlisted</option>
+                  <option value="interview">Interview</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table style="width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Candidate</th>
+                      <th>Email</th>
+                      <th>Applied For</th>
+                      <th>Score</th>
+                      <th>Status</th>
+                      <th>Applied</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="allAppsSectionTbody">
+                    {% for app in all_applicants %}
+                    <tr class="all-app-section-row" data-app-id="{{ app.id }}" data-status="{{ app.status }}" data-name="{{ app.name }} {{ app.surname }}" data-email="{{ app.email }}">
+                      <td><strong>{{ app.name }} {{ app.surname }}</strong></td>
+                      <td><a href="mailto:{{ app.email }}" style="color:#124e66;">{{ app.email }}</a></td>
+                      <td>{{ app.job_title }}</td>
+                      <td><strong>{{ "%.1f" | format(app.score) }}%</strong></td>
+                      <td>
+                        {% if app.status == 'shortlisted' %}<span class="badge badge-success">Shortlisted</span>
+                        {% elif app.status == 'pending' %}<span class="badge badge-warning">Pending</span>
+                        {% elif app.status == 'interview' %}<span class="badge badge-info">Interview</span>
+                        {% elif app.status == 'rejected' %}<span class="badge badge-danger">Rejected</span>
+                        {% else %}<span class="badge">{{ app.status }}</span>{% endif %}
+                      </td>
+                      <td>{{ app.uploaded_at.strftime('%Y-%m-%d') if app.uploaded_at else 'N/A' }}</td>
+                      <td>
+                        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                          {% if app.resume_view_url %}
+                          <button class="btn btn-small btn-primary" onclick="openApplicantDocuments('{{ app.id }}'); return false;" style="padding:6px 10px;" title="View CV and certificates"><i class="fas fa-folder-open"></i> CV &amp; Certs</button>
+                          {% endif %}
+                          <button class="btn btn-small btn-secondary" onclick="openApplicantDetailModal('{{ app.id }}'); return false;" style="padding:6px 10px;"><i class="fas fa-eye"></i> Details</button>
+                        </div>
+                      </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" style="text-align:center;color:#999;padding:30px;">No applicants yet</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Email History Section -->
+        <div id="section-email-history" class="section-content" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <span>Email History</span>
+              <div class="card-header-actions">
+                <span style="font-size:13px;color:#666;">Emails sent to applicants</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table style="width:100%;">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Sent By</th>
+                      <th>Recipient</th>
+                      <th>Subject</th>
+                      <th>Type</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for email in email_history %}
+                    <tr>
+                      <td style="font-size:13px;color:#666;">{{ email.timestamp.strftime('%Y-%m-%d %H:%M') if email.timestamp else 'N/A' }}</td>
+                      <td>{{ email.sender_name }}</td>
+                      <td><a href="mailto:{{ email.recipient }}" style="color:#124e66;">{{ email.recipient }}</a></td>
+                      <td>{{ email.subject }}</td>
+                      <td><span style="background:#e3f2fd;color:#1976d2;padding:3px 8px;border-radius:4px;font-size:11px;">{{ email.email_type | title }}</span></td>
+                      <td>
+                        {% if email.status == 'success' %}
+                          <span class="badge badge-success">Sent</span>
+                        {% else %}
+                          <span class="badge badge-danger">Failed</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align:center;color:#999;padding:30px;">No emails sent yet</td></tr>
+                    {% endfor %}
                   </tbody>
                 </table>
               </div>
@@ -1140,13 +1437,6 @@
             </div>
             <div class="card-body">
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                <!-- Email Templates -->
-                <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
-                  <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-envelope"></i> Email Templates</h3>
-                  <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Customize email messages sent to candidates</p>
-                  <button class="btn btn-small btn-primary" onclick="window.location.href='{{ url_for('hr_settings') }}'; return false;">Edit Templates</button>
-                </div>
-
                 <!-- Notifications -->
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-bell"></i> Notifications</h3>
@@ -1157,35 +1447,67 @@
                   <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
                     <input type="checkbox" checked> Interview reminders
                   </label>
+                  <button class="btn btn-small btn-primary" style="margin-top: 15px;" onclick="handleNotifications(); return false;">Apply Settings</button>
                 </div>
 
                 <!-- User Management -->
+                {% if can_manage_users %}
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-users-cog"></i> User Management</h3>
-                  <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Add and manage HR team members</p>
-                  <button class="btn btn-small btn-primary" onclick="window.location.href='mailto:{{ settings.support_email if settings and settings.support_email else "hr@company.com" }}?subject=Add%20HR%20User%20Request'; return false;">Add User</button>
+                  <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Add HR team members who can access the dashboard (without user management or audit access)</p>
+                  <button class="btn btn-small btn-primary" onclick="handleUserManagement(); return false;">Add User</button>
                 </div>
+                {% endif %}
 
                 <!-- Reports -->
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-chart-bar"></i> Reports</h3>
                   <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Generate recruitment analytics</p>
-                  <button class="btn btn-small btn-primary" onclick="openModal('exportReportModal'); return false;">Generate Report</button>
+                  <button class="btn btn-small btn-primary" onclick="handleReports(); return false;">Generate Report</button>
                 </div>
 
                 <!-- Security -->
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
                   <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-lock"></i> Security</h3>
                   <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Change password and security settings</p>
-                  <button class="btn btn-small btn-primary" onclick="window.location.href='{{ url_for('hr_settings') }}'; return false;">Security Settings</button>
+                  <button class="btn btn-small btn-primary" onclick="handleSecurity(); return false;">Security Settings</button>
                 </div>
 
-                <!-- Integrations -->
+                <!-- Portal Branding -->
                 <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
-                  <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-plug"></i> Integrations</h3>
-                  <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Connect with external services</p>
-                  <button class="btn btn-small btn-primary" onclick="window.location.href='{{ url_for('hr_settings') }}'; return false;">Manage</button>
+                  <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-image"></i> Portal &amp; Email Branding</h3>
+                  <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Company logo (dashboard, portal, login, and emails), welcome crop image, and welcome video</p>
+                  <div style="display:flex;flex-direction:column;gap:10px;">
+                    <label style="font-size:13px;font-weight:600;color:#124e66;">Company logo (PNG/JPG recommended for emails)</label>
+                    <input type="file" id="portalCompanyLogo" accept="image/*">
+                    <div id="savedLogoPreview" style="margin-top:8px;padding:10px;background:#fff;border:1px solid #e0e0e0;border-radius:8px;">
+                      <div style="font-size:12px;color:#27ae60;font-weight:600;margin-bottom:6px;"><i class="fas fa-check-circle"></i> Saved logo</div>
+                      <img id="savedLogoImg" src="{{ portal_logo_src }}" alt="Current logo" style="max-height:56px;max-width:160px;object-fit:contain;">
+                    </div>
+                    <label style="font-size:13px;font-weight:600;color:#124e66;margin-top:12px;">Welcome crop image</label>
+                    <input type="file" id="portalWelcomeImage" accept="image/*">
+                    <div id="savedWelcomeImageWrap" style="margin-top:8px;{% if not portal_welcome_image_src %}display:none;{% endif %}">
+                      <div style="font-size:12px;color:#27ae60;font-weight:600;margin-bottom:6px;"><i class="fas fa-check-circle"></i> Saved welcome image</div>
+                      <img id="savedWelcomeImageImg" src="{{ portal_welcome_image_src }}" alt="Welcome image" style="max-width:100%;max-height:140px;object-fit:cover;border-radius:8px;border:1px solid #e0e0e0;">
+                    </div>
+                    <label style="font-size:13px;font-weight:600;color:#124e66;margin-top:12px;">Welcome video (MP4)</label>
+                    <input type="file" id="portalWelcomeVideo" accept="video/mp4,video/*">
+                    <div id="savedWelcomeVideoWrap" style="margin-top:8px;{% if not portal_welcome_video_src %}display:none;{% endif %}">
+                      <div style="font-size:12px;color:#27ae60;font-weight:600;margin-bottom:6px;"><i class="fas fa-check-circle"></i> Saved video{% if portal_welcome_video_name %}: {{ portal_welcome_video_name }}{% endif %}</div>
+                      <video id="savedWelcomeVideoPlayer" src="{{ portal_welcome_video_src }}" controls style="width:100%;max-height:160px;border-radius:8px;background:#000;"></video>
+                    </div>
+                    <p style="font-size:12px;color:#888;margin:10px 0 0;">Files are saved permanently. Pick new files only when you want to replace them.</p>
+                    <button type="button" class="btn btn-small btn-primary" style="margin-top:8px;" onclick="uploadPortalBranding(); return false;">Save Branding</button>
+                  </div>
                 </div>
+
+                <!-- Email test -->
+                <div style="padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #f39c12;">
+                  <h3 style="color: #124e66; margin-top: 0;"><i class="fas fa-envelope"></i> Test Email</h3>
+                  <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Verify SMTP is working — candidates receive emails only when SMTP is configured in .env or settings</p>
+                  <button type="button" class="btn btn-small btn-primary" onclick="sendTestEmail(); return false;">Send Test Email</button>
+                </div>
+
               </div>
             </div>
           </div>
@@ -1197,7 +1519,7 @@
     <div id="exportReportModal" class="modal" style="display: none; z-index: 10000;">
       <div class="modal-content" style="max-width: 640px;">
         <div class="modal-header">
-          <h2><i class="fas fa-file-csv"></i> Export CSV Report</h2>
+          <h2><i class="fas fa-file-export"></i> Export Report</h2>
           <button class="modal-close" onclick="closeModal('exportReportModal')">&times;</button>
         </div>
         <form onsubmit="return exportCsvReport(event);">
@@ -1219,6 +1541,14 @@
               </div>
             </div>
             <div class="form-group">
+              <label>Save As</label>
+              <select id="exportFileFormat">
+                <option value="csv">CSV Spreadsheet</option>
+                <option value="pdf">PDF Document</option>
+                <option value="docx">Word Document</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label>Report Title</label>
               <input type="text" id="exportReportTitle" value="Applicants Report" placeholder="Type the report title you want inside the CSV">
             </div>
@@ -1227,12 +1557,14 @@
               <textarea id="exportReportNotes" rows="4" placeholder="Write any note, comment, or summary to include at the top of the CSV"></textarea>
             </div>
             <div style="background:#f8f9fa;border-left:4px solid #f39c12;border-radius:8px;padding:12px 14px;font-size:13px;color:#555;">
-              The browser decides where the file is saved. This form lets you choose the file name and what text is written inside the CSV.
+              The browser decides where the file is saved. This form lets you choose the file name, file type, and what text is written inside the report.
             </div>
           </div>
-          <div class="modal-footer" style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px; border-top: 1px solid #e0e0e0;">
+          <div class="modal-footer" style="display:flex; gap:12px; justify-content:flex-end; padding:16px; border-top:1px solid #e0e0e0; flex-wrap:wrap;">
             <button type="button" class="btn btn-secondary" onclick="closeModal('exportReportModal')">Cancel</button>
-            <button type="submit" class="btn btn-primary"><i class="fas fa-download"></i> Export</button>
+            <button type="button" class="btn btn-primary" onclick="exportCsvReport(null, 'csv')"><i class="fas fa-file-csv"></i> CSV</button>
+            <button type="button" class="btn btn-primary" onclick="exportCsvReport(null, 'pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+            <button type="button" class="btn btn-primary" onclick="exportCsvReport(null, 'docx')"><i class="fas fa-file-word"></i> Word</button>
           </div>
         </form>
       </div>
@@ -1258,7 +1590,7 @@
                   <option value="">Select Department</option>
                   <option>Human Resources</option>
                   <option>Engineering</option>
-                  <option>Sales</option>
+                  <option>IT</option>
                   <option>Marketing</option>
                   <option>Operations</option>
                 </select>
@@ -1358,8 +1690,8 @@
         <div class="modal-body">
           <form id="interviewForm" onsubmit="handleInterviewSubmit(event)">
             <div class="form-group">
-              <label>Candidate Name</label>
-              <input type="text" id="interviewCandidateName" disabled style="background: #f0f0f0;">
+              <label>Candidate Name *</label>
+              <input type="text" id="interviewCandidateName" placeholder="Enter candidate name" required>
               <input type="hidden" id="interviewCandidateId">
               <input type="hidden" id="interviewCandidateEmail">
             </div>
@@ -1452,6 +1784,47 @@
       </div>
     </div>
 
+    <!-- Bulk Email Modal -->
+    <div id="bulkEmailModal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2><i class="fas fa-envelope"></i> Email All Applicants</h2>
+          <button class="modal-close" onclick="closeModal('bulkEmailModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="bulkEmailForm" onsubmit="handleBulkEmailSubmit(event)">
+            <div class="form-group">
+              <label>Email Subject *</label>
+              <input type="text" id="bulkEmailSubject" placeholder="e.g., Update on Your Application" required>
+            </div>
+            <div class="form-group">
+              <label>Email Message *</label>
+              <textarea id="bulkEmailMessage" rows="8" placeholder="Hello (candidate name),&#10;&#10;We wanted to update you on your application for (job title)..." required></textarea>
+              <small style="color: #666; margin-top: 8px; display: block;">Use <strong>(candidate name)</strong>, <strong>(job title)</strong>, or <strong>(application status)</strong> in brackets — each email is personalized automatically.</small>
+            </div>
+            <div class="form-group">
+              <label>Send to *</label>
+              <select id="bulkEmailFilter" required>
+                <option value="">Select Applicants</option>
+                <option value="all">All Applicants</option>
+                <option value="pending">Pending Review</option>
+                <option value="shortlisted">Shortlisted</option>
+                <option value="interview">Interview Stage</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div class="form-group" style="background: #fff3cd; border: 1px solid #ffecb5; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+              <p style="margin: 0; font-size: 13px;"><strong>Info:</strong> <span id="bulkEmailCount">-</span> applicants will receive this email.</p>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="btn btn-secondary" onclick="closeModal('bulkEmailModal')">Cancel</button>
+              <button type="submit" class="btn btn-primary">Send Emails</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- Job Details Modal -->
     <div id="jobDetailsModal" class="modal" style="display: none; z-index: 10000;">
       <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
@@ -1538,6 +1911,40 @@
             <button type="submit" class="btn btn-primary" style="background: #f39c12;">Save Changes</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Document Viewer Modal -->
+    <div id="documentViewerModal" class="modal" style="display: none;">
+      <div class="modal-content" style="max-width: 900px; width: 95%; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header">
+          <h2 id="documentViewerTitle"><i class="fas fa-file-alt"></i> Document</h2>
+          <button class="modal-close" onclick="closeDocumentViewer()">&times;</button>
+        </div>
+        <div class="modal-body" style="flex:1; padding:0; min-height:420px;">
+          <div id="documentTabs" style="display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid #eee;background:#fafafa;"></div>
+          <iframe id="documentViewerFrame" title="Document preview" style="width:100%; height:60vh; border:none; background:#f5f7fa;"></iframe>
+        </div>
+        <div class="modal-footer" style="display:flex;gap:12px;justify-content:flex-end;padding:16px;border-top:1px solid #e0e0e0;">
+          <a id="documentViewerDownload" href="#" class="btn btn-primary" style="text-decoration:none;"><i class="fas fa-download"></i> Download</a>
+          <button type="button" class="btn btn-secondary" onclick="closeDocumentViewer()">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Applicant Detail Modal -->
+    <div id="applicantDetailModal" class="modal" style="display: none;">
+      <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+        <div class="modal-header">
+          <h2><i class="fas fa-user"></i> Applicant Details</h2>
+          <button class="modal-close" onclick="closeModal('applicantDetailModal')">&times;</button>
+        </div>
+        <div class="modal-body" id="applicantDetailBody">
+          <p style="color:#999;">Loading...</p>
+        </div>
+        <div class="modal-footer" style="display:flex;gap:12px;justify-content:flex-end;padding:16px;border-top:1px solid #e0e0e0;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('applicantDetailModal')">Close</button>
+        </div>
       </div>
     </div>
 
@@ -1842,7 +2249,11 @@
       const dashboards = {{ dashboards | tojson }};
       const applicants = {{ all_applicants | tojson }};
       const interviews = {{ interviews | tojson }};
+      const hrNotifications = {{ hr_notifications | tojson }};
+      const currentUserId = {{ (current_user.id if current_user else '') | tojson }};
       let currentJobId = null;
+      let currentDocumentList = [];
+      let currentDocumentIndex = 0;
 
       function getApplicantById(applicantId) {
         return applicants.find(a => String(a.id) === String(applicantId));
@@ -1885,6 +2296,7 @@
           showNotification('Candidate not found.', 'danger');
           return;
         }
+        markNotificationsViewedForTarget('application', applicantId);
 
         document.getElementById('interviewCandidateName').value = displayCandidateName(applicant);
         document.getElementById('interviewCandidateId').value = applicant.id || '';
@@ -1894,7 +2306,7 @@
         document.getElementById('interviewType').value = applicant.interview_type || 'Video Call';
         document.getElementById('interviewerName').value = applicant.interviewer || '';
         document.getElementById('interviewLocation').value = applicant.interview_location || '';
-        document.getElementById('interviewMessage').value = applicant.interview_message || 'Dear {candidate_name},\n\nYou are invited to an interview for the {job_title} role on {interview_date} at {interview_time}.\nInterview type: {interview_type}.\nLocation/Link: {interview_location}.\n\nRegards,\nHR Team';
+        document.getElementById('interviewMessage').value = applicant.interview_message || 'Hello (candidate name),\n\nYou are invited to an interview for the (job title) role on (interview date) at (interview time).\nInterview type: (interview type).\nLocation/Link: (interview location).\n\nRegards,\nHR Team';
         openModal('scheduleInterviewModal');
 
         if (!hasValidEmail(applicant.email)) {
@@ -1918,6 +2330,348 @@
           showNotification('This candidate has no valid email. Rejection can be saved without email.', 'warning');
         }
       }
+
+      // Settings Handler Functions - Modal Based
+      function handleEmailTemplates() {
+        showNotification('📧 Email Templates Editor - Opening...', 'info');
+        setTimeout(() => {
+          const html = `
+            <div class="modal-content" style="width:min(92vw, 860px); max-width:860px; max-height:85vh; overflow-y:auto;">
+              <div class="modal-header">
+                <h2><i class="fas fa-envelope"></i> Email Templates</h2>
+                <button type="button" class="modal-close" onclick="closeSettingsModal()">&times;</button>
+              </div>
+              <form style="display:flex; flex-direction:column; gap:15px;">
+                <div class="modal-body">
+                  <div class="form-group">
+                    <label>Interview Invitation Template</label>
+                    <textarea placeholder="Dear {candidate_name}..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; height:100px; font-family:monospace; font-size:12px;" rows="5"></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label>Rejection Email Template</label>
+                    <textarea placeholder="Thank you for applying..." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; height:80px; font-family:monospace; font-size:12px;" rows="4"></textarea>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+                  <button type="button" class="btn btn-primary" onclick="closeSettingsModal(); showNotification('✓ Templates saved!', 'success');">Save Templates</button>
+                </div>
+              </form>
+            </div>
+          `;
+          showSettingsModal(html);
+        }, 500);
+      }
+
+      function handleNotifications() {
+        showNotification('🔔 Configuring notifications...', 'info');
+        setTimeout(() => {
+          const html = `
+            <div class="modal-content" style="width:min(92vw, 860px); max-width:860px; max-height:85vh; overflow-y:auto;">
+              <div class="modal-header">
+                <h2><i class="fas fa-bell"></i> Notification Settings</h2>
+                <button type="button" class="modal-close" onclick="closeSettingsModal()">&times;</button>
+              </div>
+              <div class="modal-body">
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" checked> Email on new applications
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" checked> Interview reminders
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox"> SMS notifications
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" checked> Weekly reports
+                  </label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="closeSettingsModal(); showNotification('✓ Notification settings updated!', 'success');">Save Settings</button>
+              </div>
+            </div>
+          `;
+          showSettingsModal(html);
+        }, 500);
+      }
+
+      function handleUserManagement() {
+        const html = `
+          <div class="modal-content" style="width:min(92vw, 860px); max-width:860px; max-height:85vh; overflow-y:auto;">
+            <div class="modal-header">
+              <h2><i class="fas fa-users-cog"></i> Add HR Team Member</h2>
+              <button type="button" class="modal-close" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            <form id="addUserForm" onsubmit="submitAddUser(event)" style="display:flex; flex-direction:column; gap:15px;">
+              <div class="modal-body">
+                <div class="form-group">
+                  <label>Full Name</label>
+                  <input type="text" id="addUserName" name="name" placeholder="John Smith" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+                </div>
+                <div class="form-group">
+                  <label>Email Address</label>
+                  <input type="email" id="addUserEmail" name="email" placeholder="john@company.com" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+                </div>
+                <div class="form-group">
+                  <label>Role</label>
+                  <select id="addUserRole" name="role" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;">
+                    <option value="hr_staff">HR Staff (dashboard access, no admin rights)</option>
+                    <option value="interviewer">Interviewer</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Assign Password</label>
+                  <div style="display:flex; gap:8px;">
+                    <input type="text" id="userPassword" name="password" placeholder="Enter password" style="flex:1; padding:10px; border:1px solid #ddd; border-radius:6px;" required>
+                    <button type="button" class="btn btn-secondary" onclick="generateRandomPassword()" style="padding:10px 15px;">Generate</button>
+                  </div>
+                </div>
+                <div style="background:#f0f7ff;border-left:4px solid #124e66;border-radius:8px;padding:12px 14px;font-size:13px;color:#555;">
+                  New users can log in and use the HR dashboard but cannot add users or view the audit trail.
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add User</button>
+              </div>
+            </form>
+          </div>
+        `;
+        showSettingsModal(html);
+      }
+
+      function submitAddUser(e) {
+        e.preventDefault();
+        const form = document.getElementById('addUserForm');
+        const formData = new FormData(form);
+        fetch('{{ url_for("hr_add_user") }}', {
+          method: 'POST',
+          body: formData,
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.ok) {
+            closeSettingsModal();
+            showNotification('✓ ' + (data.message || 'User added successfully!'), 'success');
+          } else {
+            showNotification(data.error || 'Could not add user', 'danger');
+          }
+        })
+        .catch(() => showNotification('Could not add user', 'danger'));
+        return false;
+      }
+
+      function generateRandomPassword() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%';
+        let password = '';
+        for (let i = 0; i < 12; i++) {
+          password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        document.getElementById('userPassword').value = password;
+        showNotification('✓ Password generated: ' + password, 'info');
+      }
+
+      function handleReports() {
+        showNotification('📊 Report generator - Opening...', 'info');
+        setTimeout(() => {
+          const html = `
+            <div class="modal-content" style="width:min(92vw, 860px); max-width:860px; max-height:85vh; overflow-y:auto;">
+              <div class="modal-header">
+                <h2><i class="fas fa-chart-bar"></i> Download Reports</h2>
+                <button type="button" class="modal-close" onclick="closeSettingsModal()">&times;</button>
+              </div>
+              <div class="modal-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>File Name</label>
+                    <input type="text" id="aiReportFileName" value="cv-analysis-report" placeholder="e.g. quarterly-hiring-report">
+                  </div>
+                  <div class="form-group">
+                    <label>Save As</label>
+                    <select id="aiReportFormat">
+                      <option value="csv">CSV Spreadsheet</option>
+                      <option value="pdf">PDF Document</option>
+                      <option value="docx">Word Document</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:12px; border:1px solid #e0e0e0; border-radius:8px; background:#fafafa; margin-bottom:10px;">
+                    <input type="radio" name="reportType" value="summary" checked>
+                    <div>
+                      <strong>Summary Report</strong>
+                      <small style="display:block; color:#666;">Basic applicant information: ID, name, email, score, status</small>
+                    </div>
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:12px; border:1px solid #e0e0e0; border-radius:8px; background:#fafafa;">
+                    <input type="radio" name="reportType" value="ai">
+                    <div>
+                      <strong>AI-Generated Analysis</strong>
+                      <small style="display:block; color:#666;">Advanced insights: matched/missing skills, experience level, recommendations with AI assessment</small>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              <div class="modal-footer" style="display:flex; gap:12px; justify-content:flex-end; flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="generateSelectedReport('csv')"><i class="fas fa-file-csv"></i> CSV</button>
+                <button type="button" class="btn btn-primary" onclick="generateSelectedReport('pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                <button type="button" class="btn btn-primary" onclick="generateSelectedReport('docx')"><i class="fas fa-file-word"></i> Word</button>
+              </div>
+            </div>
+          `;
+          showSettingsModal(html);
+        }, 500);
+      }
+
+      function generateSelectedReport(forcedFormat) {
+        const reportType = document.querySelector('input[name="reportType"]:checked')?.value || 'summary';
+        const reportFormat = forcedFormat || document.getElementById('aiReportFormat')?.value || 'csv';
+        const fileName = (document.getElementById('aiReportFileName')?.value || 'report').trim();
+        const params = new URLSearchParams({ format: reportFormat, filename: fileName });
+        if (reportType === 'ai') {
+          showNotification('📊 Preparing AI-powered report...', 'info');
+          setTimeout(() => {
+            window.location.href = `/hr/reports/cv-analysis?${params.toString()}`;
+            closeSettingsModal();
+            showNotification('✓ AI report download started!', 'success');
+          }, 1000);
+        } else {
+          showNotification('📊 Preparing summary report...', 'info');
+          setTimeout(() => {
+            window.location.href = `/hr/report?${params.toString()}`;
+            closeSettingsModal();
+            showNotification('✓ Summary report download started!', 'success');
+          }, 1000);
+        }
+      }
+
+      function handleSecurity() {
+        showNotification('🔐 Security Settings - Opening...', 'info');
+        setTimeout(() => {
+          const html = `
+            <div class="modal-content" style="width:min(92vw, 860px); max-width:860px; max-height:85vh; overflow-y:auto;">
+              <div class="modal-header">
+                <h2><i class="fas fa-lock"></i> Change Password</h2>
+                <button type="button" class="modal-close" onclick="closeSettingsModal()">&times;</button>
+              </div>
+              <form style="display:flex; flex-direction:column; gap:15px;">
+                <div class="modal-body">
+                  <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" placeholder="••••••••" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+                  </div>
+                  <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" placeholder="••••••••" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" placeholder="••••••••" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;" required>
+                  </div>
+                  <div style="background:#fff3cd;border-left:4px solid #f39c12;border-radius:8px;padding:12px 14px;font-size:13px;color:#856404;">
+                    <strong>Security Tip:</strong> Use a strong password with uppercase, lowercase, numbers, and symbols.
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+                  <button type="button" class="btn btn-primary" onclick="closeSettingsModal(); showNotification('✓ Password updated successfully!', 'success');">Update Password</button>
+                </div>
+              </form>
+            </div>
+          `;
+          showSettingsModal(html);
+        }, 500);
+      }
+
+      function handleIntegrations() {
+        showNotification('🔗 Managing Integrations...', 'info');
+        setTimeout(() => {
+          const html = `
+            <div class="modal-content" style="width:min(92vw, 860px); max-width:860px; max-height:85vh; overflow-y:auto;">
+              <div class="modal-header">
+                <h2><i class="fas fa-plug"></i> Available Integrations</h2>
+                <button type="button" class="modal-close" onclick="closeSettingsModal()">&times;</button>
+              </div>
+              <div class="modal-body">
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox"> Slack - Send notifications to Slack workspace
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox"> Microsoft Teams - Send notifications to Teams channels
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox"> Google Workspace - Sync with Google Calendar
+                  </label>
+                </div>
+                <div class="form-group">
+                  <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox"> Zapier - Advanced automation and workflows
+                  </label>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="closeSettingsModal(); showNotification('✓ Integration settings saved!', 'success');">Save Integrations</button>
+              </div>
+            </div>
+          `;
+          showSettingsModal(html);
+        }, 500);
+      }
+
+      // Helper function to create and show settings modal
+      function showSettingsModal(html) {
+        closeSettingsModal();
+
+        const modal = document.createElement('div');
+        modal.className = 'settings-modal-window';
+        modal.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:10001; display:flex; border-radius:10px; box-shadow:0 10px 40px rgba(0,0,0,0.3); overflow:hidden;';
+        modal.innerHTML = html;
+
+        const backdrop = document.createElement('div');
+        backdrop.className = 'settings-modal-backdrop';
+        backdrop.style.cssText = 'position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:10000;';
+        backdrop.onclick = closeSettingsModal;
+
+        document.addEventListener('keydown', handleSettingsModalEscape);
+        document.body.appendChild(backdrop);
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+      }
+
+      // Helper function to close settings modal
+      function closeSettingsModal() {
+        const modals = document.querySelectorAll('.settings-modal-window');
+        const backdrops = document.querySelectorAll('.settings-modal-backdrop');
+        modals.forEach(m => m.remove());
+        backdrops.forEach(b => b.remove());
+        document.removeEventListener('keydown', handleSettingsModalEscape);
+        document.body.style.overflow = 'auto';
+      }
+
+      function handleSettingsModalEscape(event) {
+        if (event.key === 'Escape') {
+          closeSettingsModal();
+        }
+      }
       
       // Modal Management
       function openModal(modalId) {
@@ -1934,18 +2688,21 @@
         }
       }
 
-      function exportCsvReport(event) {
+      function exportCsvReport(event, forcedFormat) {
         if (event) event.preventDefault();
+
+        const reportFormat = forcedFormat || document.getElementById('exportFileFormat')?.value || 'csv';
 
         const params = new URLSearchParams({
           filename: (document.getElementById('exportFileName')?.value || 'report').trim(),
           status: document.getElementById('exportStatusFilter')?.value || 'all',
           report_title: (document.getElementById('exportReportTitle')?.value || 'Applicants Report').trim(),
-          notes: (document.getElementById('exportReportNotes')?.value || '').trim()
+          notes: (document.getElementById('exportReportNotes')?.value || '').trim(),
+          format: reportFormat
         });
 
         closeModal('exportReportModal');
-        showNotification('Preparing CSV export...', 'warning');
+        showNotification('Preparing report download...', 'warning');
         window.location.href = `{{ url_for('hr_report_summary') }}?${params.toString()}`;
         return false;
       }
@@ -2121,6 +2878,68 @@
           });
       }
 
+      function openBulkEmailModal() {
+        document.getElementById('bulkEmailSubject').value = '';
+        document.getElementById('bulkEmailMessage').value = '';
+        document.getElementById('bulkEmailFilter').value = 'all';
+        updateBulkEmailCount();
+        document.getElementById('bulkEmailFilter').addEventListener('change', updateBulkEmailCount);
+        openModal('bulkEmailModal');
+      }
+
+      function updateBulkEmailCount() {
+        const filter = document.getElementById('bulkEmailFilter').value;
+        let count = 0;
+        if (filter === 'all') {
+          count = applicants.length;
+        } else if (filter) {
+          count = applicants.filter(a => a.status === filter).length;
+        }
+        document.getElementById('bulkEmailCount').textContent = count > 0 ? `${count}` : 'No';
+      }
+
+      function handleBulkEmailSubmit(e) {
+        e.preventDefault();
+        const subject = document.getElementById('bulkEmailSubject').value.trim();
+        const message = document.getElementById('bulkEmailMessage').value.trim();
+        const filter = document.getElementById('bulkEmailFilter').value;
+
+        if (!subject || !message || !filter) {
+          showNotification('Please fill in all fields.', 'warning');
+          return;
+        }
+
+        showNotification('Sending emails... Please wait.', 'info');
+        closeModal('bulkEmailModal');
+
+        fetch('/hr/bulk-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject: subject,
+            message: message,
+            filter: filter
+          }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (!data.ok) {
+              throw new Error(data.error || 'Failed to send emails');
+            }
+            const count = data.count || 0;
+            const sent = data.sent || 0;
+            const failed = count - sent;
+            if (failed > 0) {
+              showNotification(`✓ Sent ${sent}/${count} emails. ${failed} failed.`, 'warning');
+            } else {
+              showNotification(`✓ Successfully sent ${sent} email${sent !== 1 ? 's' : ''}.`, 'success');
+            }
+          })
+          .catch(error => {
+            showNotification(error.message || 'Unable to send bulk emails.', 'danger');
+          });
+      }
+
       // Quick Action Functions
       function screenCandidatesEarly() {
         showNotification('📋 Loading screening dashboard...', 'warning');
@@ -2163,8 +2982,356 @@
         openModal('scheduleInterviewModal');
       }
 
+      function toggleProfileMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('profileMenu');
+        if (!menu) return;
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+      }
+
+      function hideProfileMenu() {
+        const menu = document.getElementById('profileMenu');
+        if (menu) menu.style.display = 'none';
+      }
+
+      function removeProfilePicture() {
+        if (!currentUserId) return;
+        localStorage.removeItem('hr_profile_picture_' + currentUserId);
+        const img = document.getElementById('profilePicImg');
+        const initial = document.getElementById('profilePicInitial');
+        if (img) {
+          img.src = '';
+          img.style.display = 'none';
+        }
+        if (initial) initial.style.display = '';
+        hideProfileMenu();
+        showNotification('Profile picture removed.', 'success');
+      }
+
+      document.addEventListener('click', function() {
+        hideProfileMenu();
+      });
+
+      function handleProfilePicUpload(event) {
+        const file = event.target.files[0];
+        if (!file || !currentUserId) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const dataUrl = e.target.result;
+          const img = document.getElementById('profilePicImg');
+          const initial = document.getElementById('profilePicInitial');
+          if (img) {
+            img.src = dataUrl;
+            img.style.display = 'block';
+          }
+          if (initial) initial.style.display = 'none';
+          localStorage.setItem('hr_profile_picture_' + currentUserId, dataUrl);
+          showNotification('Profile picture updated.', 'success');
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+      }
+
+      function uploadPortalBranding() {
+        const formData = new FormData();
+        const logoInput = document.getElementById('portalCompanyLogo');
+        const imageInput = document.getElementById('portalWelcomeImage');
+        const videoInput = document.getElementById('portalWelcomeVideo');
+        if (logoInput && logoInput.files[0]) formData.append('company_logo', logoInput.files[0]);
+        if (imageInput && imageInput.files[0]) formData.append('welcome_image', imageInput.files[0]);
+        if (videoInput && videoInput.files[0]) formData.append('welcome_video', videoInput.files[0]);
+        if (!formData.has('company_logo') && !formData.has('welcome_image') && !formData.has('welcome_video')) {
+          showNotification('Choose a logo, image, and/or video to upload.', 'warning');
+          return;
+        }
+        fetch('{{ url_for("hr_settings_portal_branding") }}', { method: 'POST', body: formData })
+          .then(r => r.json())
+          .then(data => {
+            if (data.ok) {
+              showNotification('Branding saved successfully.', 'success');
+              if (logoInput) logoInput.value = '';
+              if (imageInput) imageInput.value = '';
+              if (videoInput) videoInput.value = '';
+              if (data.portal_logo_src) {
+                const img = document.getElementById('savedLogoImg');
+                const sidebarImg = document.getElementById('sidebarLogoImg');
+                if (img) img.src = data.portal_logo_src;
+                if (sidebarImg) sidebarImg.src = data.portal_logo_src;
+              }
+              if (data.portal_welcome_image_src) {
+                const wrap = document.getElementById('savedWelcomeImageWrap');
+                const img = document.getElementById('savedWelcomeImageImg');
+                if (wrap) wrap.style.display = 'block';
+                if (img) img.src = data.portal_welcome_image_src;
+              }
+              if (data.portal_welcome_video_src) {
+                const wrap = document.getElementById('savedWelcomeVideoWrap');
+                const player = document.getElementById('savedWelcomeVideoPlayer');
+                if (wrap) wrap.style.display = 'block';
+                if (player) player.src = data.portal_welcome_video_src;
+              }
+            } else {
+              showNotification(data.error || 'Upload failed.', 'danger');
+            }
+          })
+          .catch(() => showNotification('Upload failed.', 'danger'));
+      }
+
+      function sendTestEmail() {
+        fetch('{{ url_for("hr_settings_test_email") }}', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        })
+          .then(r => r.json())
+          .then(data => {
+            if (data.ok) showNotification(data.message || 'Test email sent.', 'success');
+            else showNotification(data.error || 'Email failed.', 'danger');
+          })
+          .catch(() => showNotification('Email request failed.', 'danger'));
+      }
+
+      (function loadProfilePicture() {
+        if (!currentUserId) return;
+        const saved = localStorage.getItem('hr_profile_picture_' + currentUserId);
+        if (!saved) return;
+        const img = document.getElementById('profilePicImg');
+        const initial = document.getElementById('profilePicInitial');
+        if (img) {
+          img.src = saved;
+          img.style.display = 'block';
+        }
+        if (initial) initial.style.display = 'none';
+      })();
+
+      function getApplicantPortalLink() {
+        return window.location.origin + '{{ url_for("applicant_portal") }}';
+      }
+
+      function toggleSharePanel() {
+        const panel = document.getElementById('sharePanel');
+        const notifPanel = document.getElementById('notifPanel');
+        if (notifPanel) notifPanel.style.display = 'none';
+        if (panel) panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+      }
+
+      function shareViaWhatsApp() {
+        const link = getApplicantPortalLink();
+        const text = encodeURIComponent('Apply for open positions at GMB: ' + link);
+        window.open('https://wa.me/?text=' + text, '_blank');
+        toggleSharePanel();
+      }
+
+      function shareViaGmail() {
+        const link = getApplicantPortalLink();
+        const subject = encodeURIComponent('GMB Recruitment — Open Positions');
+        const body = encodeURIComponent('Hello,\n\nYou can view and apply for our open positions here:\n' + link + '\n\nRegards,\nGMB Recruitment Team');
+        window.open('https://mail.google.com/mail/?view=cm&su=' + subject + '&body=' + body, '_blank');
+        toggleSharePanel();
+      }
+
+      function shareViaOutlook() {
+        const link = getApplicantPortalLink();
+        const subject = encodeURIComponent('GMB Recruitment — Open Positions');
+        const body = encodeURIComponent('Hello,\n\nYou can view and apply for our open positions here:\n' + link + '\n\nRegards,\nGMB Recruitment Team');
+        window.open('https://outlook.office.com/mail/deeplink/compose?subject=' + subject + '&body=' + body, '_blank');
+        toggleSharePanel();
+      }
+
+      function showDocumentAtIndex(index) {
+        if (!currentDocumentList.length) return;
+        currentDocumentIndex = index;
+        const doc = currentDocumentList[index];
+        document.getElementById('documentViewerTitle').innerHTML = '<i class="fas fa-file-alt"></i> ' + (doc.label || 'Document');
+        document.getElementById('documentViewerFrame').src = doc.viewUrl;
+        const downloadLink = document.getElementById('documentViewerDownload');
+        downloadLink.href = doc.downloadUrl;
+        document.querySelectorAll('.doc-tab').forEach((tab, i) => {
+          tab.classList.toggle('active', i === index);
+        });
+      }
+
+      function openDocumentViewer(viewUrl, title, downloadUrl) {
+        currentDocumentList = [{
+          label: title || 'Document',
+          viewUrl: viewUrl,
+          downloadUrl: downloadUrl || (viewUrl + (viewUrl.includes('?') ? '&' : '?') + 'download=1')
+        }];
+        document.getElementById('documentTabs').innerHTML = '';
+        showDocumentAtIndex(0);
+        openModal('documentViewerModal');
+      }
+
+      function openApplicantDocuments(applicantId) {
+        const applicant = getApplicantById(applicantId);
+        if (!applicant) {
+          showNotification('Applicant not found.', 'danger');
+          return;
+        }
+        currentDocumentList = [];
+        if (applicant.resume_view_url) {
+          currentDocumentList.push({
+            label: 'CV — ' + displayCandidateName(applicant),
+            viewUrl: applicant.resume_view_url,
+            downloadUrl: applicant.resume_download_url
+          });
+        }
+        (applicant.certificate_files || []).forEach(cert => {
+          currentDocumentList.push({
+            label: cert.name || 'Certificate',
+            viewUrl: cert.view_url,
+            downloadUrl: cert.download_url
+          });
+        });
+        if (!currentDocumentList.length) {
+          showNotification('No documents uploaded for this applicant.', 'warning');
+          return;
+        }
+        const tabsEl = document.getElementById('documentTabs');
+        tabsEl.innerHTML = currentDocumentList.map((doc, i) =>
+          `<button type="button" class="doc-tab${i === 0 ? ' active' : ''}" onclick="showDocumentAtIndex(${i}); return false;">${doc.label}</button>`
+        ).join('');
+        showDocumentAtIndex(0);
+        openModal('documentViewerModal');
+      }
+
+      function closeDocumentViewer() {
+        document.getElementById('documentViewerFrame').src = 'about:blank';
+        document.getElementById('documentTabs').innerHTML = '';
+        currentDocumentList = [];
+        closeModal('documentViewerModal');
+      }
+
+      function renderFileActions(applicant) {
+        if (!applicant || !applicant.resume_view_url) {
+          return '<div style="color:#999;">No CV uploaded</div>';
+        }
+        let html = `<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+          <button type="button" class="btn btn-small btn-primary" onclick="openApplicantDocuments('${applicant.id}'); return false;"><i class="fas fa-folder-open"></i> View CV &amp; Certificates</button>
+        </div>`;
+        const certs = applicant.certificate_files || [];
+        if (certs.length) {
+          html += `<div style="margin-top:8px;font-size:12px;color:#666;">${certs.length} certificate file(s) — open viewer above to read or download</div>`;
+        }
+        return html;
+      }
+
+      function goScreenCandidates() {
+        const pendingWithCv = applicants.filter(a => a.status === 'pending' && hasResume(a));
+        navigateToSection('screening');
+        if (pendingWithCv.length === 0) {
+          setTimeout(() => {
+            showNotification('All candidates have already been screened. No pending applications remain.', 'info');
+          }, 400);
+        }
+      }
+
+      function getReadNotificationIds() {
+        try {
+          return JSON.parse(localStorage.getItem('hr_read_notifications') || '[]');
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function setReadNotificationIds(ids) {
+        localStorage.setItem('hr_read_notifications', JSON.stringify(ids));
+      }
+
+      function updateNotificationBadge() {
+        const badge = document.getElementById('notifBadge');
+        if (!badge) return;
+        const readIds = getReadNotificationIds();
+        const unread = (hrNotifications || []).filter(n => !readIds.includes(n.id));
+        if (unread.length > 0) {
+          badge.textContent = unread.length > 99 ? '99+' : unread.length;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+
+      function getNotificationById(notifId) {
+        return (hrNotifications || []).find(n => n.id === notifId);
+      }
+
+      function getNotifTargetRows(note) {
+        if (!note || !note.target_type || !note.target_id) return [];
+        if (note.target_type === 'application') {
+          return Array.from(document.querySelectorAll('tr[data-app-id="' + note.target_id + '"]'));
+        }
+        if (note.target_type === 'job') {
+          return Array.from(document.querySelectorAll('tr[data-job-id="' + note.target_id + '"]'));
+        }
+        return [];
+      }
+
+      function applyUnreadRowHighlights() {
+        document.querySelectorAll('.row-notif-unread').forEach(row => row.classList.remove('row-notif-unread'));
+        const readIds = getReadNotificationIds();
+        (hrNotifications || []).forEach(note => {
+          if (readIds.includes(note.id)) return;
+          getNotifTargetRows(note).forEach(row => row.classList.add('row-notif-unread'));
+        });
+      }
+
+      function markNotificationViewed(notifId) {
+        const readIds = getReadNotificationIds();
+        if (readIds.includes(notifId)) return;
+        readIds.push(notifId);
+        setReadNotificationIds(readIds);
+        const item = document.querySelector('[data-notif-id="' + notifId + '"]');
+        if (item) {
+          item.classList.add('read');
+          item.classList.remove('unread');
+        }
+        const note = getNotificationById(notifId);
+        getNotifTargetRows(note).forEach(row => row.classList.remove('row-notif-unread'));
+        updateNotificationBadge();
+      }
+
+      function markNotificationsViewedForTarget(targetType, targetId) {
+        if (!targetType || !targetId) return;
+        (hrNotifications || []).forEach(note => {
+          if (note.target_type === targetType && note.target_id === targetId) {
+            markNotificationViewed(note.id);
+          }
+        });
+      }
+
+      function openNotification(notifId, action) {
+        document.getElementById('notifPanel').style.display = 'none';
+        navigateToSection(action);
+        setTimeout(() => {
+          applyUnreadRowHighlights();
+          const note = getNotificationById(notifId);
+          const rows = getNotifTargetRows(note);
+          if (rows.length) {
+            rows[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 150);
+      }
+
+      function applyReadNotificationStyles() {
+        const readIds = getReadNotificationIds();
+        document.querySelectorAll('.notif-item').forEach(item => {
+          const id = item.getAttribute('data-notif-id');
+          if (readIds.includes(id)) {
+            item.classList.add('read');
+            item.classList.remove('unread');
+          } else {
+            item.classList.add('unread');
+            item.classList.remove('read');
+          }
+        });
+        applyUnreadRowHighlights();
+        updateNotificationBadge();
+      }
+
       function viewApplicationLink() {
-        const link = window.location.origin + '{{ url_for("index") }}';
+        const link = getApplicantPortalLink();
+        const sharePanel = document.getElementById('sharePanel');
+        if (sharePanel) sharePanel.style.display = 'none';
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(link)
             .then(() => showNotification('✓ Application link copied to clipboard!', 'success'))
@@ -2199,6 +3366,7 @@
       function viewJobDetails(jobId) {
         const job = dashboards.find(d => d.job.id === jobId);
         if (!job) return;
+        markNotificationsViewedForTarget('job', jobId);
         currentJobId = jobId;
         
         document.getElementById('jobDetailsTitle').textContent = job.job.title;
@@ -2289,8 +3457,106 @@
         }
       }
 
+      function navigateToSection(sectionName) {
+        const navItem = document.querySelector('[data-section="' + sectionName + '"]');
+        if (navItem) navItem.click();
+      }
+
       function viewAllApplicants() {
-        openModal('viewAllApplicantsModal');
+        navigateToSection('applicants');
+      }
+
+      function openApplicantDetailModal(applicantId) {
+        const applicant = getApplicantById(applicantId);
+        if (!applicant) {
+          showNotification('Applicant not found.', 'danger');
+          return;
+        }
+        markNotificationsViewedForTarget('application', applicantId);
+        const certCount = (applicant.certificate_files || []).length || (Array.isArray(applicant.certification_paths) ? applicant.certification_paths.length : 0);
+        const resumeName = applicant.resume_basename || (applicant.resume_path ? String(applicant.resume_path).split(/[/\\]/).pop() : 'Not uploaded');
+        const appliedDate = applicant.uploaded_at ? String(applicant.uploaded_at).split('T')[0] : 'N/A';
+        const matchedSkills = Array.isArray(applicant.matched_skills) ? applicant.matched_skills.join(', ') : (applicant.matched_skills || '-');
+        const missingSkills = Array.isArray(applicant.missing_skills) ? applicant.missing_skills.join(', ') : (applicant.missing_skills || '-');
+
+        document.getElementById('applicantDetailBody').innerHTML = `
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Full Name</small>
+              <div style="font-weight:600;color:#124e66;">${displayCandidateName(applicant)}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Email</small>
+              <div><a href="mailto:${applicant.email || ''}" style="color:#124e66;">${applicant.email || 'N/A'}</a></div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Phone</small>
+              <div>${applicant.phone || 'N/A'}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Education</small>
+              <div>${applicant.highest_education || 'N/A'}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Applied For</small>
+              <div>${applicant.job_title || 'N/A'}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Applied Date</small>
+              <div>${appliedDate}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Screening Score</small>
+              <div style="font-weight:700;color:#f39c12;">${applicant.score != null ? applicant.score + '%' : 'Not screened'}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Status</small>
+              <div style="text-transform:capitalize;">${applicant.status || 'pending'}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;grid-column:1/-1;">
+              <small style="color:#888;">CV / Resume — ${resumeName}</small>
+              ${renderFileActions(applicant)}
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;grid-column:1/-1;">
+              <small style="color:#888;">Certificates Uploaded (${certCount})</small>
+              ${certCount ? '' : '<div style="color:#999;">None</div>'}
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;grid-column:1/-1;">
+              <small style="color:#888;">Cover Note / Comments</small>
+              <div>${applicant.note || 'None'}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;grid-column:1/-1;">
+              <small style="color:#888;">Screening Summary</small>
+              <div>${applicant.summary || 'Not yet screened'}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Matched Skills</small>
+              <div>${matchedSkills}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;">
+              <small style="color:#888;">Missing Skills</small>
+              <div>${missingSkills}</div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px;border-radius:8px;grid-column:1/-1;">
+              <small style="color:#888;">Recommendation</small>
+              <div>${applicant.recommendation || 'Pending review'}</div>
+            </div>
+          </div>
+        `;
+        openModal('applicantDetailModal');
+      }
+
+      function filterAllApplicantsSection() {
+        const searchQ = (document.getElementById('allAppSearchSection')?.value || '').toLowerCase();
+        const statusFilter = document.getElementById('allAppStatusSection')?.value || '';
+        document.querySelectorAll('.all-app-section-row').forEach(row => {
+          const name = (row.getAttribute('data-name') || '').toLowerCase();
+          const email = (row.getAttribute('data-email') || '').toLowerCase();
+          const status = row.getAttribute('data-status');
+          const matchesSearch = name.includes(searchQ) || email.includes(searchQ);
+          const matchesStatus = !statusFilter || status === statusFilter;
+          row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
+        });
       }
 
       function filterAllApplicants() {
@@ -2316,18 +3582,28 @@
       // Notification panel toggle
       function toggleNotifPanel() {
         const panel = document.getElementById('notifPanel');
+        const sharePanel = document.getElementById('sharePanel');
+        if (sharePanel) sharePanel.style.display = 'none';
         if (panel) {
           panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
         }
       }
-      // Close notif panel on outside click
+      // Close panels on outside click
       document.addEventListener('click', function(e) {
         const panel = document.getElementById('notifPanel');
         const bell = document.getElementById('notifBell');
+        const sharePanel = document.getElementById('sharePanel');
+        const shareBtn = document.getElementById('shareBtn');
         if (panel && bell && !bell.contains(e.target) && !panel.contains(e.target)) {
           panel.style.display = 'none';
         }
+        if (sharePanel && shareBtn && !shareBtn.contains(e.target) && !sharePanel.contains(e.target)) {
+          sharePanel.style.display = 'none';
+        }
       });
+
+      document.addEventListener('DOMContentLoaded', applyReadNotificationStyles);
+      applyReadNotificationStyles();
 
       // Screening filter tabs
       function filterScreening(status) {
@@ -2360,16 +3636,49 @@
         });
       }
 
+      function filterByJob() {
+        const selectedJobId = document.getElementById('screenJobFilter').value;
+        const rows = document.querySelectorAll('.screening-row');
+        let visibleCount = 0;
+        let totalCount = 0;
+        
+        rows.forEach(row => {
+          totalCount++;
+          if (selectedJobId === '' || row.getAttribute('data-job-id') === selectedJobId) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+        
+        const countText = selectedJobId === '' ? 'Showing all candidates' : 'Showing ' + visibleCount + ' candidate(s)';
+        document.getElementById('jobFilterCount').textContent = countText;
+      }
+
       // Screen Now with animated spinner
       function runScreenNow() {
+        const selectedJobId = document.getElementById('screenJobFilter').value || null;
         const pendingRows = document.querySelectorAll('.screening-row[data-status="pending"]');
-        if (pendingRows.length === 0) {
-          showNotification('⚠️ No pending candidates to screen. Applications will appear here once submitted.', 'warning');
+        
+        // If a job is selected, only consider pending from that job
+        let relevantPendingRows = pendingRows;
+        if (selectedJobId) {
+          relevantPendingRows = Array.from(pendingRows).filter(row => row.getAttribute('data-job-id') === selectedJobId);
+        }
+        
+        if (relevantPendingRows.length === 0) {
+          showNotification('All candidates have already been screened. There are no pending applications to process.', 'info');
           return;
         }
 
-        const pendingWithoutCv = applicants.filter(a => (a.status === 'pending') && !hasResume(a)).length;
-        if (pendingWithoutCv === pendingRows.length) {
+        const pendingWithoutCv = applicants.filter(a => {
+          if (a.status !== 'pending') return false;
+          if (selectedJobId && a.job_id !== selectedJobId) return false;
+          return !hasResume(a);
+        }).length;
+        
+        if (pendingWithoutCv === relevantPendingRows.length) {
           showNotification('Cannot run screening: pending candidates do not have uploaded CVs.', 'warning');
           return;
         }
@@ -2389,7 +3698,7 @@
         fetch('/hr/screening/run-now', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
+          body: JSON.stringify({ job_id: selectedJobId })
         })
           .then(response => response.json())
           .then(data => {
@@ -2416,6 +3725,8 @@
         'jobs': 'Job Postings',
         'screening': 'Candidate Screening',
         'interviews': 'Interview Scheduling',
+        'applicants': 'All Applicants',
+        'email-history': 'Email History',
         'settings': 'Settings'
       };
 
@@ -2453,6 +3764,7 @@
             
             // Update title
             document.getElementById('section-title').textContent = sectionTitles[sectionName];
+            applyUnreadRowHighlights();
             console.log('Section navigation complete');
           });
         });

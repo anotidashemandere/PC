@@ -6,7 +6,7 @@
     "password_hash": "scrypt:32768:8:1$Ud6kWDti4DGxa0p2$5c349fd24a46214a150fb86c50214626266d13eb746e2615e1079519706b7ff7c96ea349728e0c6c2e85d297e5516e88bd0e07cd09caca397ace8b75f14f68ec",
     "role": "hr",
     "created_at": "2026-06-06 21:23:55.724568+00:00",
-    "last_login": null
+    "last_login": "2026-06-08T21:00:45.745962+00:00"
   },
   "user-002": {
     "id": "user-002",
@@ -16,5 +16,14 @@
     "role": "audit",
     "created_at": "2026-06-06 21:23:55.885281+00:00",
     "last_login": null
+  },
+  "user-285eb0cb": {
+    "id": "user-285eb0cb",
+    "email": "anomandere@gmail.com",
+    "name": "Anotidashe Mandere",
+    "password_hash": "scrypt:32768:8:1$gFAyBlrJ9lxi234p$00dc916a8e6574995d07f8a028a4397099eadc09cd489f3f45694fd1ce573ff7c192962b0c20e734b88f1b3b7dc07aca4aabf6b9c45486b82db2d070b23f7c19",
+    "role": "hr_staff",
+    "created_at": "2026-06-08T17:06:45.866885+00:00",
+    "last_login": "2026-06-08T19:48:38.630269+00:00"
   }
 }

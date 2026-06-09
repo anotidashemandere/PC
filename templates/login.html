@@ -262,13 +262,10 @@
     <div class="login-container">
         <!-- Header -->
         <div class="login-header">
-        <div class="logo-container" id="logoContainer" onclick="document.getElementById('logoUploadInput').click()" title="Click to change logo" style="cursor:pointer; position:relative;">
-            <img id="customLogoImg" src="" alt="Custom logo" style="display:none;width:180px;max-width:100%;height:auto;border-radius:8px;object-fit:contain;border:2px solid rgba(243,156,18,0.5);margin-bottom:10px;background:#fff;">
-            <img id="defaultLogoImg" src="{{ url_for('static', filename='gmb-logo.png') }}" alt="GMB Logo" style="width:180px;max-width:100%;height:auto;margin-bottom:10px;border-radius:8px;background:#fff;padding:4px;">
-                <div style="position:absolute;bottom:-4px;right:-4px;background:#f39c12;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;"><i class="fas fa-camera" style="font-size:10px;color:white;"></i></div>
-                <input type="file" id="logoUploadInput" accept="image/*" style="display:none;" onchange="handleLogoUpload(event)">
+            <div class="logo-container">
+                <img src="{{ portal_logo_src }}" alt="Company logo" style="width:180px;max-width:100%;height:auto;margin-bottom:10px;border-radius:8px;background:#fff;padding:4px;object-fit:contain;">
             </div>
-            <div class="logo">GMB</div>
+            <div class="logo">Grain Marketing Board</div>
             <h1>HR System</h1>
             <p>Recruitment & Talent Management</p>
         </div>
@@ -319,30 +316,7 @@
                 <button type="submit" class="login-button"><i class="fas fa-lock"></i> Sign In</button>
             </form>
 
-            <!-- Demo Credentials -->
-            <div class="demo-credentials">
-                <h3>Login Credentials</h3>
-                
-                <div class="demo-cred">
-                    <strong>HR Account:</strong>
-                    <div style="margin-top: 4px;">
-                        Email: <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">hr@company.com</code>
-                        <br>
-                        Pass: <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">password123</code>
-                        <span class="role">HR</span>
-                    </div>
-                </div>
-
-                <div class="demo-cred" style="margin-top: 12px;">
-                    <strong>Audit Account:</strong>
-                    <div style="margin-top: 4px;">
-                        Email: <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">audit@company.com</code>
-                        <br>
-                        Pass: <code style="background: #eee; padding: 2px 6px; border-radius: 3px;">password123</code>
-                        <span class="role">AUDIT</span>
-                    </div>
-                </div>
-            </div>
+            
         </div>
 
         <!-- Footer -->
@@ -352,30 +326,5 @@
             <a href="#">Contact Support</a>
         </div>
     </div>
-    <script>
-      // Persist logo across page reloads using localStorage
-      (function() {
-        const saved = localStorage.getItem('gmb_login_logo');
-        if (saved) {
-          document.getElementById('customLogoImg').src = saved;
-          document.getElementById('customLogoImg').style.display = 'block';
-                    document.getElementById('defaultLogoImg').style.display = 'none';
-        }
-      })();
-
-      function handleLogoUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const dataUrl = e.target.result;
-          document.getElementById('customLogoImg').src = dataUrl;
-          document.getElementById('customLogoImg').style.display = 'block';
-                    document.getElementById('defaultLogoImg').style.display = 'none';
-          localStorage.setItem('gmb_login_logo', dataUrl);
-        };
-        reader.readAsDataURL(file);
-      }
-    </script>
 </body>
 </html>

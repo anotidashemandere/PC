@@ -47,11 +47,14 @@
       <main class="hr-content">
         <div class="dashboard-header">
           <div class="header-top">
-            <h1>Job Postings</h1>
+            <h1><i class="fas fa-briefcase" style="font-size:1.3rem; margin-right:10px; color:#124e66;"></i> Job Postings</h1>
             <div class="header-actions">
-              <button class="icon-button">🔔</button>
-              <button class="icon-button">⚙️</button>
-              <button class="icon-button">👤</button>
+              {% if current_user %}
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#124e66,#f39c12);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;">{{ current_user.name[0] }}</div>
+                <div><div style="font-size:13px;font-weight:600;color:#124e66;">{{ current_user.name }}</div><div style="font-size:11px;color:#999;">{{ current_user.role.upper() }}</div></div>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>

@@ -50,12 +50,15 @@
       <main class="hr-content">
         <div class="dashboard-header">
           <div class="header-top">
-            <h1>✓ Screening</h1>
+            <h1><i class="fas fa-user-check" style="font-size:1.3rem; margin-right:10px; color:#124e66;"></i> Screening</h1>
             <div class="header-actions">
-              <button class="btn-primary" onclick="screenCandidatesEarly()" title="Screen pending candidates immediately">Screen Now</button>
-              <button class="icon-button">🔔</button>
-              <button class="icon-button">⚙️</button>
-              <button class="icon-button">👤</button>
+              <button class="btn-primary" onclick="screenCandidatesEarly()" title="Screen pending candidates immediately"><i class="fas fa-bolt" style="margin-right:6px;"></i>Screen Now</button>
+              {% if current_user %}
+              <div style="display:flex;align-items:center;gap:10px;padding-left:14px;border-left:1px solid #e0e0e0;margin-left:6px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#124e66,#f39c12);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;">{{ current_user.name[0] }}</div>
+                <div><div style="font-size:13px;font-weight:600;color:#124e66;">{{ current_user.name }}</div><div style="font-size:11px;color:#999;">{{ current_user.role.upper() }}</div></div>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -118,9 +121,11 @@
                   <tr>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Phone</th>
                     <th>Job</th>
                     <th>Status</th>
                     <th>Score</th>
+                    <th>Education</th>
                     <th>Applied</th>
                     <th>Action</th>
                   </tr>
@@ -135,6 +140,7 @@
                           data-status="{{ (a.status or 'pending')|lower }}">
                         <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
                         <td>{{ a.email or 'No email' }}</td>
+                        <td>{{ a.phone or '-' }}</td>
                         <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
                         <td>
                           {% if a.status == 'shortlisted' %}
@@ -148,6 +154,7 @@
                           {% endif %}
                         </td>
                         <td><span class="score-badge">{{ a.score }}%</span></td>
+                        <td>{{ a.highest_education or '-' }}</td>
                         <td>{{ a.uploaded_at.strftime('%b %d, %Y') }}</td>
                         <td><a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">Open</a></td>
                       </tr>
@@ -189,13 +196,37 @@
           showNotification('No pending candidates to screen', 'warning');
           return;
         }
-        showNotification(`Screening ${pendingCount} pending candidate${pendingCount !== 1 ? 's' : ''}...`, 'info');
-        // Simulate screening process
-        setTimeout(() => {
-          showNotification('✓ Early screening completed successfully!', 'success');
-          // Refresh page to show updated results
-          setTimeout(() => location.reload(), 500);
-        }, 1500);
+        
+        const startTime = Date.now();
+        showNotification(`🔄 Screening ${pendingCount} candidate${pendingCount !== 1 ? 's' : '} in progress...`, 'info');
+        
+        // Call the actual screening endpoint
+        fetch('{{ url_for("hr_screening_run_now") }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          const elapsedMs = Date.now() - startTime;
+          const elapsedSeconds = (elapsedMs / 1000).toFixed(1);
+          
+          if (data.ok) {
+            showNotification(`✓ Screening completed in ${elapsedSeconds}s! Processed ${data.processed} candidate${data.processed !== 1 ? 's' : ''}.`, 'success');
+            // Refresh page to show updated results
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            showNotification(`Error: ${data.message || 'Screening failed'}`, 'error');
+          }
+        })
+        .catch(err => {
+          const elapsedMs = Date.now() - startTime;
+          const elapsedSeconds = (elapsedMs / 1000).toFixed(1);
+          console.error('Screening error:', err);
+          showNotification(`Error during screening (${elapsedSeconds}s): ${err.message}`, 'error');
+        });
       }
 
       function filterApplicants() {

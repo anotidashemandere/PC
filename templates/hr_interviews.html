@@ -50,11 +50,14 @@
       <main class="hr-content">
         <div class="dashboard-header">
           <div class="header-top">
-            <h1>📞 Interview Schedule</h1>
+            <h1><i class="fas fa-calendar-alt" style="font-size:1.3rem; margin-right:10px; color:#124e66;"></i> Interview Schedule</h1>
             <div class="header-actions">
-              <button class="icon-button">🔔</button>
-              <button class="icon-button">⚙️</button>
-              <button class="icon-button">👤</button>
+              {% if current_user %}
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#124e66,#f39c12);color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;">{{ current_user.name[0] }}</div>
+                <div><div style="font-size:13px;font-weight:600;color:#124e66;">{{ current_user.name }}</div><div style="font-size:11px;color:#999;">{{ current_user.role.upper() }}</div></div>
+              </div>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -202,8 +205,9 @@
               </div>
               <div class="form-grid">
                 <div class="form-group">
-                  <label>Date</label>
+                  <label>Date (must be future)</label>
                   <input type="date" id="scheduleDate" class="form-input" required>
+                  <small id="dateWarning" style="color:#d32f2f; display:none; margin-top:4px;">Please select a future date</small>
                 </div>
                 <div class="form-group">
                   <label>Time</label>
@@ -273,6 +277,11 @@
           return;
         }
 
+        // Set minimum date to today (no past dates allowed)
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        document.getElementById('scheduleDate').min = todayStr;
+
         document.getElementById('scheduleApplicantId').value = candidate.id || '';
         document.getElementById('scheduleCandidateName').value = `${candidate.name || ''} ${candidate.surname || ''}`.trim();
         document.getElementById('scheduleDate').value = candidate.interview_date || '';
@@ -290,6 +299,21 @@
 
       document.getElementById('scheduleForm').addEventListener('submit', function(event) {
         event.preventDefault();
+        
+        // Validate that date is in the future
+        const scheduleDateInput = document.getElementById('scheduleDate');
+        const dateWarning = document.getElementById('dateWarning');
+        const selectedDate = new Date(scheduleDateInput.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < today) {
+          if (dateWarning) dateWarning.style.display = 'block';
+          return;
+        } else {
+          if (dateWarning) dateWarning.style.display = 'none';
+        }
+        
         const applicantId = document.getElementById('scheduleApplicantId').value;
         fetch('/hr/interviews/schedule', {
           method: 'POST',

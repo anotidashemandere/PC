@@ -31,12 +31,25 @@
       margin: 0 auto;
     }
 
+    .portal-brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .portal-logo {
+      height: 52px;
+      width: auto;
+      max-width: 120px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
     .app-header h1 {
       margin: 0 0 8px;
       font-size: 32px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
       font-weight: 700;
     }
 
@@ -198,6 +211,132 @@
       box-shadow: 0 8px 16px rgba(18, 78, 102, 0.3);
     }
 
+    .welcome-section {
+      background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 40px;
+      box-shadow: 0 8px 32px rgba(18, 78, 102, 0.25);
+      animation: slideInDown 0.8s ease-out;
+    }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .welcome-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      align-items: center;
+      padding: 50px;
+    }
+
+    .welcome-text h2 {
+      color: white;
+      font-size: 32px;
+      margin-bottom: 20px;
+      font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .welcome-crop-image {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 3px solid rgba(243, 156, 18, 0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .welcome-text p {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 16px;
+      line-height: 1.8;
+      margin-bottom: 15px;
+    }
+
+    .welcome-benefits {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    .benefit-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 15px;
+    }
+
+    .benefit-item i {
+      color: #f39c12;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .welcome-video {
+      position: relative;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      background: #000;
+    }
+
+    .welcome-video video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .video-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .play-icon {
+      font-size: 60px;
+      color: #f39c12;
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    @media (max-width: 900px) {
+      .welcome-content {
+        grid-template-columns: 1fr;
+        padding: 35px;
+        gap: 30px;
+      }
+
+      .welcome-text h2 {
+        font-size: 26px;
+      }
+
+      .welcome-text p {
+        font-size: 15px;
+      }
+    }
+
     .button i {
       font-size: 15px;
     }
@@ -300,16 +439,69 @@
   <!-- Professional Header -->
   <header class="app-header">
     <div class="header-container">
-      <h1><i class="fas fa-building"></i> GMB Recruitment Portal</h1>
-      <p class="tagline">Explore open positions at Global Modern Business and apply today</p>
+      <div class="portal-brand">
+        <img src="{{ portal_logo_src }}" alt="Company logo" class="portal-logo">
+        <div>
+          <h1>GMB Recruitment Portal</h1>
+          <p class="tagline">Explore open positions at {{ company_display_name }} and apply today</p>
+        </div>
+      </div>
     </div>
   </header>
 
   <main class="main-container">
+    <!-- Welcome Video Section -->
+    <section class="welcome-section">
+      <div class="welcome-content">
+        <div class="welcome-text">
+          <h2>Welcome to {{ company_display_name }}</h2>
+          {% if portal_welcome_image_src %}
+          <img src="{{ portal_welcome_image_src }}" alt="Welcome" class="welcome-crop-image">
+          {% endif %}
+          <p>Join a dynamic team where innovation meets excellence. We're committed to fostering a collaborative culture that celebrates diverse perspectives and drives meaningful impact.</p>
+          
+          <div class="welcome-benefits">
+            <div class="benefit-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Competitive salary & comprehensive benefits</span>
+            </div>
+            <div class="benefit-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Professional development & growth opportunities</span>
+            </div>
+            <div class="benefit-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Flexible work arrangements & work-life balance</span>
+            </div>
+            <div class="benefit-item">
+              <i class="fas fa-check-circle"></i>
+              <span>Inclusive & diverse workplace community</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-video">
+          {% if portal_welcome_video_src %}
+          <video controls playsinline style="width:100%;aspect-ratio:16/9;">
+            <source src="{{ portal_welcome_video_src }}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+          {% else %}
+          <div class="video-placeholder">
+            <div>
+              <span class="play-icon"><i class="fas fa-video"></i></span>
+              <p>Welcome Video<br><small>Upload a welcome video from HR Settings → Portal Branding</small></p>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
     <!-- Hero Section -->
     <section class="hero">
-      <h1>Available Positions</h1>
-      <p class="lede">Join our growing team! Browse our open roles below, view detailed job descriptions, and submit your application. Our HR team will review your CV using AI-powered screening and get back to you soon.</p>
+      <h1><i class="fas fa-briefcase" style="color: #f39c12;"></i> Open Positions</h1>
+      <p class="lede">Browse our current job openings below. Select a position to view details and submit your application. Our AI-powered screening process ensures fair and thorough candidate evaluation.</p>
     </section>
 
     <!-- Search & Filter -->
@@ -356,7 +548,7 @@
             <p class="summary">{{ job.description[:150] }}...</p>
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
               <p class="status-line"><i class="fas fa-calendar"></i> <strong>Apply by:</strong> {{ job.due_date.strftime('%B %d, %Y') }}</p>
-              <p class="status-line"><i class="fas fa-users"></i> <strong>Applicants:</strong> 12</p>
+              <p class="status-line"><i class="fas fa-users"></i> <strong>Applicants:</strong> {{ job.applications_count or 0 }}</p>
             </div>
             <div class="card-actions">
               <a class="button button-secondary" href="{{ url_for('job_detail', job_id=job.id) }}"><i class="fas fa-eye"></i> View Details</a>
@@ -401,5 +593,65 @@
       </div>
     </section>
   </main>
+
+  <script>
+    // Job search and filter functionality
+    const searchInput = document.querySelector('.search-section input');
+    const departmentFilter = document.querySelectorAll('.search-section select')[0];
+    const locationFilter = document.querySelectorAll('.search-section select')[1];
+    const jobCards = document.querySelectorAll('.candidate-card');
+
+    function filterJobs() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const selectedDept = departmentFilter.value;
+      const selectedLoc = locationFilter.value;
+
+      jobCards.forEach(card => {
+        const jobTitle = card.querySelector('.candidate-top h3').textContent.toLowerCase();
+        const jobDesc = card.querySelector('.summary')?.textContent.toLowerCase() || '';
+        const deptMatch = selectedDept === 'All Departments' || card.dataset.department === selectedDept;
+        const locMatch = selectedLoc === 'All Locations' || card.dataset.location === selectedLoc;
+        const searchMatch = jobTitle.includes(searchTerm) || jobDesc.includes(searchTerm);
+
+        if (deptMatch && locMatch && searchMatch) {
+          card.style.display = '';
+          setTimeout(() => card.style.opacity = '1', 10);
+        } else {
+          card.style.opacity = '0.5';
+          setTimeout(() => card.style.display = 'none', 300);
+        }
+      });
+    }
+
+    // Add event listeners for filtering
+    searchInput.addEventListener('input', filterJobs);
+    departmentFilter.addEventListener('change', filterJobs);
+    locationFilter.addEventListener('change', filterJobs);
+
+    // Smooth scroll for Apply buttons
+    document.querySelectorAll('a[href*="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href.startsWith('#')) {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      });
+    });
+
+    // Animation on scroll
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animation = 'slideInDown 0.6s ease-out forwards';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    jobCards.forEach(card => observer.observe(card));
+  </script>
 </body>
 </html>

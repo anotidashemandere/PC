@@ -10,8 +10,8 @@
     "note": "hhhh",
     "resume_path": "C:\\Users\\PC\\hr\\uploads\\R237101T_TONGA.docx",
     "certification_paths": [],
-    "status": "pending",
-    "score": 8.4,
+    "status": "rejected",
+    "score": 10.3,
     "summary": "Missing skills: communication, data analysis, excel, hr, recruitment. Experience alignment: 0% against a 2+ year requirement. Education alignment: 100%.",
     "recommendation": "Reject",
     "matched_skills": [],
@@ -24,7 +24,7 @@
     ],
     "uploaded_at": "2026-06-06T23:47:48.986195+00:00",
     "recommendation_reason": "The CV does not align closely with the job description.",
-    "screened_at": "2026-06-07T00:04:24.811915+00:00",
+    "screened_at": "2026-06-07T09:04:16.677403+00:00",
     "screening_trigger": "manual"
   }
 }
