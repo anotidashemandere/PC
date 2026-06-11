@@ -80,10 +80,19 @@
 
     <main class="shell apply-shell">
       <a class="back-link" href="{{ url_for('applicant_portal') }}"><i class="fas fa-arrow-left"></i> View all open positions</a>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div style="padding:12px 16px;margin-bottom:16px;border-radius:8px;font-size:14px;{% if category in ('danger','error') %}background:#fdecea;color:#b42318;border:1px solid #f5c2c0;{% elif category == 'warning' %}background:#fff8e6;color:#b54708;border:1px solid #fedf89;{% else %}background:#e8f5e9;color:#1b5e20;border:1px solid #c8e6c9;{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
       <section class="content-card apply-card public-apply-card">
         <p class="eyebrow">Candidate Application</p>
         <h1 class="apply-title">Apply: {{ job.title }}</h1>
-              <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates. Your CV and certificates must include the same name, email, phone, and education you enter here.</p>
+              <p class="lede">Complete all fields below, upload your CV, and attach any supporting certificates. Your CV and certificates must include the same name, email, phone, and education you enter here. <strong>Only one application per email address is accepted for this position.</strong></p>
         <form action="" method="post" enctype="multipart/form-data" class="screening-form form-grid" id="applyForm">
           <label>
             <span><i class="fas fa-user"></i> Full name</span>

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interviewer Portal - Sign In</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 100%;
+            margin: 20px;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #124e66 0%, #0a2338 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .login-header .logo {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1px;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .logo-container img {
+            filter: drop-shadow(0 4px 6px rgba(243, 156, 18, 0.2));
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .login-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .login-header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .job-pill {
+            display: inline-block;
+            margin-top: 14px;
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(243, 156, 18, 0.4);
+        }
+
+        .login-body {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 12px;
+            top: 38px;
+            color: #f39c12;
+            font-size: 16px;
+            pointer-events: none;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #f39c12;
+            box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(18, 78, 102, 0.3);
+        }
+
+        .alerts {
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .footer {
+            background: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="logo-container">
+                <img src="{{ portal_logo_src }}" alt="{{ company_display_name }} logo" style="width:180px;max-width:100%;height:auto;margin-bottom:10px;border-radius:8px;background:#fff;padding:4px;object-fit:contain;">
+            </div>
+            <div class="logo">{{ company_display_name }}</div>
+            <h1>Interviewer Portal</h1>
+            <p>Sign in with your name and panel access code</p>
+            <span class="job-pill"><i class="fas fa-briefcase"></i> {{ job_title }}</span>
+        </div>
+
+        <div class="login-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="alerts">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category if category != 'error' else 'danger' }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form action="{{ url_for('interviewer_join', token=token) }}" method="POST">
+                {% if panel_interviewers %}
+                <div style="background:#f5f7fa;border:1px solid #e0e0e0;border-radius:6px;padding:12px;margin-bottom:18px;font-size:12px;color:#555;">
+                    <strong style="color:#124e66;">Registered on this panel:</strong>
+                    <ul style="margin:8px 0 0;padding-left:18px;">
+                        {% for label in panel_interviewers %}
+                        <li>{{ label }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                <div class="form-group">
+                    <i class="fas fa-user"></i>
+                    <label for="name">Your Full Name or Email</label>
+                    <input type="text" name="name" id="name" required placeholder="e.g. Kudzai Mapfumo or arthurspears23@gmail.com" autofocus>
+                    <div class="hint">Tip: if your name fails, use your <strong>full email</strong> or the part before @ (e.g. arthurspears23).</div>
+                </div>
+                <div class="form-group">
+                    <i class="fas fa-key"></i>
+                    <label for="access_code">Panel Access Code</label>
+                    <input type="text" name="access_code" id="access_code" required placeholder="8-digit code from HR" inputmode="numeric" autocomplete="one-time-code" maxlength="8">
+                    <div class="hint">Use the <strong>one-time access code</strong> HR shared with your interview panel. All interviewers on this job use the same code.</div>
+                </div>
+                <button type="submit" class="login-button"><i class="fas fa-sign-in-alt"></i> Enter Portal</button>
+            </form>
+        </div>
+
+        <div class="footer">
+            &copy; {{ company_display_name }}. Interviewer access only.
+        </div>
+    </div>
+</body>
+</html>

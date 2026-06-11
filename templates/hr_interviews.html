@@ -6,6 +6,87 @@
     <title>Interviews - HR Portal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+      .btn-danger {
+        background: #e74c3c;
+        color: white;
+      }
+      .btn-danger:hover {
+        background: #c0392b;
+      }
+      .btn-success {
+        background: #27ae60;
+        color: white;
+      }
+      .btn-success:hover {
+        background: #219653;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: capitalize;
+      }
+      .status-scheduled {
+        background: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+        border: 1px solid #3498db;
+      }
+      .status-in_progress {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+        border: 1px solid #e74c3c;
+        animation: pulse-red 1.5s infinite;
+      }
+      .status-awaiting_screening {
+        background: rgba(243, 156, 18, 0.2);
+        color: #e67e22;
+        border: 1px solid #f39c12;
+      }
+      .status-completed {
+        background: rgba(39, 174, 96, 0.2);
+        color: #27ae60;
+        border: 1px solid #27ae60;
+      }
+      .status-cancelled {
+        background: rgba(127, 140, 141, 0.2);
+        color: #7f8c8d;
+        border: 1px solid #7f8c8d;
+        text-decoration: line-through;
+      }
+      @keyframes pulse-red {
+        0% { opacity: 0.6; box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+        50% { opacity: 1; box-shadow: 0 0 0 8px rgba(231, 76, 60, 0); }
+        100% { opacity: 0.6; box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+      }
+      .score-group {
+        margin-bottom: 15px;
+      }
+      .score-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+      .score-slider {
+        width: 100%;
+        accent-color: #f39c12;
+      }
+      .total-display {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid #e0e0e0;
+        text-align: center;
+        margin-top: 15px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #124e66;
+      }
+    </style>
   </head>
   <body>
     <div class="hr-layout">
@@ -43,14 +124,13 @@
             </a>
           </div>
         </nav>
-        
       </aside>
 
       <!-- Main Content -->
       <main class="hr-content">
         <div class="dashboard-header">
           <div class="header-top">
-            <h1><i class="fas fa-calendar-alt" style="font-size:1.3rem; margin-right:10px; color:#124e66;"></i> Interview Schedule</h1>
+            <h1><i class="fas fa-calendar-alt" style="font-size:1.3rem; margin-right:10px; color:#124e66;"></i> Interview Management</h1>
             <div class="header-actions">
               {% if current_user %}
               <div style="display:flex;align-items:center;gap:10px;">
@@ -62,159 +142,332 @@
           </div>
         </div>
 
-        <div class="dashboard-stats">
-          <div class="stat-item">
-            <div class="stat-icon">📞</div>
-            <div class="stat-info">
-              <div class="stat-number">{{ applicants | length }}</div>
-              <div class="stat-label">Scheduled</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">👥</div>
-            <div class="stat-info">
-              <div class="stat-number">{{ candidates | length }}</div>
-              <div class="stat-label">Candidates</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">✉️</div>
-            <div class="stat-info">
-              <div class="stat-number">{{ applicants | selectattr('interview_email_sent') | list | length }}</div>
-              <div class="stat-label">Emails Sent</div>
-            </div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-icon">🗓️</div>
-            <div class="stat-info">
-              <div class="stat-number">{{ applicants | length }}</div>
-              <div class="stat-label">Upcoming</div>
-            </div>
-          </div>
-        </div>
-
         <div class="page-content">
-          <div class="content-card">
+          <!-- External Interviewer Link Section (HR Admin only) -->
+          {% if current_user.role == 'hr' %}
+          <div class="content-card" style="margin-bottom: 25px;">
             <div class="card-header">
-              <h3>Scheduled Interviews ({{ applicants | length }})</h3>
-              <p class="text-muted">Saved interview date, time, type, and email status</p>
+              <h3>External Interviewer Setup</h3>
+              <p class="text-muted">Generate a one-time-use 24-hour access link for external interviewers</p>
             </div>
-            <div class="table-wrapper">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Job Title</th>
-                    <th>Type</th>
-                    <th>Date & Time</th>
-                    <th>Email</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% if applicants %}
-                    {% for a in applicants %}
-                      <tr>
-                        <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
-                        <td>{{ a.email or 'No email' }}</td>
-                        <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
-                        <td>{{ a.interview_type or 'Interview' }}</td>
-                        <td>{{ a.interview_date }} {{ a.interview_time }}</td>
-                        <td>
-                          {% if a.interview_email_sent %}
-                            <span class="badge badge-success">Sent</span>
-                          {% elif a.email %}
-                            <span class="badge badge-warning">Pending</span>
-                          {% else %}
-                            <span class="badge badge-danger">No Email</span>
-                          {% endif %}
-                        </td>
-                        <td>
-                          <button class="btn-email" onclick="openScheduleModal('{{ a.id }}')">Reschedule</button>
-                          <a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">View</a>
-                        </td>
-                      </tr>
+            <div style="padding: 15px;">
+              <form id="interviewerForm" onsubmit="generateInterviewerLink(event)" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Interviewer Name</label>
+                  <input type="text" id="interviewerNameField" class="form-input" required placeholder="e.g. Dr. Arthur">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Email Address</label>
+                  <input type="email" id="interviewerEmailField" class="form-input" required placeholder="e.g. arthur@external.com">
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Assigned Position</label>
+                  <select id="interviewerJobField" class="form-input" required>
+                    <option value="">Select Job Position</option>
+                    {% for job in jobs %}
+                      <option value="{{ job.id }}">{{ job.title }}</option>
                     {% endfor %}
-                  {% else %}
-                    <tr>
-                      <td colspan="7" class="text-center text-muted">No scheduled interviews yet</td>
-                    </tr>
-                  {% endif %}
-                </tbody>
-              </table>
+                  </select>
+                </div>
+                <button type="submit" class="btn-email" style="padding:10px 20px; font-weight:700;">Generate Link</button>
+              </form>
+              <div id="generatedLinkContainer" style="display:none; margin-top:20px; padding:15px; background:#e3f2fd; border:1px solid #1976d2; border-radius:6px;">
+                <p style="margin:0 0 8px 0; font-weight:700; color:#1976d2;">One-Time Invitation Link Generated (Expires in 24 hours):</p>
+                <div style="display:flex; gap:10px;">
+                  <input type="text" id="generatedLinkInput" readonly style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px; font-family:monospace; font-size:12px;">
+                  <button class="btn btn-primary" onclick="copyGeneratedLink()" style="padding:0 15px; flex:none;"><i class="fas fa-copy"></i> Copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Filter section -->
+          <div class="content-card" style="margin-bottom: 25px;">
+            <div style="padding: 15px; display: flex; gap: 15px; align-items: center;">
+              <label style="font-weight: 600; color: #124e66; font-size: 14px;">Filter Interviews by Date:</label>
+              <input type="date" id="dateFilterInput" class="form-input" style="max-width: 200px;" onchange="filterByDate()">
+              <button class="btn btn-secondary" onclick="clearDateFilter()">Clear Filter</button>
             </div>
           </div>
 
           <div class="content-card">
             <div class="card-header">
-              <h3>Available Candidates</h3>
-              <p class="text-muted">Choose a candidate and schedule an interview with date, time, and a custom email message</p>
+              <h3>Scheduled Interviews</h3>
+              <p class="text-muted">Manage active interviews, cancel no-shows, and score candidates</p>
             </div>
             <div class="table-wrapper">
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>Name</th>
+                    <th>Candidate</th>
                     <th>Email</th>
-                    <th>Phone</th>
                     <th>Job Title</th>
-                    <th>Score</th>
+                    <th>Date & Time</th>
                     <th>Status</th>
                     <th>Action</th>
                   </tr>
                 </thead>
-                <tbody>
-                  {% if candidates %}
-                    {% for a in candidates %}
-                      <tr>
-                        <td><strong>{{ a.name }} {{ a.surname }}</strong></td>
+                <tbody id="scheduledInterviewsBody">
+                  {% if applicants %}
+                    {% for a in applicants %}
+                      {% if not a.interview_removed %}
+                      <tr class="interview-row" data-date="{{ a.interview_date }}">
+                        <td><strong>{{ a.display_name or (a.name ~ ' ' ~ a.surname) }}</strong></td>
                         <td>{{ a.email or 'No email' }}</td>
-                        <td>{{ a.phone }}</td>
-                        <td>{{ a.job_ref.title if a.job_ref else 'N/A' }}</td>
-                        <td><span class="score-badge">{{ a.score }}%</span></td>
-                        <td>{{ a.status or 'pending' }}</td>
+                        <td>{{ a.job_title }}</td>
+                        <td>{{ a.interview_date }} at {{ a.interview_time }}</td>
                         <td>
-                          <button class="btn-email" onclick="openScheduleModal('{{ a.id }}')">Schedule Interview</button>
-                          <a href="{{ url_for('hr_application_detail', application_id=a.id) }}" class="btn-small">View</a>
+                          <span class="status-badge status-{{ a.interview_status or 'scheduled' }}">
+                            {{ (a.interview_status or 'scheduled') | replace('_', ' ') }}
+                          </span>
+                        </td>
+                        <td>
+                          <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            {% if a.interview_status == 'completed' %}
+                              <span style="font-size:11px;color:#27ae60;font-weight:600;"><i class="fas fa-lock"></i> Closed</span>
+                            {% elif a.interview_status == 'cancelled' %}
+                              <span style="font-size:11px;color:#e74c3c;font-weight:600;">Cancelled</span>
+                            {% else %}
+                            {% if not a.interview_status or a.interview_status in ('scheduled', 'in_progress', 'awaiting_screening') %}
+                              <button class="btn btn-small btn-success" onclick="startInterview('{{ a.id }}')" title="Start Interview"><i class="fas fa-play"></i> Start</button>
+                            {% endif %}
+                            {% if not a.interview_status or a.interview_status == 'scheduled' %}
+                              <button class="btn btn-small btn-danger" onclick="cancelInterview('{{ a.id }}')" title="Cancel (No Show)"><i class="fas fa-user-slash"></i> Cancel</button>
+                            {% elif a.interview_status == 'in_progress' %}
+                              <button class="btn btn-small btn-primary" onclick="openScoringModal('{{ a.id }}')" title="Score Candidate"><i class="fas fa-gavel"></i> Score</button>
+                              <button class="btn btn-small btn-warning" onclick="endInterview('{{ a.id }}')" title="End Interview Session"><i class="fas fa-stop"></i> End</button>
+                            {% elif a.interview_status == 'awaiting_screening' %}
+                              <button class="btn btn-small btn-primary" onclick="openScoringModal('{{ a.id }}')" title="Score Candidate"><i class="fas fa-gavel"></i> Score</button>
+                              <span style="font-size:11px;color:#f39c12;font-weight:600;">Ready for HR screening</span>
+                            {% endif %}
+                            <button class="btn btn-small btn-danger" onclick="promptRemoveFromQueue('{{ a.id }}')" title="Remove from Queue"><i class="fas fa-trash"></i> Remove</button>
+                            {% endif %}
+                          </div>
                         </td>
                       </tr>
+                      {% endif %}
                     {% endfor %}
                   {% else %}
                     <tr>
-                      <td colspan="7" class="text-center text-muted">No candidates available for scheduling</td>
+                      <td colspan="6" class="text-center text-muted">No scheduled interviews found.</td>
                     </tr>
                   {% endif %}
                 </tbody>
               </table>
             </div>
           </div>
+
+          <!-- Stage 2: Interview Screening & Selection -->
+          {% if current_user.role == 'hr' or current_user.can_screen_interviews %}
+          <div class="content-card" style="margin-top: 25px;">
+            <div class="card-header">
+              <h3>Stage 2: Interview Screening & Selection</h3>
+              <p class="text-muted">Screen completed interviews and select the best candidates based on interview marks.</p>
+            </div>
+            <div style="padding: 15px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Select Job Position</label>
+                  <select id="screenJobField" class="form-input" required>
+                    <option value="">Select Job Position</option>
+                    {% for job in jobs %}
+                      <option value="{{ job.id }}">{{ job.title }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600; font-size:12px; margin-bottom:4px; display:block;">Positions Needed</label>
+                  <input type="number" id="screenPositionsField" class="form-input" min="1" value="1" required>
+                </div>
+                <button type="button" class="btn-email" onclick="runInterviewScreening()" style="padding:10px 20px; font-weight:700;">Screen Completed Interviews</button>
+              </div>
+
+              <div id="screeningResultsContainer" style="display:none; margin-top:20px; border-top:1px solid #eee; padding-top:20px;">
+                <h4 style="margin:0 0 10px 0; color:#124e66;">Completed Interviews Ranking</h4>
+                <div class="table-wrapper">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Rank</th>
+                        <th>Candidate</th>
+                        <th>Email</th>
+                        <th>Interview Score</th>
+                      </tr>
+                    </thead>
+                    <tbody id="screeningResultsBody">
+                      <!-- Results will be dynamically populated -->
+                    </tbody>
+                  </table>
+                </div>
+                <div style="display:flex; justify-content:flex-end; margin-top:15px;">
+                  <button type="button" class="btn btn-success" onclick="confirmFinalSelection()" style="padding:10px 20px; font-weight:700;"><i class="fas fa-check-double"></i> Confirm & Select Best Candidates</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="content-card" style="margin-top: 25px;">
+            <div class="card-header">
+              <h3>Shortlisted Queue (Ready to Schedule)</h3>
+              <p class="text-muted">Shortlisted candidates awaiting interview scheduling</p>
+            </div>
+            <div class="table-wrapper">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Candidate</th>
+                    <th>Email</th>
+                    <th>Job Position</th>
+                    <th>CV Screening Score</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% if candidates %}
+                    {% for c in candidates %}
+                      {% if c.interview_status == 'pending_scheduling' and not c.interview_removed %}
+                      <tr>
+                        <td><strong>{{ c.display_name or (c.name ~ ' ' ~ c.surname) }}</strong></td>
+                        <td>{{ c.email or 'No email' }}</td>
+                        <td>{{ c.job_title }}</td>
+                        <td><span class="score-badge">{{ c.score }}%</span></td>
+                        <td>
+                          <div style="display:flex; gap:5px;">
+                            <button class="btn btn-small btn-primary" onclick="openScheduleModal('{{ c.id }}')"><i class="fas fa-calendar-plus"></i> Schedule Interview</button>
+                            <button class="btn btn-small btn-danger" onclick="promptRemoveFromQueue('{{ c.id }}')"><i class="fas fa-user-minus"></i> Remove</button>
+                          </div>
+                        </td>
+                      </tr>
+                      {% endif %}
+                    {% endfor %}
+                  {% else %}
+                    <tr>
+                      <td colspan="5" class="text-center text-muted">No candidates ready to schedule.</td>
+                    </tr>
+                  {% endif %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Selected Candidates -->
+          <div class="content-card" style="margin-top: 25px;" id="selected">
+            <div class="card-header">
+              <h3>Selected Candidates (After Interview)</h3>
+              <p class="text-muted">Final selections grouped by job — send start date and onboarding emails</p>
+            </div>
+            <div style="padding: 15px;">
+              {% if selected_by_job %}
+                {% for job_title, selected_apps in selected_by_job.items() %}
+                <div style="margin-bottom: 24px; border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden;">
+                  <div style="background: linear-gradient(135deg, #124e66, #0a2338); color: white; padding: 12px 16px; font-weight: 700;">
+                    <i class="fas fa-briefcase"></i> {{ job_title }}
+                  </div>
+                  <table class="data-table" style="margin: 0;">
+                    <thead>
+                      <tr>
+                        <th>Candidate</th>
+                        <th>Email</th>
+                        <th>Interview Score</th>
+                        <th>Selected</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for s in selected_apps %}
+                      <tr>
+                        <td><strong>{{ s.display_name or (s.name ~ ' ' ~ s.surname) }}</strong></td>
+                        <td>{{ s.email }}</td>
+                        <td><span class="score-badge">{{ s.interview_total }}%</span></td>
+                        <td>{{ s.selected_at[:10] if s.selected_at else '—' }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                {% endfor %}
+
+                <div style="background: #f9f9f9; border-radius: 8px; padding: 20px; border-left: 4px solid #27ae60;">
+                  <h4 style="margin: 0 0 12px; color: #124e66;">Email Selected Candidates</h4>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                    <div>
+                      <label style="font-size: 12px; font-weight: 600;">Job Position</label>
+                      <select id="selectedEmailJob" class="form-input">
+                        {% for job in jobs %}
+                        <option value="{{ job.id }}">{{ job.title }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div>
+                      <label style="font-size: 12px; font-weight: 600;">Subject</label>
+                      <input type="text" id="selectedEmailSubject" class="form-input" value="Congratulations — Welcome to the Team">
+                    </div>
+                    <div>
+                      <label style="font-size: 12px; font-weight: 600;">Start Date</label>
+                      <input type="date" id="selectedStartDate" class="form-input">
+                    </div>
+                    <div>
+                      <label style="font-size: 12px; font-weight: 600;">Start Time</label>
+                      <input type="time" id="selectedStartTime" class="form-input">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                      <label style="font-size: 12px; font-weight: 600;">Location / Reporting To</label>
+                      <input type="text" id="selectedLocation" class="form-input" placeholder="e.g. Head Office, 8:00 AM">
+                    </div>
+                  </div>
+                  <div style="margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight: 600;">Message</label>
+                    <textarea id="selectedEmailMessage" class="form-input" rows="5">Hello (candidate name),
+
+Congratulations! You have been selected for the position of (job title).
+
+Please report on (start date) at (start time).
+
+Location: (location)
+
+We look forward to welcoming you.
+
+Regards,
+HR Team</textarea>
+                  </div>
+                  <button type="button" class="btn btn-success" onclick="sendSelectedEmails()" style="font-weight: 700;">
+                    <i class="fas fa-envelope"></i> Send to All Selected for This Job
+                  </button>
+                </div>
+              {% else %}
+                <p class="text-muted" style="text-align: center; padding: 20px;">No candidates selected yet. Complete interviews, screen marks, then confirm selection above.</p>
+              {% endif %}
+            </div>
+          </div>
         </div>
 
-        <div id="scheduleModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); align-items:center; justify-content:center; z-index:9999;">
-          <div style="background:white; width:min(760px, 92vw); border-radius:12px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow:auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <!-- Schedule Modal -->
+        <div id="scheduleModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:9999;">
+          <div style="background:white; width:min(600px, 90vw); border-radius:8px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
               <h2 style="margin:0; color:#124e66;">Schedule Interview</h2>
-              <button type="button" onclick="closeScheduleModal()" style="border:none;background:none;font-size:22px;cursor:pointer;">&times;</button>
+              <button onclick="closeScheduleModal()" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
             </div>
-            <form id="scheduleForm">
+            <form id="scheduleForm" onsubmit="submitInterviewSchedule(event)">
               <input type="hidden" id="scheduleApplicantId">
               <div class="form-group">
-                <label>Candidate</label>
-                <input type="text" id="scheduleCandidateName" class="form-input" disabled>
+                <label style="font-weight:600;">Candidate</label>
+                <input type="text" id="scheduleCandidateName" class="form-input" disabled style="background:#eee;">
               </div>
-              <div class="form-grid">
-                <div class="form-group">
-                  <label>Date (must be future)</label>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600;">Date</label>
                   <input type="date" id="scheduleDate" class="form-input" required>
-                  <small id="dateWarning" style="color:#d32f2f; display:none; margin-top:4px;">Please select a future date</small>
                 </div>
-                <div class="form-group">
-                  <label>Time</label>
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600;">Time</label>
                   <input type="time" id="scheduleTime" class="form-input" required>
                 </div>
-                <div class="form-group">
-                  <label>Interview Type</label>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600;">Interview Type</label>
                   <select id="scheduleType" class="form-input" required>
                     <option>Phone Screening</option>
                     <option selected>Video Call</option>
@@ -222,26 +475,125 @@
                     <option>Panel Interview</option>
                   </select>
                 </div>
-                <div class="form-group">
-                  <label>Interviewer</label>
-                  <input type="text" id="scheduleInterviewer" class="form-input" placeholder="e.g., HR Manager">
+                <div class="form-group" style="margin:0;">
+                  <label style="font-weight:600;">Interviewer</label>
+                  <input type="text" id="scheduleInterviewer" class="form-input" placeholder="HR Manager">
                 </div>
               </div>
               <div class="form-group">
-                <label>Location / Meeting Link</label>
-                <input type="text" id="scheduleLocation" class="form-input" placeholder="Zoom link or office room">
+                <label style="font-weight:600;">Location / Zoom Link</label>
+                <input type="text" id="scheduleLocation" class="form-input" placeholder="e.g. Conference Room A or Zoom link">
               </div>
               <div class="form-group">
-                <label>Email Message</label>
-                <textarea id="scheduleMessage" class="form-input" rows="8" placeholder="Write the interview email here..."></textarea>
+                <label style="font-weight:600;">Email Template Message</label>
+                <textarea id="scheduleMessage" class="form-input" rows="6" placeholder="Message content..."></textarea>
               </div>
-              <label style="display:flex; gap:8px; align-items:center; margin-bottom:16px;">
+              <label style="display:flex; gap:8px; align-items:center; margin-bottom:15px;">
                 <input type="checkbox" id="scheduleSendEmail" checked>
-                <span>Send email to candidate</span>
+                <span>Send confirmation email to candidate</span>
               </label>
               <div style="display:flex; gap:10px; justify-content:flex-end;">
-                <button type="button" class="btn-small" onclick="closeScheduleModal()">Cancel</button>
+                <button type="button" class="btn btn-secondary" onclick="closeScheduleModal()">Cancel</button>
                 <button type="submit" class="btn-email">Save Schedule</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Remove Reason Modal -->
+        <div id="removeModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:9999;">
+          <div style="background:white; width:min(500px, 90vw); border-radius:8px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+              <h2 style="margin:0; color:#124e66; font-size:18px;">Specify Removal Reason</h2>
+              <button onclick="closeRemoveModal()" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <form onsubmit="submitRemoveFromQueue(event)">
+              <input type="hidden" id="removeApplicantId">
+              <div class="form-group">
+                <label style="font-weight:600; font-size:13px;">Reason for removal from queue</label>
+                <textarea id="removeReasonText" class="form-input" rows="4" required placeholder="Describe why this shortlisted candidate is being excluded from interviews..."></textarea>
+              </div>
+              <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button type="button" class="btn btn-secondary" onclick="closeRemoveModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger">Confirm Exclude</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Scoring Modal -->
+        <div id="scoringModal" class="modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:9999;">
+          <div style="background:white; width:min(550px, 90vw); border-radius:8px; padding:25px; box-shadow:0 10px 25px rgba(0,0,0,0.2); max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+              <h2 style="margin:0; color:#124e66;">Evaluate Candidate: <span id="modalCandidateName" style="color:#f39c12;"></span></h2>
+              <button onclick="closeScoringModal()" style="border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <form id="scoringForm" onsubmit="submitEvaluation(event)">
+              <input type="hidden" id="scoringApplicantId">
+              
+              <div class="score-group">
+                <div class="score-header">
+                  <span>Presentation (out of 20)</span>
+                  <span id="val_presentation">0</span>
+                </div>
+                <input type="range" class="score-slider" id="score_presentation" min="0" max="20" value="0" oninput="updateScoreVal('presentation')">
+              </div>
+
+              <div class="score-group">
+                <div class="score-header">
+                  <span>Dressing (out of 20)</span>
+                  <span id="val_dressing">0</span>
+                </div>
+                <input type="range" class="score-slider" id="score_dressing" min="0" max="20" value="0" oninput="updateScoreVal('dressing')">
+              </div>
+
+              <div class="score-group">
+                <div class="score-header">
+                  <span>Communication (out of 20)</span>
+                  <span id="val_communication">0</span>
+                </div>
+                <input type="range" class="score-slider" id="score_communication" min="0" max="20" value="0" oninput="updateScoreVal('communication')">
+              </div>
+
+              <div class="score-group">
+                <div class="score-header">
+                  <span>Confidence (out of 20)</span>
+                  <span id="val_confidence">0</span>
+                </div>
+                <input type="range" class="score-slider" id="score_confidence" min="0" max="20" value="0" oninput="updateScoreVal('confidence')">
+              </div>
+
+              <div class="score-group">
+                <div class="score-header">
+                  <span>Technical Knowledge (out of 20)</span>
+                  <span id="val_technical_knowledge">0</span>
+                </div>
+                <input type="range" class="score-slider" id="score_technical_knowledge" min="0" max="20" value="0" oninput="updateScoreVal('technical_knowledge')">
+              </div>
+
+              <div class="score-group">
+                <div class="score-header">
+                  <span>Problem Solving (out of 20)</span>
+                  <span id="val_problem_solving">0</span>
+                </div>
+                <input type="range" class="score-slider" id="score_problem_solving" min="0" max="20" value="0" oninput="updateScoreVal('problem_solving')">
+              </div>
+
+              <div class="score-group">
+                <div class="score-header">
+                  <span>Attitude (out of 20)</span>
+                  <span id="val_attitude">0</span>
+                </div>
+                <input type="range" class="score-slider" id="score_attitude" min="0" max="20" value="0" oninput="updateScoreVal('attitude')">
+              </div>
+
+              <div class="total-display">
+                Normalized Final Percentage: <span id="val_total">0.00%</span>
+              </div>
+
+              <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeScoringModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Scores</button>
               </div>
             </form>
           </div>
@@ -249,47 +601,145 @@
       </main>
     </div>
 
+    <!-- Notification Toast -->
+    <div class="notification-toast" id="toastAlert" style="display:none; position:fixed; bottom:20px; right:20px; padding:12px 24px; background:#27ae60; color:white; border-radius:4px; box-shadow:0 4px 10px rgba(0,0,0,0.25); z-index:10000;">
+      <span id="toastMessage">Success</span>
+    </div>
+
     <script>
       const candidates = {{ candidates | tojson }};
+      const scheduled = {{ applicants | tojson }};
 
-      function showNotification(message, type = 'success') {
-        const existing = document.querySelector('.notification-toast');
-        if (existing) existing.remove();
-        const toast = document.createElement('div');
-        toast.className = `notification-toast notification-${type}`;
-        toast.innerHTML = `<span>${message}</span>`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-          toast.classList.remove('show');
-          setTimeout(() => toast.remove(), 300);
-        }, 3000);
+      function showToast(msg, type = 'success') {
+        const toast = document.getElementById('toastAlert');
+        const text = document.getElementById('toastMessage');
+        text.innerText = msg;
+        toast.style.background = type === 'success' ? '#27ae60' : '#e74c3c';
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
       }
 
-      function getCandidate(applicantId) {
-        return candidates.find(candidate => String(candidate.id) === String(applicantId));
+      function filterByDate() {
+        const selectedDate = document.getElementById('dateFilterInput').value;
+        const rows = document.querySelectorAll('.interview-row');
+        rows.forEach(row => {
+          const rowDate = row.getAttribute('data-date');
+          if (!selectedDate || rowDate === selectedDate) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
       }
 
-      function openScheduleModal(applicantId) {
-        const candidate = getCandidate(applicantId);
-        if (!candidate) {
-          showNotification('Candidate not found', 'warning');
+      function clearDateFilter() {
+        document.getElementById('dateFilterInput').value = '';
+        filterByDate();
+      }
+
+      async function startInterview(appId) {
+        try {
+          const res = await fetch('/hr/interviews/' + appId + '/start', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+          });
+          const data = await res.json().catch(() => ({}));
+          if (res.status === 401) {
+            showToast('Session expired. Log in again at the same URL you are using now.', 'error');
+            setTimeout(() => { window.location.href = '/login'; }, 1200);
+            return;
+          }
+          if (!res.ok || !data.ok) {
+            throw new Error(data.error || 'Failed to start interview');
+          }
+          showToast('Interview started.');
+          setTimeout(() => location.reload(), 800);
+        } catch (err) {
+          showToast(err.message || 'Failed to start interview', 'error');
+        }
+      }
+
+      function endInterview(appId) {
+        fetch('/hr/interviews/' + appId + '/end', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            showToast('Interview session ended. Waiting for all evaluator marks.');
+            setTimeout(() => location.reload(), 800);
+          } else {
+            showToast(data.error || 'Failed to end interview', 'error');
+          }
+        });
+      }
+
+      function cancelInterview(appId) {
+        if (confirm('Cancel this candidate as a No-Show? This will reject them.')) {
+          fetch('/hr/interviews/' + appId + '/cancel', { method: 'POST' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.ok) {
+              showToast('Candidate cancelled.');
+              setTimeout(() => location.reload(), 800);
+            } else {
+              showToast(data.error || 'Failed to cancel', 'error');
+            }
+          });
+        }
+      }
+
+      function promptRemoveFromQueue(appId) {
+        document.getElementById('removeApplicantId').value = appId;
+        document.getElementById('removeReasonText').value = '';
+        document.getElementById('removeModal').style.display = 'flex';
+      }
+
+      function closeRemoveModal() {
+        document.getElementById('removeModal').style.display = 'none';
+      }
+
+      function submitRemoveFromQueue(e) {
+        e.preventDefault();
+        const appId = document.getElementById('removeApplicantId').value;
+        const reason = (document.getElementById('removeReasonText').value || '').trim();
+        if (!reason) {
+          showToast('Please enter a reason for removal.', 'error');
           return;
         }
 
-        // Set minimum date to today (no past dates allowed)
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        document.getElementById('scheduleDate').min = todayStr;
+        fetch('/hr/interviews/' + appId + '/remove', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: reason })
+        })
+        .then(async (res) => {
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data.error || 'Failed to remove candidate');
+          }
+          return data;
+        })
+        .then(data => {
+          if (data.ok) {
+            showToast('Candidate removed from interview queue.');
+            closeRemoveModal();
+            setTimeout(() => location.reload(), 800);
+          } else {
+            showToast(data.error || 'Failed to remove candidate', 'error');
+          }
+        })
+        .catch(err => showToast(err.message || 'Failed to remove candidate', 'error'));
+      }
 
-        document.getElementById('scheduleApplicantId').value = candidate.id || '';
-        document.getElementById('scheduleCandidateName').value = `${candidate.name || ''} ${candidate.surname || ''}`.trim();
-        document.getElementById('scheduleDate').value = candidate.interview_date || '';
-        document.getElementById('scheduleTime').value = candidate.interview_time || '';
-        document.getElementById('scheduleType').value = candidate.interview_type || 'Video Call';
-        document.getElementById('scheduleInterviewer').value = candidate.interviewer || '';
-        document.getElementById('scheduleLocation').value = candidate.interview_location || '';
-        document.getElementById('scheduleMessage').value = candidate.interview_message || `Dear {candidate_name},\n\nYou are invited to an interview for the {job_title} role on {interview_date} at {interview_time}.\nInterview type: {interview_type}.\nLocation/Link: {interview_location}.\n\nRegards,\nHR Team`;
+      function openScheduleModal(appId) {
+        const c = candidates.find(item => String(item.id) === String(appId));
+        if (!c) return;
+
+        document.getElementById('scheduleApplicantId').value = appId;
+        document.getElementById('scheduleCandidateName').value = c.display_name || (c.name + ' ' + (c.surname || '')).trim();
+        
+        // Default message
+        document.getElementById('scheduleMessage').value = `Dear {candidate_name},\n\nYou are invited to an interview for the {job_title} role on {interview_date} at {interview_time}.\nInterview type: {interview_type}.\nLocation/Link: {interview_location}.\n\nRegards,\nHR Team`;
         document.getElementById('scheduleModal').style.display = 'flex';
       }
 
@@ -297,62 +747,235 @@
         document.getElementById('scheduleModal').style.display = 'none';
       }
 
-      document.getElementById('scheduleForm').addEventListener('submit', function(event) {
-        event.preventDefault();
+      function submitInterviewSchedule(e) {
+        e.preventDefault();
+        const appId = document.getElementById('scheduleApplicantId').value;
         
-        // Validate that date is in the future
-        const scheduleDateInput = document.getElementById('scheduleDate');
-        const dateWarning = document.getElementById('dateWarning');
-        const selectedDate = new Date(scheduleDateInput.value);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        if (selectedDate < today) {
-          if (dateWarning) dateWarning.style.display = 'block';
-          return;
-        } else {
-          if (dateWarning) dateWarning.style.display = 'none';
-        }
-        
-        const applicantId = document.getElementById('scheduleApplicantId').value;
         fetch('/hr/interviews/schedule', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            application_id: applicantId,
+            application_id: appId,
             interview_date: document.getElementById('scheduleDate').value,
             interview_time: document.getElementById('scheduleTime').value,
             interview_type: document.getElementById('scheduleType').value,
             interviewer: document.getElementById('scheduleInterviewer').value,
             interview_location: document.getElementById('scheduleLocation').value,
             message: document.getElementById('scheduleMessage').value,
-            send_email: document.getElementById('scheduleSendEmail').checked,
-          }),
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (!data.ok) {
-              throw new Error(data.error || 'Failed to schedule interview');
-            }
-            if (data.email && data.email.sent) {
-              showNotification('Interview saved and email sent.', 'success');
-            } else if (data.email && data.email.error) {
-              showNotification(`Interview saved, but email failed: ${data.email.error}`, 'warning');
-            } else {
-              showNotification('Interview saved successfully.', 'success');
-            }
-            closeScheduleModal();
-            window.location.reload();
+            send_email: document.getElementById('scheduleSendEmail').checked
           })
-          .catch(error => {
-            showNotification(error.message || 'Unable to save interview.', 'warning');
-          });
-      });
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            showToast('Interview scheduled.');
+            closeScheduleModal();
+            setTimeout(() => location.reload(), 800);
+          } else {
+            showToast(data.error || 'Failed to schedule', 'error');
+          }
+        });
+      }
 
-      const headerButtons = document.querySelectorAll('.icon-button');
-      if (headerButtons[0]) headerButtons[0].addEventListener('click', (e) => { e.preventDefault(); showNotification('🔔 No new notifications', 'info'); });
-      if (headerButtons[1]) headerButtons[1].addEventListener('click', (e) => { e.preventDefault(); showNotification('⚙️ Settings page loading...', 'info'); setTimeout(() => window.location.href = '/hr/settings', 800); });
-      if (headerButtons[2]) headerButtons[2].addEventListener('click', (e) => { e.preventDefault(); showNotification('👤 Profile menu coming soon', 'info'); });
+      function updateScoreVal(crit) {
+        const slider = document.getElementById('score_' + crit);
+        document.getElementById('val_' + crit).innerText = slider.value;
+        calculateTotal();
+      }
+
+      function calculateTotal() {
+        const criteria = ['presentation', 'dressing', 'communication', 'confidence', 'technical_knowledge', 'problem_solving', 'attitude'];
+        let sum = 0;
+        criteria.forEach(crit => {
+          sum += parseInt(document.getElementById('score_' + crit).value) || 0;
+        });
+        const percentage = (sum / 140.0) * 100;
+        document.getElementById('val_total').innerText = percentage.toFixed(2) + '%';
+      }
+
+      function openScoringModal(appId) {
+        let app = scheduled.find(item => String(item.id) === String(appId));
+        if (!app) {
+          app = candidates.find(item => String(item.id) === String(appId));
+        }
+        if (!app) return;
+
+        document.getElementById('modalCandidateName').innerText = app.display_name || (app.name + ' ' + (app.surname || '')).trim();
+        document.getElementById('scoringApplicantId').value = appId;
+
+        const criteria = ['presentation', 'dressing', 'communication', 'confidence', 'technical_knowledge', 'problem_solving', 'attitude'];
+        const existing = app.interview_scores || {};
+
+        criteria.forEach(crit => {
+          const slider = document.getElementById('score_' + crit);
+          const val = existing[crit] || 0;
+          slider.value = val;
+          document.getElementById('val_' + crit).innerText = val;
+        });
+
+        calculateTotal();
+        document.getElementById('scoringModal').style.display = 'flex';
+      }
+
+      function closeScoringModal() {
+        document.getElementById('scoringModal').style.display = 'none';
+      }
+
+      function submitEvaluation(e) {
+        e.preventDefault();
+        const appId = document.getElementById('scoringApplicantId').value;
+        const payload = {
+          presentation: document.getElementById('score_presentation').value,
+          dressing: document.getElementById('score_dressing').value,
+          communication: document.getElementById('score_communication').value,
+          confidence: document.getElementById('score_confidence').value,
+          technical_knowledge: document.getElementById('score_technical_knowledge').value,
+          problem_solving: document.getElementById('score_problem_solving').value,
+          attitude: document.getElementById('score_attitude').value
+        };
+
+        fetch('/hr/interviews/' + appId + '/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            showToast('Evaluation scores saved successfully.');
+            closeScoringModal();
+            setTimeout(() => location.reload(), 800);
+          } else {
+            showToast(data.error || 'Failed to save scores', 'error');
+          }
+        });
+      }
+
+      function generateInterviewerLink(e) {
+        e.preventDefault();
+        const payload = {
+          name: document.getElementById('interviewerNameField').value,
+          email: document.getElementById('interviewerEmailField').value,
+          job_id: document.getElementById('interviewerJobField').value
+        };
+
+        fetch('/hr/interviewers/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok && data.link) {
+            document.getElementById('generatedLinkInput').value = data.link;
+            document.getElementById('generatedLinkContainer').style.display = 'block';
+            showToast('Link generated successfully!');
+          } else {
+            showToast(data.error || 'Failed to generate link', 'error');
+          }
+        });
+      }
+
+      function copyGeneratedLink() {
+        const input = document.getElementById('generatedLinkInput');
+        input.select();
+        input.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(input.value);
+        showToast('Link copied to clipboard!');
+      }
+
+      function runInterviewScreening() {
+        const jobId = document.getElementById('screenJobField').value;
+        if (!jobId) {
+          showToast('Please select a job position first.', 'error');
+          return;
+        }
+
+        fetch('/hr/interviews/screen', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job_id: jobId })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            const body = document.getElementById('screeningResultsBody');
+            body.innerHTML = '';
+            if (data.candidates.length === 0) {
+              body.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No completed interviews found for this job.</td></tr>';
+              document.getElementById('screeningResultsContainer').style.display = 'block';
+              return;
+            }
+
+            data.candidates.forEach((c, index) => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td><strong>#${index + 1}</strong></td>
+                <td><strong>${c.display_name || ((c.name || '') + ' ' + (c.surname || '')).trim()}</strong></td>
+                <td>${c.email || 'No email'}</td>
+                <td><span class="score-badge">${c.interview_total}%</span></td>
+              `;
+              body.appendChild(tr);
+            });
+            document.getElementById('screeningResultsContainer').style.display = 'block';
+            showToast('Screened successfully.');
+          } else {
+            showToast(data.error || 'Failed to screen candidates.', 'error');
+          }
+        });
+      }
+
+      function sendSelectedEmails() {
+        const jobId = document.getElementById('selectedEmailJob').value;
+        const payload = {
+          job_id: jobId,
+          subject: document.getElementById('selectedEmailSubject').value,
+          message: document.getElementById('selectedEmailMessage').value,
+          start_date: document.getElementById('selectedStartDate').value,
+          start_time: document.getElementById('selectedStartTime').value,
+          location: document.getElementById('selectedLocation').value,
+        };
+        fetch('/hr/selected/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            showToast('Sent ' + data.sent + ' email(s) to selected candidates.');
+          } else {
+            showToast(data.error || 'Failed to send emails', 'error');
+          }
+        });
+      }
+
+      function confirmFinalSelection() {
+        const jobId = document.getElementById('screenJobField').value;
+        const positions = parseInt(document.getElementById('screenPositionsField').value) || 1;
+        if (!jobId) {
+          showToast('Please select a job position.', 'error');
+          return;
+        }
+
+        fetch('/hr/interviews/select-best', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job_id: jobId, positions_needed: positions })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.ok) {
+            const count = data.selected.length;
+            showToast(`Successfully selected ${count} candidate(s).`);
+            setTimeout(() => {
+              window.location.href = "{{ url_for('hr_interviews') }}#selected";
+            }, 1000);
+          } else {
+            showToast(data.error || 'Failed to select candidates.', 'error');
+          }
+        });
+      }
     </script>
   </body>
 </html>

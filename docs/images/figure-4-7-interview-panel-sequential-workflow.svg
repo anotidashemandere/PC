@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="1480" viewBox="0 0 1100 1480" role="img" aria-label="Figure 4.7 Interview Panel and Sequential Workflow Design">
+  <defs>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#124e66"/>
+      <stop offset="100%" style="stop-color:#0a2338"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f39c12"/>
+      <stop offset="100%" style="stop-color:#e67e22"/>
+    </linearGradient>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="108%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#124e66"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#f39c12"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <rect x="30" y="20" width="1040" height="72" rx="10" fill="url(#headerGrad)" filter="url(#shadow)"/>
+  <text x="550" y="52" text-anchor="middle" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="22" font-weight="700">Figure 4.7  Interview Panel and Sequential Workflow Design</text>
+  <text x="550" y="76" text-anchor="middle" fill="#d4e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="13">GMB HR Recruitment System</text>
+
+  <!-- PHASE 1 -->
+  <rect x="40" y="115" width="1020" height="250" rx="12" fill="#f8fbfd" stroke="#124e66" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="40" y="115" width="1020" height="38" rx="12" fill="#124e66"/>
+  <rect x="40" y="141" width="1020" height="12" fill="#124e66"/>
+  <text x="60" y="140" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">PHASE 1  External Interview Panel Setup (HR Portal)</text>
+
+  <!-- HR boxes phase 1 -->
+  <rect x="70" y="175" width="200" height="58" rx="8" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="170" y="200" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">Select Job Position</text>
+  <text x="170" y="220" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="11">CEO, HR Officer, etc.</text>
+
+  <line x1="270" y1="204" x2="300" y2="204" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="300" y="175" width="220" height="58" rx="8" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="410" y="200" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">Add Panel Interviewers</text>
+  <text x="410" y="220" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="11">Name + Email per member</text>
+
+  <line x1="520" y1="204" x2="550" y2="204" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="550" y="175" width="240" height="58" rx="8" fill="#fff8e6" stroke="#f39c12" stroke-width="2"/>
+  <text x="670" y="198" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Generate Shared Link</text>
+  <text x="670" y="218" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="11">Token + 8-digit code (24h expiry)</text>
+
+  <line x1="790" y1="204" x2="820" y2="204" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="820" y="175" width="210" height="58" rx="8" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="925" y="200" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">Distribute to Panel</text>
+  <text x="925" y="220" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="11">Same link + code for all</text>
+
+  <!-- Panel data structure -->
+  <rect x="70" y="255" width="960" height="95" rx="8" fill="#0a2338"/>
+  <text x="90" y="280" fill="#f39c12" font-family="Consolas, Courier New, monospace" font-size="12" font-weight="700">INTERVIEWER_PANELS[job_id]</text>
+  <text x="90" y="302" fill="#d4e8f0" font-family="Consolas, Courier New, monospace" font-size="11">interviewer_ids: [user-a, user-b, ...]</text>
+  <text x="90" y="320" fill="#d4e8f0" font-family="Consolas, Courier New, monospace" font-size="11">token, access_code, expires, active_application_id: null</text>
+  <text x="90" y="338" fill="#a8d4a8" font-family="Consolas, Courier New, monospace" font-size="11">active_changed_at  timestamp used by interviewer polling</text>
+
+  <!-- PHASE 2 -->
+  <rect x="40" y="390" width="1020" height="200" rx="12" fill="#f8fbfd" stroke="#124e66" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="40" y="390" width="1020" height="38" rx="12" fill="#124e66"/>
+  <rect x="40" y="416" width="1020" height="12" fill="#124e66"/>
+  <text x="60" y="415" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">PHASE 2  Interviewer Authentication (External Portal)</text>
+
+  <rect x="70" y="445" width="180" height="50" rx="8" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="160" y="475" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Open Shared Link</text>
+  <text x="160" y="490" text-anchor="middle" fill="#888" font-family="Segoe UI, Arial, sans-serif" font-size="10">/interviewer/join/&lt;token&gt;</text>
+
+  <line x1="250" y1="470" x2="280" y2="470" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="280" y="445" width="200" height="50" rx="8" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="380" y="468" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Enter Name or Email</text>
+  <text x="380" y="485" text-anchor="middle" fill="#888" font-family="Segoe UI, Arial, sans-serif" font-size="10">+ 8-digit access code</text>
+
+  <line x1="480" y1="470" x2="510" y2="470" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="510" y="445" width="200" height="50" rx="8" fill="#e8f5e9" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="610" y="468" text-anchor="middle" fill="#1b5e20" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Match Panel Member</text>
+  <text x="610" y="485" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">_find_panel_interviewer()</text>
+
+  <line x1="710" y1="470" x2="740" y2="470" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="740" y="445" width="290" height="50" rx="8" fill="#fff8e6" stroke="#f39c12" stroke-width="2"/>
+  <text x="885" y="468" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">Interviewer Dashboard</text>
+  <text x="885" y="485" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">Waiting for HR to click Start&</text>
+
+  <rect x="70" y="515" width="960" height="58" rx="8" fill="#ffffff" stroke="#d0d8e0" stroke-width="1"/>
+  <text x="90" y="538" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Security design:</text>
+  <text x="90" y="558" fill="#555" font-family="Segoe UI, Arial, sans-serif" font-size="11">No personal passwords � Shared panel code � 24-hour link expiry � Only registered panel members may join</text>
+
+  <!-- PHASE 3 - Main sequential workflow -->
+  <rect x="40" y="615" width="1020" height="520" rx="12" fill="#f8fbfd" stroke="#f39c12" stroke-width="2.5" filter="url(#shadow)"/>
+  <rect x="40" y="615" width="1020" height="38" rx="12" fill="url(#accentGrad)"/>
+  <rect x="40" y="641" width="1020" height="12" fill="url(#accentGrad)"/>
+  <text x="60" y="640" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">PHASE 3  Sequential Active-Candidate Workflow (Core Design Rule)</text>
+  <text x="550" y="668" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">Only ONE candidate is active per job panel at any time</text>
+
+  <!-- Swimlanes labels -->
+  <rect x="60" y="685" width="130" height="420" rx="8" fill="#124e66" opacity="0.08"/>
+  <text x="125" y="710" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">HR Portal</text>
+
+  <rect x="200" y="685" width="400" height="420" rx="8" fill="#0a2338" opacity="0.06"/>
+  <text x="400" y="710" text-anchor="middle" fill="#0a2338" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">Application Layer (Flask / app.py)</text>
+
+  <rect x="610" y="685" width="430" height="420" rx="8" fill="#f39c12" opacity="0.08"/>
+  <text x="825" y="710" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">Interviewer Portal(s)</text>
+
+  <!-- HR: Start -->
+  <rect x="75" y="730" width="100" height="44" rx="6" fill="#27ae60" stroke="#1e8449" stroke-width="1.5"/>
+  <text x="125" y="750" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700">Click</text>
+  <text x="125" y="765" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700">START</text>
+
+  <line x1="175" y1="752" x2="215" y2="752" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- System: hr_start_interview -->
+  <rect x="215" y="725" width="175" height="54" rx="6" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="302" y="748" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600">hr_start_interview</text>
+  <text x="302" y="765" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">POST /hr/interviews/&lt;id&gt;/start</text>
+
+  <line x1="390" y1="752" x2="430" y2="752" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- System: _set_active_interview -->
+  <rect x="430" y="720" width="155" height="64" rx="6" fill="#fff8e6" stroke="#f39c12" stroke-width="2"/>
+  <text x="507" y="743" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700">_set_active_</text>
+  <text x="507" y="758" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700">interview()</text>
+  <text x="507" y="775" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="9">Update panel state</text>
+
+  <!-- System update box -->
+  <rect x="215" y="800" width="370" height="72" rx="6" fill="#0a2338"/>
+  <text x="235" y="822" fill="#f39c12" font-family="Consolas, monospace" font-size="10" font-weight="700">active_application_id = candidate_id</text>
+  <text x="235" y="840" fill="#d4e8f0" font-family="Consolas, monospace" font-size="10">active_changed_at = now()</text>
+  <text x="235" y="858" fill="#a8d4a8" font-family="Consolas, monospace" font-size="10">candidate.interview_status = "in_progress"</text>
+
+  <line x1="507" y1="784" x2="507" y2="800" stroke="#f39c12" stroke-width="2" marker-end="url(#arrowOrange)"/>
+
+  <!-- Interviewer polling -->
+  <rect x="625" y="730" width="195" height="54" rx="6" fill="#ffffff" stroke="#f39c12" stroke-width="2"/>
+  <text x="722" y="752" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600">Poll every 5 seconds</text>
+  <text x="722" y="770" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="9">GET /interviewer/api/active-candidate</text>
+
+  <line x1="585" y1="836" x2="625" y2="757" stroke="#124e66" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+  <text x="590" y="800" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="10">notify</text>
+
+  <rect x="840" y="730" width="185" height="54" rx="6" fill="#e8f5e9" stroke="#27ae60" stroke-width="1.5"/>
+  <text x="932" y="752" text-anchor="middle" fill="#1b5e20" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600">Show Active Candidate</text>
+  <text x="932" y="770" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="9">Only this person visible</text>
+
+  <line x1="820" y1="757" x2="840" y2="757" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Scoring -->
+  <rect x="625" y="810" width="195" height="54" rx="6" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="722" y="832" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600">Submit Marks (�7 criteria)</text>
+  <text x="722" y="850" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="9">POST /hr/interviews/&lt;id&gt;/score</text>
+
+  <line x1="722" y1="864" x2="722" y2="890" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="215" y="890" width="370" height="72" rx="6" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="400" y="912" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600">_upsert_interview_score_submission()</text>
+  <text x="400" y="930" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">Store per-evaluator marks in interview_score_submissions[]</text>
+  <text x="400" y="948" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">HR marks board shows who scored what + pending evaluators</text>
+
+  <line x1="722" y1="890" x2="400" y2="926" stroke="#124e66" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+
+  <!-- HR Start next -->
+  <rect x="75" y="990" width="100" height="44" rx="6" fill="#27ae60" stroke="#1e8449" stroke-width="1.5"/>
+  <text x="125" y="1010" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700">START</text>
+  <text x="125" y="1025" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="10">Next</text>
+
+  <line x1="125" y1="1034" x2="125" y2="1060" stroke="#124e66" stroke-width="1.5"/>
+  <line x1="125" y1="1060" x2="400" y2="1060" stroke="#124e66" stroke-width="1.5"/>
+  <line x1="400" y1="1060" x2="400" y2="1040" stroke="#124e66" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="280" y="1000" width="240" height="50" rx="6" fill="#fff8e6" stroke="#f39c12" stroke-width="1.5"/>
+  <text x="400" y="1022" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600">Previous candidate � awaiting_screening</text>
+  <text x="400" y="1038" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="9">New candidate becomes in_progress</text>
+
+  <rect x="625" y="990" width="400" height="50" rx="6" fill="#fce4ec" stroke="#e74c3c" stroke-width="1"/>
+  <text x="825" y="1012" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="600">Cannot score inactive candidates</text>
+  <text x="825" y="1030" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">Interviewer portal auto-refreshes when active_application_id changes</text>
+
+  <!-- Loop arrow -->
+  <path d="M 125 990 C 125 960, 50 960, 50 752 C 50 720, 75 720, 75 730" fill="none" stroke="#27ae60" stroke-width="2" stroke-dasharray="8,4" marker-end="url(#arrow)"/>
+  <text x="35" y="870" fill="#27ae60" font-family="Segoe UI, Arial, sans-serif" font-size="10" font-weight="600" transform="rotate(-90 35 870)">Repeat per candidate</text>
+
+  <!-- Status state machine -->
+  <rect x="60" y="1075" width="980" height="48" rx="8" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="80" y="1098" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">Interview status flow:</text>
+  <rect x="230" y="1083" width="90" height="28" rx="14" fill="#d4e8f0" stroke="#124e66"/>
+  <text x="275" y="1102" text-anchor="middle" fill="#124e66" font-size="10" font-weight="600">scheduled</text>
+  <text x="330" y="1102" fill="#124e66" font-size="14">�</text>
+  <rect x="345" y="1083" width="100" height="28" rx="14" fill="#fff8e6" stroke="#f39c12"/>
+  <text x="395" y="1102" text-anchor="middle" fill="#c0392b" font-size="10" font-weight="600">in_progress</text>
+  <text x="455" y="1102" fill="#124e66" font-size="14">�</text>
+  <rect x="470" y="1083" width="130" height="28" rx="14" fill="#fff3e0" stroke="#f39c12"/>
+  <text x="535" y="1102" text-anchor="middle" fill="#c0392b" font-size="10" font-weight="600">awaiting_screening</text>
+  <text x="610" y="1102" fill="#124e66" font-size="14">�</text>
+  <rect x="625" y="1083" width="95" height="28" rx="14" fill="#e8f5e9" stroke="#27ae60"/>
+  <text x="672" y="1102" text-anchor="middle" fill="#1b5e20" font-size="10" font-weight="600">completed</text>
+  <text x="740" y="1102" fill="#888" font-size="10">(after HR screens all)</text>
+
+  <!-- PHASE 4 -->
+  <rect x="40" y="1160" width="1020" height="175" rx="12" fill="#f8fbfd" stroke="#124e66" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="40" y="1160" width="1020" height="38" rx="12" fill="#124e66"/>
+  <rect x="40" y="1186" width="1020" height="12" fill="#124e66"/>
+  <text x="60" y="1185" fill="#ffffff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700">PHASE 4  Screening Guard &amp; Final Selection (HR Portal)</text>
+
+  <rect x="70" y="1210" width="220" height="50" rx="8" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="180" y="1233" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">All candidates interviewed</text>
+  <text x="180" y="1250" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">Every queued person started</text>
+
+  <text x="305" y="1240" fill="#124e66" font-size="16" font-weight="700">AND</text>
+
+  <rect x="330" y="1210" width="260" height="50" rx="8" fill="#fff8e6" stroke="#f39c12" stroke-width="2"/>
+  <text x="460" y="1233" text-anchor="middle" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">All panel members submitted marks</text>
+  <text x="460" y="1250" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">_all_required_scorers_submitted()</text>
+
+  <line x1="590" y1="1235" x2="620" y2="1235" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="620" y="1210" width="200" height="50" rx="8" fill="#ffffff" stroke="#124e66" stroke-width="1.5"/>
+  <text x="720" y="1233" text-anchor="middle" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Screen Completed</text>
+  <text x="720" y="1250" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">hr_screen_interviews</text>
+
+  <line x1="820" y1="1235" x2="850" y2="1235" stroke="#124e66" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="850" y="1210" width="180" height="50" rx="8" fill="#e8f5e9" stroke="#27ae60" stroke-width="2"/>
+  <text x="940" y="1233" text-anchor="middle" fill="#1b5e20" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">Rank by Average</text>
+  <text x="940" y="1250" text-anchor="middle" fill="#666" font-family="Segoe UI, Arial, sans-serif" font-size="10">Select best candidate(s)</text>
+
+  <rect x="70" y="1275" width="960" height="48" rx="8" fill="#ffffff" stroke="#e74c3c" stroke-width="1"/>
+  <text x="90" y="1298" fill="#c0392b" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700">Screening blocked until:</text>
+  <text x="90" y="1315" fill="#555" font-family="Segoe UI, Arial, sans-serif" font-size="11">No premature "completed" after one scorer � Marks table shows pending evaluator names � Highest interview_average wins selection</text>
+
+  <!-- Legend -->
+  <rect x="40" y="1360" width="1020" height="95" rx="10" fill="#ffffff" stroke="#d0d8e0" stroke-width="1"/>
+  <text x="60" y="1385" fill="#124e66" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Legend</text>
+  <rect x="60" y="1398" width="16" height="16" rx="3" fill="#124e66"/>
+  <text x="82" y="1411" fill="#555" font-family="Segoe UI, Arial, sans-serif" font-size="11">HR / system process</text>
+  <rect x="220" y="1398" width="16" height="16" rx="3" fill="#f39c12"/>
+  <text x="242" y="1411" fill="#555" font-family="Segoe UI, Arial, sans-serif" font-size="11">Critical workflow control</text>
+  <rect x="420" y="1398" width="16" height="16" rx="3" fill="#27ae60"/>
+  <text x="442" y="1411" fill="#555" font-family="Segoe UI, Arial, sans-serif" font-size="11">Interviewer / success state</text>
+  <rect x="620" y="1398" width="16" height="16" rx="3" fill="#0a2338"/>
+  <text x="642" y="1411" fill="#555" font-family="Segoe UI, Arial, sans-serif" font-size="11">Data structure update</text>
+  <line x1="60" y1="1430" x2="100" y2="1430" stroke="#124e66" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="108" y="1434" fill="#555" font-family="Segoe UI, Arial, sans-serif" font-size="11">Async notification (polling)</text>
+</svg>

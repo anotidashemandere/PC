@@ -758,6 +758,16 @@
                 <p>Monitor system activity, user logins, and all changes made in the HR system</p>
             </div>
 
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category if category != 'error' else 'danger' }}" style="padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; background: rgba(52, 152, 219, 0.2); border: 1px solid #3498db; color: #3498db;">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
             <!-- Filters -->
             <div class="audit-filters">
                 <div class="filter-group">
@@ -810,6 +820,57 @@
                     <p>Active Users</p>
                 </div>
             </div>
+
+            {% if current_user.role == 'audit' %}
+            <div class="audit-filters" style="display: block; margin-bottom: 2rem;">
+                <h3 style="color: #124e66; margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 700; border-bottom: 1px solid #eee; padding-bottom: 8px;">Audit Team Members</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h4 style="margin-top: 0; color: #124e66;">Current Members</h4>
+                        <div style="background: white; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; margin-top: 10px;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                <thead>
+                                    <tr style="background: #f8f9fa;">
+                                        <th style="padding: 10px; border-bottom: 1px solid #ddd;">Name</th>
+                                        <th style="padding: 10px; border-bottom: 1px solid #ddd;">Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for member in audit_members %}
+                                    <tr style="border-bottom: 1px solid #eee;">
+                                        <td style="padding: 10px;">{{ member.name }}</td>
+                                        <td style="padding: 10px;">{{ member.email }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="2" style="padding: 15px; text-align: center; color: #999;">No audit team members added yet.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style="margin-top: 0; color: #124e66;">Add Audit Member</h4>
+                        <form action="{{ url_for('audit_add_member') }}" method="POST" style="margin-top: 10px; display: flex; flex-direction: column; gap: 12px;">
+                            <div class="filter-group">
+                                <label style="font-weight: 600; color: #124e66; font-size: 12px; margin-bottom: 4px;">Full Name</label>
+                                <input type="text" name="name" required placeholder="e.g. John Doe" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                            </div>
+                            <div class="filter-group">
+                                <label style="font-weight: 600; color: #124e66; font-size: 12px; margin-bottom: 4px;">Email Address</label>
+                                <input type="email" name="email" required placeholder="e.g. member@company.com" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                            </div>
+                            <div class="filter-group">
+                                <label style="font-weight: 600; color: #124e66; font-size: 12px; margin-bottom: 4px;">Password</label>
+                                <input type="password" name="password" required placeholder="Password" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                            </div>
+                            <button type="submit" style="background: #124e66; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px; transition: background 0.2s;">Add Audit Member</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Charts Section -->
             <div class="chart-section">

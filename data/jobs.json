@@ -71,5 +71,19 @@
     "due_date": "2026-06-09T13:44",
     "created_at": "2026-06-07T11:45:21.255670+00:00",
     "application_link": "/jobs/01d8f9ce-cb49-44c4-b707-b7df29f28424/apply"
+  },
+  "9e4cfb5f-4841-4afd-8bb1-6ce4fb603e2f": {
+    "id": "9e4cfb5f-4841-4afd-8bb1-6ce4fb603e2f",
+    "title": "Chief Executive Officer",
+    "department": "Operations",
+    "location": "Harare, head office",
+    "description": "he Chief Executive (CE) is responsible for providing strategic leadership and overall management of the organization. The CE oversees daily operations, drives business growth, ensures financial sustainability, and implements policies and decisions approved by the Board. The role requires strong leadership, decision-making, and communication skills to achieve organizational objectives and maintain stakeholder confidence.\r\n\r\nKey Responsibilities\r\nDevelop and implement the organization's strategic plans and objectives.\r\nProvide leadership and direction to management and staff.\r\nOversee daily business operations and ensure efficiency across departments.\r\nMonitor organizational performance and implement improvements where necessary.\r\nPrepare and manage budgets, financial plans, and resource allocation.\r\nEnsure compliance with legal, regulatory, and corporate governance requirements.\r\nBuild and maintain relationships with stakeholders, clients, partners, and government agencies.\r\nIdentify new business opportunities and strategies for growth.\r\nPresent performance reports and recommendations to the Board of Directors.\r\nFoster a positive organizational culture and promote employee development.\r\nManage risks and ensure business continuity.\r\nQualifications and Requirements\r\nBachelor's Degree in Business Management, Business Administration, Economics, Finance, or a related field.\r\nMaster's Degree (MBA or equivalent) is an added advantage.\r\nMinimum of 5 years' experience in a senior management or executive leadership role.\r\nStrong knowledge of business operations, strategic planning, and financial management.\r\nExcellent leadership, communication, negotiation, and interpersonal skills.\r\nAbility to make sound decisions under pressure.\r\nProficiency in Microsoft Office and business management systems.\r\nKey Competencies\r\nStrategic Thinking\r\nLeadership and Team Management\r\nFinancial Management\r\nDecision Making\r\nProblem Solving\r\nBusiness Development\r\nCommunication and Presentation Skills\r\nStakeholder Management\r\nCorporate Governance\r\nChange Management\r\nEmployment Type",
+    "requirements": [
+      "leadership"
+    ],
+    "screening_criteria": "job description",
+    "due_date": "2026-06-10T20:03",
+    "created_at": "2026-06-09T18:10:38.737163+00:00",
+    "application_link": "/jobs/9e4cfb5f-4841-4afd-8bb1-6ce4fb603e2f/apply"
   }
 }

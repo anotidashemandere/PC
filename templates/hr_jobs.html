@@ -84,6 +84,7 @@
                     <th>Job Title</th>
                     <th>Department</th>
                     <th>Location</th>
+                    <th>Candidates Wanted</th>
                     <th>Due Date</th>
                     <th>Requirements</th>
                     <th>Application Link</th>
@@ -97,6 +98,7 @@
                         <td><strong>{{ job.title }}</strong></td>
                         <td>{{ job.department }}</td>
                         <td>{{ job.location }}</td>
+                        <td><strong>{{ job.positions_needed or 1 }}</strong></td>
                         <td>{{ job.due_date.strftime('%Y-%m-%d %H:%M') if job.due_date else 'No due date' }}</td>
                         <td>
                           {% if job.requirements %}
@@ -122,7 +124,7 @@
                     {% endfor %}
                   {% else %}
                     <tr>
-                      <td colspan="7" class="text-center text-muted">No previous job posts found</td>
+                      <td colspan="8" class="text-center text-muted">No previous job posts found</td>
                     </tr>
                   {% endif %}
                 </tbody>
@@ -163,6 +165,11 @@
                 <span>Custom Screening Criteria (optional)</span>
                 <textarea name="screening_criteria" rows="3" placeholder="e.g., Focus on data analysis skills, prioritize candidates with project management experience"></textarea>
                 <small>Additional criteria for the AI to consider during screening.</small>
+              </label>
+              <label>
+                <span>Number of Candidates Wanted</span>
+                <input type="number" name="positions_needed" min="1" value="1" required>
+                <small>How many people you plan to hire for this role.</small>
               </label>
               <label>
                 <span>Application Due Date</span>

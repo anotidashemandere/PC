@@ -1846,5 +1846,439 @@
     "details": "User hr@company.com logged in",
     "status": "success",
     "timestamp": "2026-06-08T21:00:45.745962+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-09T12:25:26.237134+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T12:25:30.591709+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-09T12:25:36.530001+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T12:25:49.078419+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "logout",
+    "details": "User hr@company.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-09T14:12:03.539593+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "login",
+    "details": "User anomandere@gmail.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T14:12:12.147185+00:00"
+  },
+  {
+    "user_id": "user-285eb0cb",
+    "action": "logout",
+    "details": "User anomandere@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-09T14:26:26.757414+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T14:26:31.711093+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T16:22:31.842211+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "create_interviewer",
+    "details": "Created interviewer anotidashemandere@gmail.com with token for job 2d314532-5926-42fd-bbfc-fda1b74ac36d",
+    "status": "success",
+    "timestamp": "2026-06-09T16:32:03.789757+00:00"
+  },
+  {
+    "user_id": "user-85239b08",
+    "action": "token_login",
+    "details": "Interviewer logged in using one-time token",
+    "status": "success",
+    "timestamp": "2026-06-09T16:32:20.702697+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T16:34:38.207835+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T17:55:59.421886+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T17:56:05.545036+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T17:57:10.843999+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-09T17:57:37.202327+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "screen_due_candidates",
+    "details": "Processed 3 candidate(s) for Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-10T08:49:48.192214+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-10T09:20:37.704291+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-10T09:20:37.751904+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-10T09:20:42.086677+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-10T09:20:42.117928+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "add_interviewer",
+    "details": "Added interviewer anthonymandere@gmail.com to job 9e4cfb5f-4841-4afd-8bb1-6ce4fb603e2f",
+    "status": "success",
+    "timestamp": "2026-06-10T09:23:00.649911+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "add_interviewer",
+    "details": "Added interviewer arthurspears23@gmail.com to job 9e4cfb5f-4841-4afd-8bb1-6ce4fb603e2f",
+    "status": "success",
+    "timestamp": "2026-06-10T09:23:35.996461+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "generate_interviewer_link",
+    "details": "Generated shared interviewer link for job 9e4cfb5f-4841-4afd-8bb1-6ce4fb603e2f",
+    "status": "success",
+    "timestamp": "2026-06-10T09:23:47.725434+00:00"
+  },
+  {
+    "user_id": "user-a911f48b",
+    "action": "interviewer_join",
+    "details": "Interviewer Ano Mandere joined via shared link",
+    "status": "success",
+    "timestamp": "2026-06-10T09:25:37.379245+00:00"
+  },
+  {
+    "user_id": "user-a911f48b",
+    "action": "reset_password",
+    "details": "Interviewer set their password",
+    "status": "success",
+    "timestamp": "2026-06-10T09:25:46.440470+00:00"
+  },
+  {
+    "user_id": "user-a911f48b",
+    "action": "score_interview",
+    "details": "Scored interview for e0753321-bd28-476b-9b7b-c499385dcb94 (52.14%)",
+    "status": "success",
+    "timestamp": "2026-06-10T09:34:31.343637+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-10T09:55:55.445099+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-10T10:07:15.930147+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-10T10:07:15.944869+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-10T10:07:18.653562+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-10T10:07:18.671395+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "generate_interviewer_link",
+    "details": "Generated shared interviewer link for job 9e4cfb5f-4841-4afd-8bb1-6ce4fb603e2f",
+    "status": "success",
+    "timestamp": "2026-06-10T10:08:51.160194+00:00"
+  },
+  {
+    "user_id": "user-a911f48b",
+    "action": "interviewer_join",
+    "details": "Interviewer Ano Mandere joined via shared link",
+    "status": "success",
+    "timestamp": "2026-06-10T10:09:29.468422+00:00"
+  },
+  {
+    "user_id": "user-a911f48b",
+    "action": "score_interview",
+    "details": "Scored interview for e0753321-bd28-476b-9b7b-c499385dcb94 (58.57%)",
+    "status": "success",
+    "timestamp": "2026-06-10T10:09:44.590853+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-10T10:34:47.911572+00:00"
+  },
+  {
+    "user_id": "user-20aec2ab",
+    "action": "interviewer_join",
+    "details": "Interviewer Kudzai Mapfumo joined via shared link",
+    "status": "success",
+    "timestamp": "2026-06-10T11:34:56.484780+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-10T11:53:03.901006+00:00"
+  },
+  {
+    "user_id": "user-20aec2ab",
+    "action": "interviewer_join",
+    "details": "Interviewer Kudzai Mapfumo joined via shared link",
+    "status": "success",
+    "timestamp": "2026-06-10T11:55:21.507374+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-10T12:00:25.185335+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "start_interview",
+    "details": "Started interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-10T12:00:25.237990+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-10T12:02:52.514021+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "start_interview",
+    "details": "Started interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-10T12:02:56.917100+00:00"
+  },
+  {
+    "user_id": "user-20aec2ab",
+    "action": "logout",
+    "details": "User arthurspears23@gmail.com logged out",
+    "status": "success",
+    "timestamp": "2026-06-10T12:48:18.273313+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-10T12:49:13.717843+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-11T08:47:09.247710+00:00"
+  },
+  {
+    "user_id": "user-20aec2ab",
+    "action": "interviewer_join",
+    "details": "Interviewer Kudzai Mapfumo joined via shared link",
+    "status": "success",
+    "timestamp": "2026-06-11T08:52:52.177317+00:00"
+  },
+  {
+    "user_id": "user-20aec2ab",
+    "action": "score_interview",
+    "details": "Scored interview for e0753321-bd28-476b-9b7b-c499385dcb94 (47.14%)",
+    "status": "success",
+    "timestamp": "2026-06-11T08:54:28.429865+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "login",
+    "details": "User hr@company.com logged in",
+    "status": "success",
+    "timestamp": "2026-06-11T08:54:39.060891+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "remove_interview_queue",
+    "details": "Removed e0753321-bd28-476b-9b7b-c499385dcb94 from interview queue: no longer wanted",
+    "status": "success",
+    "timestamp": "2026-06-11T08:55:04.266469+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-11T09:00:32.269255+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-11T09:00:32.285786+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-11T09:00:32.671889+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-11T09:00:32.691925+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-11T09:02:16.399345+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-11T09:02:16.435293+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-11T09:02:16.450918+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-11T09:02:16.530978+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-11T09:02:17.111741+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-11T09:02:17.122632+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "email_sent",
+    "details": "Email sent to anotidashemandere6@gmail.com: Interview Invitation - Chief Executive Officer",
+    "status": "success",
+    "timestamp": "2026-06-11T09:02:20.403556+00:00"
+  },
+  {
+    "user_id": "user-001",
+    "action": "schedule_interview",
+    "details": "Scheduled interview for e0753321-bd28-476b-9b7b-c499385dcb94",
+    "status": "success",
+    "timestamp": "2026-06-11T09:02:20.450405+00:00"
   }
 ]

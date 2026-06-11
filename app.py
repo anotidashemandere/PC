@@ -11,6 +11,7 @@ import io
 import json
 import os
 import re
+import secrets
 import smtplib
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
@@ -22,6 +23,8 @@ BRANDING_DIR.mkdir(parents=True, exist_ok=True)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-12345")
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+# Session cookie expires when browser/tab closes (no permanent session flag on login)
 
 DATA_DIR = Path(__file__).parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
@@ -33,8 +36,14 @@ APPLICATIONS = {}
 ACTIVITY_LOGS = []
 EMAIL_HISTORY = []
 SETTINGS = {}
+INTERVIEWER_PANELS = {}
 
 HR_ROLES = ("hr", "hr_staff")
+
+
+def _generate_panel_access_code():
+    """One-time access code shared by all interviewers on a panel link."""
+    return f"{secrets.randbelow(90000000) + 10000000}"
 
 DEFAULT_SETTINGS = {
     "company_name": "Grain Marketing Board",
@@ -153,6 +162,28 @@ def _screening_text_for_job(job):
     return "\n".join(part for part in parts if part)
 
 
+def _candidate_full_name(app_data):
+    """Build display name without duplicating surname when name already includes it."""
+    if not app_data:
+        return "Candidate"
+    name = (app_data.get("name") or "").strip()
+    surname = (app_data.get("surname") or "").strip()
+    if not surname:
+        return name or "Candidate"
+    if not name:
+        return surname
+    name_lower = name.lower()
+    surname_lower = surname.lower()
+    if name_lower == surname_lower:
+        return name
+    if name_lower.endswith(surname_lower):
+        return name
+    name_parts = name_lower.split()
+    if surname_lower in name_parts:
+        return name
+    return f"{name} {surname}".strip()
+
+
 def _normalize_screening_status(raw_status):
     status = str(raw_status or "pending").strip().lower()
     status_map = {
@@ -212,6 +243,8 @@ def _screen_pending_applications(job_ids, trigger="manual"):
             app_data["missing_skills"] = result.missing_skills
             # Automatically set status based on score: >= 50% = shortlisted, < 50% = rejected
             app_data["status"] = "shortlisted" if result.score >= 50 else "rejected"
+            if app_data["status"] == "shortlisted":
+                app_data["interview_status"] = "pending_scheduling"
             app_data["screened_at"] = datetime.now(timezone.utc).isoformat()
             app_data["screening_trigger"] = trigger
             job_processed += 1
@@ -257,7 +290,7 @@ def _build_summary_report_spec(user, status_filter="all", report_title="Applican
     rows = []
     for app_data in filtered_applications:
         job = JOBS.get(app_data.get("job_id", ""), {})
-        full_name = f"{app_data.get('name', '')} {app_data.get('surname', '')}".strip()
+        full_name = _candidate_full_name(app_data)
         score = app_data.get("score", 0) or 0
         recommendation = app_data.get("recommendation", "Pending Review") or "Pending Review"
         rows.append([
@@ -295,9 +328,7 @@ def _build_summary_report_spec(user, status_filter="all", report_title="Applican
 def _build_cv_analysis_report_spec(user):
     rows = []
     for app_data in APPLICATIONS.values():
-        name = app_data.get("name", "")
-        surname = app_data.get("surname", "")
-        full_name = f"{name} {surname}".strip()
+        full_name = _candidate_full_name(app_data)
         job = JOBS.get(app_data.get("job_id", ""), {})
         score = app_data.get("score", 0) or 0
         matched_skills = app_data.get("matched_skills", [])
@@ -443,6 +474,14 @@ def save_applications():
     _save_json(DATA_DIR / "applications.json", APPLICATIONS)
 
 
+def save_users():
+    _save_json(DATA_DIR / "users.json", USERS)
+
+
+def save_interviewer_panels():
+    _save_json(DATA_DIR / "interviewer_panels.json", INTERVIEWER_PANELS)
+
+
 def save_settings():
     _save_json(_settings_file(), SETTINGS)
 
@@ -538,6 +577,9 @@ def _personalize_message(template, values):
         ("interview_time", values.get("interview_time") or ""),
         ("interview_type", values.get("interview_type") or ""),
         ("interview_location", values.get("interview_location") or ""),
+        ("start_date", values.get("start_date") or ""),
+        ("start_time", values.get("start_time") or ""),
+        ("location", values.get("location") or ""),
     ]
     for field, replacement in field_patterns:
         label = field.replace("_", " ")
@@ -548,13 +590,21 @@ def _personalize_message(template, values):
 
 
 def _should_add_dear_greeting(message, candidate_name=None):
-    msg = (message or "").strip().lower()
-    if not msg:
+    if not message:
         return True
-    if msg.startswith(("dear ", "hello ", "hi ")):
+    
+    clean_msg = re.sub(r'<[^>]*>', '', message).strip().lower()
+    if not clean_msg:
+        return True
+        
+    if clean_msg.startswith(("dear", "hello", "hi", "greetings", "to ", "attention")):
         return False
-    if candidate_name and msg.startswith(candidate_name.strip().lower()):
-        return False
+        
+    if candidate_name:
+        name_lower = candidate_name.strip().lower()
+        if name_lower in clean_msg[:150]:
+            return False
+            
     return True
 
 
@@ -766,6 +816,9 @@ def load_all_data():
                 JOBS.update(json.load(f))
         except Exception as e:
             print(f"Warning: Could not load jobs: {e}")
+    for job in JOBS.values():
+        if "positions_needed" not in job:
+            job["positions_needed"] = 1
 
     # Load applications
     apps_file = DATA_DIR / "applications.json"
@@ -775,6 +828,14 @@ def load_all_data():
                 APPLICATIONS.update(json.load(f))
         except Exception as e:
             print(f"Warning: Could not load applications: {e}")
+
+    panels_file = DATA_DIR / "interviewer_panels.json"
+    if panels_file.exists():
+        try:
+            with open(panels_file, "r") as f:
+                INTERVIEWER_PANELS.update(json.load(f))
+        except Exception as e:
+            print(f"Warning: Could not load interviewer panels: {e}")
 
     # Load activity logs
     logs_file = DATA_DIR / "activity_logs.json"
@@ -790,6 +851,76 @@ def load_all_data():
                     ACTIVITY_LOGS.append(entry)
         except Exception as e:
             print(f"Warning: Could not load activity logs: {e}")
+
+    # Backfill USERS schema
+    for u in USERS.values():
+        if "can_screen_interviews" not in u:
+            u["can_screen_interviews"] = False
+        if "can_score_interviews" not in u:
+            u["can_score_interviews"] = False
+        if "interviewer_token" not in u:
+            u["interviewer_token"] = None
+        if "interviewer_token_expires" not in u:
+            u["interviewer_token_expires"] = None
+        if "interviewer_token_used" not in u:
+            u["interviewer_token_used"] = False
+        if "interviewer_job_id" not in u:
+            u["interviewer_job_id"] = None
+        if "password_reset_required" not in u:
+            u["password_reset_required"] = False
+        if "first_login" not in u:
+            u["first_login"] = True
+
+    # Backfill APPLICATIONS schema
+    for app_data in APPLICATIONS.values():
+        if "interview_status" not in app_data:
+            if app_data.get("status") == "interview":
+                app_data["interview_status"] = "scheduled"
+            else:
+                app_data["interview_status"] = None
+        if "interview_removed" not in app_data:
+            app_data["interview_removed"] = False
+        if "interview_removed_reason" not in app_data:
+            app_data["interview_removed_reason"] = ""
+        if "interview_scores" not in app_data:
+            app_data["interview_scores"] = {
+                "presentation": 0,
+                "dressing": 0,
+                "communication": 0,
+                "confidence": 0,
+                "technical_knowledge": 0,
+                "problem_solving": 0,
+                "attitude": 0,
+            }
+        else:
+            scores = app_data["interview_scores"]
+            for crit in ["presentation", "dressing", "communication", "confidence", "technical_knowledge", "problem_solving", "attitude"]:
+                if crit not in scores:
+                    scores[crit] = 0
+        if "interview_total" not in app_data:
+            app_data["interview_total"] = 0
+        if "interview_scored_by" not in app_data:
+            app_data["interview_scored_by"] = None
+        if "interview_scored_at" not in app_data:
+            app_data["interview_scored_at"] = None
+        if "interview_score_submissions" not in app_data:
+            app_data["interview_score_submissions"] = []
+            if app_data.get("interview_scored_by") and app_data.get("interview_total"):
+                scorer = USERS.get(app_data["interview_scored_by"], {})
+                app_data["interview_score_submissions"].append({
+                    "scorer_id": app_data["interview_scored_by"],
+                    "scorer_name": scorer.get("name") or scorer.get("email") or "Unknown",
+                    "scorer_role": scorer.get("role") or "",
+                    "scores": dict(app_data.get("interview_scores") or {}),
+                    "total": app_data.get("interview_total", 0),
+                    "scored_at": app_data.get("interview_scored_at"),
+                })
+        if "selected" not in app_data:
+            app_data["selected"] = False
+        if "selected_at" not in app_data:
+            app_data["selected_at"] = None
+        if "selection_method" not in app_data:
+            app_data["selection_method"] = ""
 
     settings_file = _settings_file()
     SETTINGS.update(DEFAULT_SETTINGS)
@@ -821,8 +952,55 @@ def load_all_data():
         except Exception as e:
             print(f"Warning: Could not load email history: {e}")
 
-
-load_all_data()
+    panels_dirty = False
+    users_dirty = False
+    for user_id, interviewer in USERS.items():
+        if interviewer.get("role") != "interviewer":
+            continue
+        job_id = interviewer.get("interviewer_job_id")
+        if not job_id:
+            continue
+        if job_id not in INTERVIEWER_PANELS:
+            INTERVIEWER_PANELS[job_id] = {
+                "job_id": job_id,
+                "token": None,
+                "expires": None,
+                "access_code": None,
+                "active_application_id": None,
+                "active_changed_at": None,
+                "interviewer_ids": [],
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+            }
+            panels_dirty = True
+        panel = INTERVIEWER_PANELS[job_id]
+        if "access_code" not in panel:
+            panel["access_code"] = None
+            panels_dirty = True
+        if "active_application_id" not in panel:
+            panel["active_application_id"] = None
+            panels_dirty = True
+        if "active_changed_at" not in panel:
+            panel["active_changed_at"] = None
+            panels_dirty = True
+        if user_id not in panel.get("interviewer_ids", []):
+            panel.setdefault("interviewer_ids", []).append(user_id)
+            panels_dirty = True
+        if interviewer.get("interviewer_token") and not panel.get("token"):
+            panel["token"] = interviewer["interviewer_token"]
+            panel["expires"] = interviewer.get("interviewer_token_expires")
+            panels_dirty = True
+        if interviewer.get("password_reset_required"):
+            interviewer["password_reset_required"] = False
+            users_dirty = True
+    if panels_dirty or users_dirty:
+        try:
+            if panels_dirty:
+                save_interviewer_panels()
+            if users_dirty:
+                save_users()
+        except Exception as e:
+            print(f"Warning: Could not migrate interviewer panels: {e}")
 
 
 def log_activity(user_id, action, details="", status="success"):
@@ -885,6 +1063,9 @@ def inject_user():
     return {
         'current_user': user,
         'can_manage_users': bool(user and user.get('role') == 'hr'),
+        'can_screen_interviews': bool(user and (user.get('role') == 'hr' or user.get('can_screen_interviews'))),
+        'can_score_interviews': bool(user and (user.get('role') == 'hr' or user.get('can_score_interviews'))),
+        'is_audit_manager': bool(user and user.get('role') == 'audit'),
         'portal_logo_src': _portal_logo_src(),
         'portal_welcome_image_src': _portal_welcome_image_src(),
         'portal_welcome_video_src': _portal_welcome_video_src(),
@@ -917,11 +1098,13 @@ def health():
 def index():
     user = get_current_user()
     if user:
-        if user.get("role") == "audit":
+        if user.get("role") in ("audit", "audit_member"):
             return redirect(url_for("audit_dashboard"))
         if user.get("role") in HR_ROLES:
             return redirect(url_for("hr_dashboard"))
-    return redirect(url_for("applicant_portal"))
+        if user.get("role") == "interviewer":
+            return redirect(url_for("interviewer_dashboard"))
+    return redirect(url_for("login"))
 
 
 @app.route("/portal")
@@ -943,7 +1126,7 @@ def login():
                 break
 
         if user and check_password_hash(user.get("password_hash", ""), password):
-            session.permanent = True
+            # Non-permanent session to clear on tab/window close
             session["user_id"] = user["id"]
             user["last_login"] = datetime.now(timezone.utc).isoformat()
             try:
@@ -952,10 +1135,14 @@ def login():
             except Exception as e:
                 print(f"Warning: Could not save user login: {e}")
             log_activity(user["id"], "login", f"User {user.get('email')} logged in", "success")
-            if user.get("role") == "audit":
+            
+            if user.get("role") in ("audit", "audit_member"):
                 return redirect(url_for("audit_dashboard"))
             if user.get("role") in HR_ROLES:
                 return redirect(url_for("hr_dashboard"))
+            if user.get("role") == "interviewer":
+                return redirect(url_for("interviewer_dashboard"))
+                
             flash("Your account does not have dashboard access.", "warning")
             return redirect(url_for("login"))
         else:
@@ -1034,20 +1221,46 @@ def hr_dashboard():
         jobs_list.append({
             "id": job_id,
             "title": job.get("title", "Unknown Job"),
-            "applications_count": app_count
+            "applications_count": app_count,
+            "positions_needed": job.get("positions_needed", 1),
         })
+
+    interview_candidates = [
+        _enrich_application(a)
+        for a in APPLICATIONS.values()
+        if a.get("status") in ("shortlisted", "interview", "pending", "selected")
+    ]
+    selected_by_job = {}
+    for app_data in APPLICATIONS.values():
+        if app_data.get("selected"):
+            enriched = _enrich_application(app_data)
+            job_title = enriched.get("job_title", "Unknown Job")
+            selected_by_job.setdefault(job_title, []).append(enriched)
     
+    interviews_data = _scheduled_interviews()
+    interview_marks_data = _interview_marks_board()
+
     return render_template(
         "hr_dashboard.html",
         dashboards=dashboards,
+        dashboards_json=_json_safe(dashboards),
         applicants=all_applicants_data,
+        applicants_json=_json_safe(all_applicants_data),
         all_applicants=all_applicants_data,
         recent_applicants=all_applicants_data[:5],
-        interviews=_scheduled_interviews(),
+        interviews=interviews_data,
+        interviews_json=_json_safe(interviews_data),
+        interview_candidates=interview_candidates,
+        interview_candidates_json=_json_safe(interview_candidates),
+        interview_marks_board=interview_marks_data,
+        interview_marks_board_json=_json_safe(interview_marks_data),
+        selected_by_job=selected_by_job,
+        interviewer_panels=_interviewer_panels_for_dashboard(),
         settings=SETTINGS,
         jobs=jobs_list,
         email_history=email_history,
         can_manage_users=user.get("role") == "hr",
+        users=list(USERS.values()),
         hr_notifications=_build_hr_notifications(),
     )
 
@@ -1058,7 +1271,7 @@ def audit_dashboard():
     if not user:
         flash("Please log in.", "warning")
         return redirect(url_for("login"))
-    if user.get("role") != "audit":
+    if user.get("role") not in ("audit", "audit_member"):
         flash("Access denied.", "danger")
         return redirect(url_for("login"))
 
@@ -1102,6 +1315,8 @@ def audit_dashboard():
     page = min(page, total_pages)
     logs = filtered[(page - 1) * PER_PAGE: page * PER_PAGE]
 
+    audit_members = [u for u in USERS.values() if u.get("role") == "audit_member"]
+
     return render_template(
         "audit_dashboard.html",
         logs=logs,
@@ -1115,7 +1330,55 @@ def audit_dashboard():
         current_page=page,
         total_pages=total_pages,
         action_filter=action_filter,
+        audit_members=audit_members,
     )
+
+
+@app.route("/audit/users/add", methods=["POST"])
+def audit_add_member():
+    user = get_current_user()
+    if not user or user.get("role") != "audit":
+        flash("Unauthorized", "danger")
+        return redirect(url_for("login"))
+
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "").strip()
+
+    if not name or not email or not password:
+        flash("All fields are required.", "danger")
+        return redirect(url_for("audit_dashboard"))
+
+    # Check if email exists
+    for u in USERS.values():
+        if u.get("email", "").lower() == email:
+            flash("Email already exists.", "danger")
+            return redirect(url_for("audit_dashboard"))
+
+    import uuid
+    new_user_id = f"user-{str(uuid.uuid4())[:8]}"
+    new_user = {
+        "id": new_user_id,
+        "email": email,
+        "name": name,
+        "password_hash": generate_password_hash(password),
+        "role": "audit_member",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "can_screen_interviews": False,
+        "can_score_interviews": False,
+        "interviewer_token": None,
+        "interviewer_token_expires": None,
+        "interviewer_token_used": False,
+        "interviewer_job_id": None,
+        "password_reset_required": False,
+        "first_login": True
+    }
+
+    USERS[new_user_id] = new_user
+    save_users()
+    log_activity(user["id"], "add_audit_member", f"Added audit member: {email}", "success")
+    flash(f"Audit member {name} added successfully.", "success")
+    return redirect(url_for("audit_dashboard"))
 
 
 # ─── Helper: dict wrapper for attribute access in templates ───────────────
@@ -1171,6 +1434,16 @@ def _wrap_job(d):
     return _DictObj(d)
 
 
+def _json_safe(obj):
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    if isinstance(obj, dict):
+        return {key: _json_safe(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [_json_safe(value) for value in obj]
+    return obj
+
+
 def _enrich_job(job):
     item = dict(job or {})
     item["requirements"] = _normalize_requirements(item.get("requirements"))
@@ -1178,7 +1451,21 @@ def _enrich_job(job):
     item["due_date"] = due_date.isoformat() if due_date else item.get("due_date")
     item["application_link"] = item.get("application_link") or url_for("apply", job_id=item.get("id", ""))
     item["deadline_state"] = "closed" if due_date and due_date < datetime.now(timezone.utc) else "open"
+    try:
+        item["positions_needed"] = max(1, int(item.get("positions_needed") or 1))
+    except (TypeError, ValueError):
+        item["positions_needed"] = 1
     return item
+
+
+def _has_application_for_job(job_id, email):
+    email_key = (email or "").strip().lower()
+    if not email_key:
+        return False
+    return any(
+        app.get("job_id") == job_id and (app.get("email") or "").strip().lower() == email_key
+        for app in APPLICATIONS.values()
+    )
 
 
 def _resolve_upload_path(path_str):
@@ -1197,6 +1484,7 @@ def _resolve_upload_path(path_str):
 def _enrich_application(app_data):
     item = dict(app_data or {})
     job = JOBS.get(item.get("job_id", ""), {})
+    item["display_name"] = _candidate_full_name(item)
     item["job_title"] = job.get("title") or "General Application"
     job_due_date = _parse_iso_datetime(job.get("due_date"))
     item["job_due_date"] = job_due_date.isoformat() if job_due_date else ""
@@ -1227,7 +1515,197 @@ def _enrich_application(app_data):
             "download_url": url_for("hr_application_certificate", application_id=app_id, cert_index=index, download=1),
         })
     item["certificate_files"] = cert_files
+    item["score_submissions"] = _enrich_interview_score_submissions(item)
+    item["interview_average"] = _interview_score_average(item)
+    required_scorers = _required_scorer_ids(item.get("job_id"))
+    submitted_scorers = _submitted_scorer_ids(item)
+    item["required_scorer_count"] = len(required_scorers) if required_scorers else 1
+    item["submitted_scorer_count"] = len(submitted_scorers)
+    item["all_scorers_submitted"] = _all_required_scorers_submitted(item)
+    item["pending_scorer_names"] = _pending_scorer_names(item)
+    item["is_active_interview"] = _is_active_interview_candidate(item)
     return item
+
+
+INTERVIEW_SCORE_CRITERIA = [
+    "presentation", "dressing", "communication", "confidence",
+    "technical_knowledge", "problem_solving", "attitude",
+]
+
+
+def _enrich_interview_score_submissions(app_data):
+    submissions = []
+    for entry in app_data.get("interview_score_submissions") or []:
+        item = dict(entry or {})
+        scorer = USERS.get(item.get("scorer_id"), {})
+        item["scorer_name"] = item.get("scorer_name") or scorer.get("name") or scorer.get("email") or "Unknown"
+        item["scorer_role"] = item.get("scorer_role") or scorer.get("role") or ""
+        if item.get("scored_at") and isinstance(item["scored_at"], str):
+            try:
+                item["scored_at_display"] = datetime.fromisoformat(item["scored_at"]).strftime("%Y-%m-%d %H:%M")
+            except Exception:
+                item["scored_at_display"] = item["scored_at"][:16]
+        else:
+            item["scored_at_display"] = ""
+        submissions.append(item)
+    submissions.sort(key=lambda s: s.get("scored_at") or "", reverse=True)
+    return submissions
+
+
+def _interview_score_average(app_data):
+    submissions = app_data.get("interview_score_submissions") or []
+    if not submissions:
+        return app_data.get("interview_total") or 0
+    totals = [float(s.get("total") or 0) for s in submissions]
+    if not totals:
+        return 0
+    return round(sum(totals) / len(totals), 2)
+
+
+def _upsert_interview_score_submission(app_data, user, scores, percentage):
+    submissions = app_data.setdefault("interview_score_submissions", [])
+    entry = {
+        "scorer_id": user["id"],
+        "scorer_name": user.get("name") or user.get("email") or "Unknown",
+        "scorer_role": user.get("role") or "",
+        "scores": scores,
+        "total": round(percentage, 2),
+        "scored_at": datetime.now(timezone.utc).isoformat(),
+    }
+    replaced = False
+    for index, existing in enumerate(submissions):
+        if existing.get("scorer_id") == user["id"]:
+            submissions[index] = entry
+            replaced = True
+            break
+    if not replaced:
+        submissions.append(entry)
+
+    app_data["interview_total"] = _interview_score_average(app_data)
+    app_data["interview_scores"] = scores
+    app_data["interview_scored_by"] = user["id"]
+    app_data["interview_scored_at"] = entry["scored_at"]
+    return entry
+
+
+def _required_scorer_ids(job_id):
+    """External interviewers assigned to score candidates for a job."""
+    panel = INTERVIEWER_PANELS.get(job_id, {})
+    return list(panel.get("interviewer_ids") or [])
+
+
+def _submitted_scorer_ids(app_data):
+    return {
+        entry.get("scorer_id")
+        for entry in (app_data.get("interview_score_submissions") or [])
+        if entry.get("scorer_id")
+    }
+
+
+def _all_required_scorers_submitted(app_data):
+    required = _required_scorer_ids(app_data.get("job_id"))
+    submitted = _submitted_scorer_ids(app_data)
+    if not required:
+        return len(submitted) > 0
+    return all(scorer_id in submitted for scorer_id in required)
+
+
+def _sync_interview_status_after_score(app_data):
+    """Keep interviews open until every required evaluator has scored and HR screens."""
+    if app_data.get("interview_status") in ("completed", "cancelled"):
+        return
+    if _all_required_scorers_submitted(app_data):
+        app_data["interview_status"] = "awaiting_screening"
+    elif app_data.get("interview_score_submissions"):
+        if app_data.get("interview_status") != "in_progress":
+            app_data["interview_status"] = "in_progress"
+    elif app_data.get("interview_status") not in ("scheduled", "in_progress", "awaiting_screening"):
+        app_data["interview_status"] = "in_progress"
+
+
+def _get_panel_active_application_id(job_id):
+    panel = INTERVIEWER_PANELS.get(job_id, {})
+    return panel.get("active_application_id")
+
+
+def _is_active_interview_candidate(app_data):
+    if not app_data:
+        return False
+    job_id = app_data.get("job_id")
+    return (
+        _get_panel_active_application_id(job_id) == app_data.get("id")
+        and app_data.get("interview_status") == "in_progress"
+    )
+
+
+def _pending_scorer_names(app_data):
+    required = _required_scorer_ids(app_data.get("job_id"))
+    submitted = _submitted_scorer_ids(app_data)
+    pending = []
+    for user_id in required:
+        if user_id in submitted:
+            continue
+        user = USERS.get(user_id, {})
+        pending.append(user.get("name") or user.get("email") or "Unknown interviewer")
+    return pending
+
+
+def _interview_queue_for_job(job_id):
+    apps = []
+    for app_data in APPLICATIONS.values():
+        if app_data.get("job_id") != job_id or app_data.get("interview_removed"):
+            continue
+        if app_data.get("status") not in ("shortlisted", "interview", "selected"):
+            continue
+        if not (app_data.get("interview_date") or app_data.get("interview_status")):
+            continue
+        apps.append(app_data)
+    apps.sort(
+        key=lambda item: (
+            item.get("interview_date") or "9999",
+            item.get("interview_time") or "",
+            item.get("name") or "",
+        )
+    )
+    return apps
+
+
+def _set_active_interview(job_id, app_id):
+    panel = _get_interviewer_panel(job_id, create=True)
+    for other in _interview_queue_for_job(job_id):
+        if other.get("id") == app_id:
+            continue
+        if other.get("interview_status") == "in_progress":
+            _sync_interview_status_after_score(other)
+            if other.get("interview_status") == "in_progress":
+                if _all_required_scorers_submitted(other):
+                    other["interview_status"] = "awaiting_screening"
+                else:
+                    other["interview_status"] = "awaiting_screening"
+    panel["active_application_id"] = app_id
+    panel["active_changed_at"] = datetime.now(timezone.utc).isoformat()
+    panel["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+
+def _interview_marks_board():
+    board = []
+    for app_data in APPLICATIONS.values():
+        if app_data.get("interview_removed"):
+            continue
+        status = app_data.get("interview_status")
+        has_schedule = bool((app_data.get("interview_date") or "").strip())
+        has_marks = bool(app_data.get("interview_score_submissions"))
+        if not has_schedule and status not in ("scheduled", "in_progress", "awaiting_screening", "completed") and not has_marks:
+            continue
+        board.append(_enrich_application(app_data))
+    board.sort(
+        key=lambda item: (
+            item.get("interview_date") or "9999",
+            item.get("interview_time") or "",
+            item.get("display_name") or "",
+        ),
+    )
+    return board
 
 
 def _open_jobs_for_portal():
@@ -1258,7 +1736,7 @@ def _build_hr_notifications():
             "id": f"app-{app_data.get('id', '')}",
             "type": "application",
             "title": "New Application",
-            "message": f"{app_data.get('name', '')} {app_data.get('surname', '')} applied for {enriched.get('job_title', 'a role')}",
+            "message": f"{_candidate_full_name(app_data)} applied for {enriched.get('job_title', 'a role')}",
             "action": "applicants",
             "target_type": "application",
             "target_id": app_data.get("id", ""),
@@ -1280,7 +1758,7 @@ def _build_hr_notifications():
                 "id": f"interview-{interview.get('id', '')}-{interview_date}",
                 "type": "interview",
                 "title": "Upcoming Interview",
-                "message": f"{interview.get('name', '')} {interview.get('surname', '')} — {interview_date} at {interview.get('interview_time', '')}",
+                "message": f"{_candidate_full_name(interview)} — {interview_date} at {interview.get('interview_time', '')}",
                 "action": "interviews",
                 "target_type": "application",
                 "target_id": interview.get("id", ""),
@@ -1308,6 +1786,8 @@ def _build_hr_notifications():
 def _scheduled_interviews():
     interviews = []
     for app_data in APPLICATIONS.values():
+        if app_data.get("interview_removed"):
+            continue
         if app_data.get("interview_date"):
             enriched = _enrich_application(app_data)
             # Ensure interview_at is a datetime object
@@ -1329,6 +1809,15 @@ def _require_hr():
     if user.get("role") not in HR_ROLES:
         flash("Access denied.", "danger")
         return None, redirect(url_for("login"))
+    return user, None
+
+
+def _require_hr_api():
+    user = get_current_user()
+    if not user:
+        return None, (jsonify({"ok": False, "error": "Please log in."}), 401)
+    if user.get("role") not in HR_ROLES:
+        return None, (jsonify({"ok": False, "error": "Access denied."}), 403)
     return user, None
 
 
@@ -1359,6 +1848,10 @@ def hr_post_job():
         return err
     import uuid
     job_id = str(uuid.uuid4())
+    try:
+        positions_needed = max(1, int(request.form.get("positions_needed", 1)))
+    except (TypeError, ValueError):
+        positions_needed = 1
     JOBS[job_id] = {
         "id": job_id,
         "title": request.form.get("title", "").strip(),
@@ -1368,6 +1861,7 @@ def hr_post_job():
         "requirements": _normalize_requirements(request.form.get("requirements", "")),
         "screening_criteria": request.form.get("screening_criteria", "").strip(),
         "due_date": request.form.get("due_date", "").strip(),
+        "positions_needed": positions_needed,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "application_link": url_for("apply", job_id=job_id),
     }
@@ -1425,9 +1919,7 @@ def hr_interviews():
     user, err = _require_hr()
     if err:
         return err
-    applicants = [_wrap_app(_enrich_application(a)) for a in _scheduled_interviews()]
-    candidates = [_wrap_app(_enrich_application(a)) for a in APPLICATIONS.values() if a.get("status") in ("shortlisted", "interview", "pending")]
-    return render_template("hr_interviews.html", applicants=applicants, candidates=candidates, settings=SETTINGS)
+    return redirect(url_for("hr_dashboard") + "#interviews")
 
 
 @app.route("/hr/ratings")
@@ -1610,6 +2102,14 @@ def hr_add_user():
         "password_hash": generate_password_hash(password),
         "role": role,
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "can_screen_interviews": False,
+        "can_score_interviews": False,
+        "interviewer_token": None,
+        "interviewer_token_expires": None,
+        "interviewer_token_used": False,
+        "interviewer_job_id": None,
+        "password_reset_required": False,
+        "first_login": True
     }
     
     USERS[new_user_id] = new_user
@@ -1623,6 +2123,496 @@ def hr_add_user():
         return jsonify({"ok": False, "error": "Could not save user"}), 500
     log_activity(user["id"], "add_user", f"Added new user: {email} ({role})", "success")
     return jsonify({"ok": True, "message": f"User {name} added successfully with role {role}"})
+
+
+@app.route("/hr/users/<user_id>/permissions", methods=["POST"])
+def hr_toggle_user_permissions(user_id):
+    user, err = _require_hr_admin()
+    if err:
+        return err
+        
+    u = USERS.get(user_id)
+    if not u:
+        return jsonify({"ok": False, "error": "User not found"}), 404
+        
+    payload = request.get_json(silent=True) or request.form
+    u["can_screen_interviews"] = _to_bool(payload.get("can_screen_interviews", False))
+    u["can_score_interviews"] = _to_bool(payload.get("can_score_interviews", False))
+    
+    save_users()
+    log_activity(user["id"], "update_permissions", f"Updated permissions for user {u.get('email')}", "success")
+    return jsonify({"ok": True, "message": "Permissions updated successfully"})
+
+
+def _get_interviewer_panel(job_id, create=False):
+    panel = INTERVIEWER_PANELS.get(job_id)
+    if panel or not create:
+        return panel
+    panel = {
+        "job_id": job_id,
+        "token": None,
+        "expires": None,
+        "access_code": None,
+        "active_application_id": None,
+        "active_changed_at": None,
+        "interviewer_ids": [],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    INTERVIEWER_PANELS[job_id] = panel
+    return panel
+
+
+def _get_panel_by_token(token):
+    for panel in INTERVIEWER_PANELS.values():
+        if panel.get("token") == token:
+            return panel
+    return None
+
+
+def _panel_link_expired(panel):
+    expires_str = panel.get("expires")
+    if not expires_str:
+        return True
+    try:
+        expires = datetime.fromisoformat(expires_str)
+    except Exception:
+        return True
+    return datetime.now(timezone.utc) > expires
+
+
+def _normalize_person_name(value):
+    return " ".join((value or "").strip().lower().split())
+
+
+def _clean_name_input(value):
+    honorifics = {"dr", "mr", "mrs", "ms", "prof", "sir", "miss"}
+    parts = _normalize_person_name(value).split()
+    while parts and parts[0].rstrip(".") in honorifics:
+        parts.pop(0)
+    return " ".join(parts)
+
+
+def _normalize_access_code(value):
+    return re.sub(r"\D", "", (value or "").strip())
+
+
+def _sync_panel_membership(panel):
+    """Ensure every interviewer assigned to this job is on the panel list."""
+    job_id = panel.get("job_id")
+    if not job_id:
+        return
+    panel.setdefault("interviewer_ids", [])
+    dirty = False
+    for user in USERS.values():
+        if user.get("role") != "interviewer":
+            continue
+        if user.get("interviewer_job_id") != job_id:
+            continue
+        if user["id"] not in panel["interviewer_ids"]:
+            panel["interviewer_ids"].append(user["id"])
+            dirty = True
+    if dirty:
+        panel["updated_at"] = datetime.now(timezone.utc).isoformat()
+        save_interviewer_panels()
+
+
+def _panel_interviewer_users(panel):
+    members = []
+    for user_id in panel.get("interviewer_ids") or []:
+        user = USERS.get(user_id)
+        if not user or user.get("role") != "interviewer":
+            continue
+        members.append(user)
+    return members
+
+
+def _find_panel_interviewer(panel, name_or_email):
+    """Match interviewer by email, name, first name, or email username on this panel."""
+    raw = (name_or_email or "").strip().lower()
+    cleaned = _clean_name_input(name_or_email)
+    if not raw:
+        return None
+
+    panel_users = _panel_interviewer_users(panel)
+    if not panel_users:
+        return None
+
+    if "@" in raw:
+        email_matches = [
+            user for user in panel_users
+            if (user.get("email") or "").strip().lower() == raw
+        ]
+        if len(email_matches) == 1:
+            return email_matches[0]
+        if len(email_matches) > 1:
+            return "ambiguous"
+
+    local_matches = [
+        user for user in panel_users
+        if (user.get("email") or "").strip().lower().split("@")[0] == raw
+    ]
+    if len(local_matches) == 1:
+        return local_matches[0]
+    if len(local_matches) > 1:
+        return "ambiguous"
+
+    if len(raw) >= 3:
+        local_substring_matches = [
+            user for user in panel_users
+            if raw in (user.get("email") or "").strip().lower().split("@")[0]
+        ]
+        if len(local_substring_matches) == 1:
+            return local_substring_matches[0]
+        if len(local_substring_matches) > 1:
+            return "ambiguous"
+
+    for candidate in (cleaned, _normalize_person_name(name_or_email)):
+        if not candidate:
+            continue
+        exact_name_matches = [
+            user for user in panel_users
+            if _normalize_person_name(user.get("name")) == candidate
+        ]
+        if len(exact_name_matches) == 1:
+            return exact_name_matches[0]
+        if len(exact_name_matches) > 1:
+            return "ambiguous"
+
+        partial_matches = [
+            user for user in panel_users
+            if candidate in _normalize_person_name(user.get("name"))
+            or _normalize_person_name(user.get("name")) in candidate
+        ]
+        if len(partial_matches) == 1:
+            return partial_matches[0]
+        if len(partial_matches) > 1:
+            return "ambiguous"
+
+        first = candidate.split()[0]
+        if first:
+            first_matches = [
+                user for user in panel_users
+                if (_normalize_person_name(user.get("name")).split() or [""])[0] == first
+            ]
+            if len(first_matches) == 1:
+                return first_matches[0]
+            if len(first_matches) > 1:
+                return "ambiguous"
+
+    return None
+
+
+def _panel_interviewer_labels(panel):
+    return [
+        f"{user.get('name') or 'Unknown'} ({user.get('email') or 'no email'})"
+        for user in _panel_interviewer_users(panel)
+    ]
+
+
+def _interviewer_panels_for_dashboard():
+    panels = {}
+    for job_id, panel in INTERVIEWER_PANELS.items():
+        job = JOBS.get(job_id, {})
+        interviewers = []
+        for user_id in panel.get("interviewer_ids") or []:
+            interviewer = USERS.get(user_id)
+            if not interviewer or interviewer.get("role") != "interviewer":
+                continue
+            interviewers.append({
+                "id": user_id,
+                "name": interviewer.get("name"),
+                "email": interviewer.get("email"),
+                "activated": True,
+            })
+        link = None
+        access_code = None
+        expires_display = ""
+        if panel.get("token") and not _panel_link_expired(panel):
+            link = f"{request.url_root.rstrip('/')}/interviewer/join/{panel['token']}"
+            access_code = panel.get("access_code")
+            try:
+                expires_display = datetime.fromisoformat(panel["expires"]).strftime("%Y-%m-%d %H:%M")
+            except Exception:
+                expires_display = panel.get("expires") or ""
+        panels[job_id] = {
+            "job_id": job_id,
+            "job_title": job.get("title", "Unknown Job"),
+            "interviewers": interviewers,
+            "link": link,
+            "access_code": access_code,
+            "expires": panel.get("expires"),
+            "expires_display": expires_display,
+            "has_active_link": bool(link),
+            "interviewer_count": len(interviewers),
+        }
+    return panels
+
+
+@app.route("/hr/interviewers/add", methods=["POST"])
+def hr_add_interviewer():
+    user, err = _require_hr_admin()
+    if err:
+        return err
+
+    payload = request.get_json(silent=True) or request.form
+    name = (payload.get("name") or "").strip()
+    email = (payload.get("email") or "").strip().lower()
+    job_id = (payload.get("job_id") or "").strip()
+
+    if not name or not email or not job_id:
+        return jsonify({"ok": False, "error": "Name, email, and job position are required"}), 400
+    if not JOBS.get(job_id):
+        return jsonify({"ok": False, "error": "Job position not found"}), 404
+
+    for existing in USERS.values():
+        if existing.get("email", "").lower() == email:
+            return jsonify({"ok": False, "error": "Email already exists"}), 400
+
+    import uuid
+    new_user_id = f"user-{str(uuid.uuid4())[:8]}"
+    new_user = {
+        "id": new_user_id,
+        "email": email,
+        "name": name,
+        "password_hash": generate_password_hash(secrets.token_urlsafe(16)),
+        "role": "interviewer",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "can_screen_interviews": False,
+        "can_score_interviews": True,
+        "interviewer_token": None,
+        "interviewer_token_expires": None,
+        "interviewer_token_used": False,
+        "interviewer_job_id": job_id,
+        "password_reset_required": False,
+        "first_login": False,
+    }
+    USERS[new_user_id] = new_user
+
+    panel = _get_interviewer_panel(job_id, create=True)
+    if new_user_id not in panel["interviewer_ids"]:
+        panel["interviewer_ids"].append(new_user_id)
+    panel["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    save_users()
+    save_interviewer_panels()
+    log_activity(user["id"], "add_interviewer", f"Added interviewer {email} to job {job_id}", "success")
+    return jsonify({
+        "ok": True,
+        "interviewer": {
+            "id": new_user_id,
+            "name": name,
+            "email": email,
+            "activated": False,
+        },
+        "panel": _interviewer_panels_for_dashboard().get(job_id),
+    })
+
+
+@app.route("/hr/interviewers/generate-link", methods=["POST"])
+def hr_generate_interviewer_link():
+    user, err = _require_hr_admin()
+    if err:
+        return err
+
+    payload = request.get_json(silent=True) or request.form
+    job_id = (payload.get("job_id") or "").strip()
+    if not job_id:
+        return jsonify({"ok": False, "error": "Job position is required"}), 400
+
+    panel = _get_interviewer_panel(job_id)
+    if not panel:
+        return jsonify({"ok": False, "error": "Add at least one interviewer before generating a link"}), 400
+    _sync_panel_membership(panel)
+    if not panel.get("interviewer_ids"):
+        return jsonify({"ok": False, "error": "Add at least one interviewer before generating a link"}), 400
+
+    import uuid
+    panel["token"] = str(uuid.uuid4())
+    panel["access_code"] = _generate_panel_access_code()
+    panel["expires"] = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+    panel["updated_at"] = datetime.now(timezone.utc).isoformat()
+    save_interviewer_panels()
+
+    link = f"{request.url_root.rstrip('/')}/interviewer/join/{panel['token']}"
+    log_activity(user["id"], "generate_interviewer_link", f"Generated shared interviewer link for job {job_id}", "success")
+    return jsonify({
+        "ok": True,
+        "link": link,
+        "access_code": panel["access_code"],
+        "expires": panel["expires"],
+        "panel": _interviewer_panels_for_dashboard().get(job_id),
+    })
+
+
+@app.route("/hr/interviewers/create", methods=["POST"])
+def hr_create_interviewer():
+    """Backward-compatible alias: add interviewer only (no link)."""
+    return hr_add_interviewer()
+
+
+@app.route("/interviewer/login/<token>")
+def interviewer_token_login(token):
+    return redirect(url_for("interviewer_join", token=token))
+
+
+@app.route("/interviewer/join/<token>", methods=["GET", "POST"])
+def interviewer_join(token):
+    panel = _get_panel_by_token(token)
+    if not panel:
+        flash("Invalid interviewer invitation link.", "danger")
+        return redirect(url_for("login"))
+    _sync_panel_membership(panel)
+    if _panel_link_expired(panel):
+        flash("This invitation link has expired (valid for 24 hours). Ask HR for a new link.", "danger")
+        return redirect(url_for("login"))
+
+    job = JOBS.get(panel.get("job_id"), {})
+    if request.method == "POST":
+        name = (request.form.get("name") or "").strip()
+        access_code = (request.form.get("access_code") or "").strip()
+        match = _find_panel_interviewer(panel, name)
+        if match == "ambiguous":
+            flash(
+                "Multiple interviewers match that name. Use your full registered name or email address.",
+                "danger",
+            )
+            return render_template(
+                "interviewer_join.html",
+                token=token,
+                job_title=job.get("title", "Interview Panel"),
+                panel_interviewers=_panel_interviewer_labels(panel),
+            )
+        if not match:
+            registered = _panel_interviewer_labels(panel)
+            if registered:
+                flash(
+                    "Name or email not found on this interview panel. "
+                    f"Use exactly as HR registered you. On this panel: {'; '.join(registered)}",
+                    "danger",
+                )
+            else:
+                flash(
+                    "No interviewers are registered on this panel yet. Ask HR to add you, then generate a new link.",
+                    "danger",
+                )
+            return render_template(
+                "interviewer_join.html",
+                token=token,
+                job_title=job.get("title", "Interview Panel"),
+                panel_interviewers=registered,
+            )
+
+        panel_code = _normalize_access_code(panel.get("access_code"))
+        entered_code = _normalize_access_code(access_code)
+        if not panel_code or entered_code != panel_code:
+            flash(
+                "Incorrect access code. Use the 8-digit code HR shared when the link was generated (no spaces).",
+                "danger",
+            )
+            return render_template(
+                "interviewer_join.html",
+                token=token,
+                job_title=job.get("title", "Interview Panel"),
+                panel_interviewers=_panel_interviewer_labels(panel),
+            )
+
+        session["user_id"] = match["id"]
+        match["last_login"] = datetime.now(timezone.utc).isoformat()
+        match["password_reset_required"] = False
+        save_users()
+        log_activity(match["id"], "interviewer_join", f"Interviewer {match.get('name')} joined via shared link", "success")
+        flash("Welcome to the interviewer portal.", "success")
+        return redirect(url_for("interviewer_dashboard"))
+
+    return render_template(
+        "interviewer_join.html",
+        token=token,
+        job_title=job.get("title", "Interview Panel"),
+        panel_interviewers=_panel_interviewer_labels(panel),
+    )
+
+
+@app.route("/interviewer/set-password", methods=["GET", "POST"])
+@app.route("/interviewer/reset-password/<token>", methods=["GET", "POST"])
+def interviewer_reset_password_route(token=None):
+    """Legacy route — interviewers now use a shared panel access code."""
+    user = get_current_user()
+    if user and user.get("role") == "interviewer":
+        return redirect(url_for("interviewer_dashboard"))
+    flash("Sign in with your invitation link and the access code from HR.", "info")
+    if token:
+        return redirect(url_for("interviewer_join", token=token))
+    return redirect(url_for("login"))
+
+
+@app.route("/interviewer/dashboard")
+def interviewer_dashboard():
+    user = get_current_user()
+    if not user or user.get("role") != "interviewer":
+        flash("Access denied.", "danger")
+        return redirect(url_for("login"))
+
+    job_id = user.get("interviewer_job_id")
+    job = JOBS.get(job_id) if job_id else None
+    panel = INTERVIEWER_PANELS.get(job_id, {}) if job_id else {}
+    active_application_id = panel.get("active_application_id")
+
+    candidates = []
+    waiting_for_hr = False
+    if job_id and active_application_id:
+        app_data = APPLICATIONS.get(active_application_id)
+        if app_data and app_data.get("job_id") == job_id and app_data.get("interview_status") == "in_progress":
+            candidates.append(_enrich_application(app_data))
+        else:
+            waiting_for_hr = True
+    elif job_id:
+        waiting_for_hr = True
+
+    return render_template(
+        "interviewer_dashboard.html",
+        job=job,
+        candidates=candidates,
+        waiting_for_hr=waiting_for_hr,
+        active_changed_at=panel.get("active_changed_at"),
+    )
+
+
+@app.route("/interviewer/api/active-candidate")
+def interviewer_active_candidate_api():
+    user = get_current_user()
+    if not user or user.get("role") != "interviewer":
+        return jsonify({"ok": False, "error": "Unauthorized"}), 401
+
+    job_id = user.get("interviewer_job_id")
+    if not job_id:
+        return jsonify({"ok": True, "active_application_id": None, "active_changed_at": None, "candidate": None})
+
+    panel = INTERVIEWER_PANELS.get(job_id, {})
+    active_application_id = panel.get("active_application_id")
+    candidate = None
+    if active_application_id:
+        app_data = APPLICATIONS.get(active_application_id)
+        if app_data and app_data.get("job_id") == job_id and app_data.get("interview_status") == "in_progress":
+            candidate = _json_safe(_enrich_application(app_data))
+
+    return jsonify({
+        "ok": True,
+        "active_application_id": active_application_id,
+        "active_changed_at": panel.get("active_changed_at"),
+        "candidate": candidate,
+    })
+
+
+@app.route("/hr/applications/<application_id>/data", methods=["GET"])
+def hr_application_data(application_id):
+    user = get_current_user()
+    if not user or user.get("role") not in HR_ROLES:
+        return jsonify({"ok": False, "error": "Unauthorized"}), 401
+    app_data = APPLICATIONS.get(application_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+    return jsonify({"ok": True, "application": _json_safe(_enrich_application(app_data))})
 
 
 @app.route("/hr/applications/<application_id>/resume")
@@ -1712,6 +2702,8 @@ def hr_application_screen(application_id):
         "interview": "interview",
     }
     app_data["status"] = status_map.get(raw_status, raw_status or "pending")
+    if app_data["status"] == "shortlisted":
+        app_data["interview_status"] = "pending_scheduling"
     app_data["screening_rating"] = payload.get("rating")
     app_data["screening_notes"] = (payload.get("notes") or "").strip()
     app_data["screened_at"] = datetime.now(timezone.utc).isoformat()
@@ -1740,7 +2732,7 @@ def hr_application_reject(application_id):
     email_result = None
     if send_email and app_data.get("email"):
         job = JOBS.get(app_data.get("job_id", ""), {})
-        candidate_name = f"{app_data.get('name', '')} {app_data.get('surname', '')}".strip()
+        candidate_name = _candidate_full_name(app_data)
         format_values = {
             "candidate_name": candidate_name,
             "job_title": job.get("title", "the position"),
@@ -1787,43 +2779,398 @@ def hr_schedule_interview():
     app_data["interview_location"] = (payload.get("interview_location") or "").strip()
     app_data["interview_message"] = (payload.get("message") or "").strip()
     app_data["interview_status"] = "scheduled"
+    app_data["interview_removed"] = False
+    app_data["interview_removed_reason"] = ""
     app_data["interview_scheduled_at"] = datetime.now(timezone.utc).isoformat()
 
     email_result = None
-    send_email = _to_bool(payload.get("send_email", False))
-    if send_email and app_data.get("email"):
-        job = JOBS.get(app_data.get("job_id", ""), {})
-        template = app_data["interview_message"] or SETTINGS.get("interview_default_message", DEFAULT_SETTINGS["interview_default_message"])
-        format_values = {
-            "candidate_name": f"{app_data.get('name', '')} {app_data.get('surname', '')}".strip(),
-            "job_title": job.get("title", "the position"),
-            "interview_date": interview_date,
-            "interview_time": interview_time,
-            "interview_type": app_data.get("interview_type", "Interview"),
-            "interview_location": app_data.get("interview_location", "To be confirmed"),
-        }
-        body = _personalize_message(template, format_values)
-        if interview_date not in body or interview_time not in body:
-            body = (
-                f"{body}\n\nInterview schedule:\n"
-                f"Date: {interview_date}\n"
-                f"Time: {interview_time}\n"
-                f"Type: {format_values['interview_type']}"
+    send_email = _to_bool(payload.get("send_email", True))
+    if send_email:
+        if not app_data.get("email"):
+            email_result = {"sent": False, "error": "Candidate has no email address"}
+            app_data["interview_email_sent"] = False
+            app_data["interview_email_error"] = email_result["error"]
+        else:
+            job = JOBS.get(app_data.get("job_id", ""), {})
+            template = app_data["interview_message"] or SETTINGS.get(
+                "interview_default_message", DEFAULT_SETTINGS["interview_default_message"]
             )
-        subject = f"Interview Invitation - {job.get('title', 'Application')}"
-        sent, error = send_email_message(
-            app_data.get("email"), subject, body,
-            sender_id=user["id"], application_id=application_id, email_type="interview",
-            candidate_name=format_values["candidate_name"],
-            footer_location=format_values["interview_location"],
-        )
-        email_result = {"sent": sent, "error": error}
-        app_data["interview_email_sent"] = sent
-        app_data["interview_email_error"] = error
+            format_values = {
+                "candidate_name": _candidate_full_name(app_data),
+                "job_title": job.get("title", "the position"),
+                "interview_date": interview_date,
+                "interview_time": interview_time,
+                "interview_type": app_data.get("interview_type", "Interview"),
+                "interview_location": app_data.get("interview_location", "To be confirmed"),
+            }
+            body = _personalize_message(template, format_values)
+            if interview_date not in body or interview_time not in body:
+                body = (
+                    f"{body}\n\nInterview schedule:\n"
+                    f"Date: {interview_date}\n"
+                    f"Time: {interview_time}\n"
+                    f"Type: {format_values['interview_type']}"
+                )
+            subject = f"Interview Invitation - {job.get('title', 'Application')}"
+            sent, error = send_email_message(
+                app_data.get("email"), subject, body,
+                sender_id=user["id"], application_id=application_id, email_type="interview",
+                candidate_name=format_values["candidate_name"],
+                footer_location=format_values["interview_location"],
+            )
+            email_result = {"sent": sent, "error": error}
+            app_data["interview_email_sent"] = sent
+            app_data["interview_email_error"] = error
 
     save_applications()
     log_activity(user["id"], "schedule_interview", f"Scheduled interview for {application_id}", "success")
     return jsonify({"ok": True, "email": email_result, "application": _enrich_application(app_data)})
+
+
+# ─── INTERVIEW ACTION & STAGE 2 SCREENING ENDPOINTS ───────────────────
+
+def _require_scoring_permission(application_id=None):
+    user = get_current_user()
+    if not user:
+        return None, (jsonify({"ok": False, "error": "Please log in."}), 401)
+    if user.get("role") == "hr":
+        return user, None
+    if user.get("role") == "hr_staff":
+        return user, None
+    if user.get("role") == "interviewer" and application_id:
+        app = APPLICATIONS.get(application_id)
+        if app and app.get("job_id") == user.get("interviewer_job_id"):
+            return user, None
+    return None, (jsonify({"ok": False, "error": "You do not have permission to score this candidate"}), 403)
+
+
+def _require_screening_permission():
+    user = get_current_user()
+    if not user:
+        return None, (jsonify({"ok": False, "error": "Unauthorized"}), 401)
+    if user.get("role") == "hr":
+        return user, None
+    if user.get("role") == "hr_staff" and user.get("can_screen_interviews"):
+        return user, None
+    return None, (jsonify({"ok": False, "error": "You do not have permission to screen interviews"}), 403)
+
+
+@app.route("/hr/interviews/<app_id>/start", methods=["POST"])
+def hr_start_interview(app_id):
+    user, err = _require_hr_api()
+    if err:
+        return err
+    app_data = APPLICATIONS.get(app_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+    if app_data.get("interview_removed"):
+        return jsonify({"ok": False, "error": "This candidate was removed from the interview queue."}), 400
+    if app_data.get("interview_status") == "completed":
+        return jsonify({"ok": False, "error": "This interview is closed and cannot be started again."}), 400
+    if app_data.get("interview_status") == "cancelled":
+        return jsonify({"ok": False, "error": "This candidate was cancelled as a no-show."}), 400
+    if not (app_data.get("interview_date") or "").strip():
+        return jsonify({
+            "ok": False,
+            "error": "Schedule this interview first (date and time) before clicking Start.",
+        }), 400
+    job_id = app_data.get("job_id")
+    if not job_id:
+        return jsonify({"ok": False, "error": "Candidate is not linked to a job"}), 400
+    try:
+        _set_active_interview(job_id, app_id)
+        app_data["interview_status"] = "in_progress"
+        save_applications()
+        save_interviewer_panels()
+    except Exception as ex:
+        print(f"Error starting interview for {app_id}: {ex}")
+        return jsonify({"ok": False, "error": "Could not start interview. Please try again."}), 500
+    log_activity(user["id"], "start_interview", f"Started interview for {app_id}", "success")
+    return jsonify({"ok": True, "application": _enrich_application(app_data)})
+
+
+@app.route("/hr/interviews/<app_id>/end", methods=["POST"])
+def hr_end_interview(app_id):
+    user, err = _require_hr_api()
+    if err:
+        return err
+    app_data = APPLICATIONS.get(app_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+    _sync_interview_status_after_score(app_data)
+    if app_data.get("interview_status") not in ("awaiting_screening", "completed"):
+        app_data["interview_status"] = "in_progress"
+    save_applications()
+    log_activity(user["id"], "end_interview", f"Ended interview session for {app_id}", "success")
+    return jsonify({"ok": True, "application": _enrich_application(app_data)})
+
+
+@app.route("/hr/interviews/<app_id>/cancel", methods=["POST"])
+def hr_cancel_interview(app_id):
+    user, err = _require_hr_api()
+    if err:
+        return err
+    app_data = APPLICATIONS.get(app_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+    app_data["interview_status"] = "cancelled"
+    app_data["status"] = "rejected"
+    save_applications()
+    log_activity(user["id"], "cancel_interview", f"Cancelled interview for {app_id} (No Show)", "success")
+    return jsonify({"ok": True, "application": _enrich_application(app_data)})
+
+
+@app.route("/hr/interviews/<app_id>/remove", methods=["POST"])
+def hr_remove_interview_queue(app_id):
+    user, err = _require_hr_api()
+    if err:
+        return err
+    app_data = APPLICATIONS.get(app_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+    payload = request.get_json(silent=True) or request.form
+    reason = (payload.get("reason") or "").strip()
+    if not reason:
+        return jsonify({"ok": False, "error": "Reason is required to remove from queue"}), 400
+    app_data["interview_removed"] = True
+    app_data["interview_removed_reason"] = reason
+    app_data["interview_status"] = None
+    job_id = app_data.get("job_id")
+    if job_id:
+        panel = _get_interviewer_panel(job_id, create=False)
+        if panel and panel.get("active_application_id") == app_id:
+            panel["active_application_id"] = None
+            panel["active_changed_at"] = datetime.now(timezone.utc).isoformat()
+            save_interviewer_panels()
+    save_applications()
+    log_activity(user["id"], "remove_interview_queue", f"Removed {app_id} from interview queue: {reason}", "success")
+    return jsonify({"ok": True, "application": _enrich_application(app_data)})
+
+
+@app.route("/hr/interviews/<app_id>/score", methods=["POST"])
+def hr_score_interview(app_id):
+    user, err = _require_scoring_permission(app_id)
+    if err:
+        return err
+    app_data = APPLICATIONS.get(app_id)
+    if not app_data:
+        return jsonify({"ok": False, "error": "Application not found"}), 404
+    if app_data.get("interview_status") == "completed":
+        return jsonify({"ok": False, "error": "Interview is completed. Marks cannot be changed."}), 400
+    if user.get("role") == "interviewer" and not _is_active_interview_candidate(app_data):
+        return jsonify({
+            "ok": False,
+            "error": "This candidate is not active right now. Wait for HR to start their interview.",
+        }), 400
+
+    payload = request.get_json(silent=True) or request.form
+
+    scores = {}
+    total_score = 0
+    for crit in INTERVIEW_SCORE_CRITERIA:
+        val_raw = payload.get(crit, 0)
+        try:
+            val = int(val_raw)
+        except (ValueError, TypeError):
+            val = 0
+        val = max(0, min(20, val))
+        scores[crit] = val
+        total_score += val
+
+    percentage = (total_score / 140.0) * 100.0
+    _upsert_interview_score_submission(app_data, user, scores, percentage)
+    _sync_interview_status_after_score(app_data)
+
+    save_applications()
+    log_activity(user["id"], "score_interview", f"Scored interview for {app_id} ({app_data['interview_total']}%)", "success")
+    return jsonify({"ok": True, "application": _enrich_application(app_data)})
+
+
+@app.route("/hr/interviews/screen", methods=["POST"])
+def hr_screen_interviews():
+    user, err = _require_screening_permission()
+    if err:
+        return err
+    payload = request.get_json(silent=True) or request.form
+    job_id = (payload.get("job_id") or "").strip()
+    if not job_id:
+        return jsonify({"ok": False, "error": "Job ID is required"}), 400
+
+    job = JOBS.get(job_id)
+    if not job:
+        return jsonify({"ok": False, "error": "Job not found"}), 404
+
+    queue = _interview_queue_for_job(job_id)
+    if not queue:
+        return jsonify({"ok": False, "error": "No interview candidates found for this job."}), 400
+
+    not_started = [
+        _candidate_full_name(app)
+        for app in queue
+        if app.get("interview_status") in (None, "scheduled")
+    ]
+    if not_started:
+        return jsonify({
+            "ok": False,
+            "error": "Cannot screen yet. Start and finish interviews for all candidates first: " + ", ".join(not_started),
+        }), 400
+
+    incomplete = []
+    candidates_list = []
+    for app in queue:
+        if not _all_required_scorers_submitted(app):
+            pending = _pending_scorer_names(app)
+            incomplete.append(f"{_candidate_full_name(app)} (waiting: {', '.join(pending)})")
+            continue
+        app["interview_status"] = "completed"
+        app["interview_screened_at"] = datetime.now(timezone.utc).isoformat()
+        candidates_list.append(_enrich_application(app))
+
+    if incomplete:
+        return jsonify({
+            "ok": False,
+            "error": "Cannot screen yet. All panel interviewers must submit marks for every candidate. Pending: " + "; ".join(incomplete),
+        }), 400
+
+    if not candidates_list:
+        return jsonify({
+            "ok": False,
+            "error": "No interviewed candidates are ready for screening yet.",
+        }), 400
+
+    save_applications()
+    candidates_list.sort(key=lambda x: x.get("interview_average", x.get("interview_total", 0)), reverse=True)
+    log_activity(user["id"], "screen_interviews", f"Screened {len(candidates_list)} interview(s) for job {job_id}", "success")
+    return jsonify({"ok": True, "candidates": candidates_list})
+
+
+@app.route("/hr/interviews/select-best", methods=["POST"])
+def hr_select_best_candidates():
+    user, err = _require_screening_permission()
+    if err:
+        return err
+    payload = request.get_json(silent=True) or request.form
+    job_id = (payload.get("job_id") or "").strip()
+    try:
+        positions_needed = int(payload.get("positions_needed", 1))
+    except (ValueError, TypeError):
+        positions_needed = 1
+
+    if not job_id:
+        return jsonify({"ok": False, "error": "Job ID is required"}), 400
+
+    job = JOBS.get(job_id)
+    if not job:
+        return jsonify({"ok": False, "error": "Job not found"}), 404
+
+    # Find completed non-removed applications for this job
+    candidates_with_scores = []
+    for app in APPLICATIONS.values():
+        if app.get("job_id") == job_id and app.get("interview_status") == "completed" and not app.get("interview_removed"):
+            candidates_with_scores.append(app)
+
+    if not candidates_with_scores:
+        return jsonify({"ok": False, "error": "No completed interviews found for this job"}), 400
+
+    def _candidate_average(app_item):
+        return _interview_score_average(app_item)
+
+    candidates_with_scores.sort(key=_candidate_average, reverse=True)
+
+    from collections import defaultdict
+    groups = defaultdict(list)
+    for c in candidates_with_scores:
+        groups[_candidate_average(c)].append(c)
+
+    sorted_scores = sorted(groups.keys(), reverse=True)
+    selected_candidates = []
+    remaining_slots = positions_needed
+    import random
+
+    for score in sorted_scores:
+        group = groups[score]
+        if len(group) <= remaining_slots:
+            selected_candidates.extend(group)
+            remaining_slots -= len(group)
+        else:
+            # Tiebreak needed
+            chosen = random.sample(group, remaining_slots)
+            for ch in chosen:
+                ch["selection_method"] = "random_tiebreak"
+            selected_candidates.extend(chosen)
+            remaining_slots = 0
+        if remaining_slots <= 0:
+            break
+
+    # Update selected candidates
+    now_iso = datetime.now(timezone.utc).isoformat()
+    for sc in selected_candidates:
+        if sc.get("selection_method") != "random_tiebreak":
+            sc["selection_method"] = "ranked"
+        sc["selected"] = True
+        sc["status"] = "selected"
+        sc["selected_at"] = now_iso
+
+    save_applications()
+    log_activity(user["id"], "select_candidates", f"Selected {len(selected_candidates)} candidates for {job.get('title')}", "success")
+    return jsonify({"ok": True, "selected": [_enrich_application(sc) for sc in selected_candidates]})
+
+
+@app.route("/hr/selected/send-email", methods=["POST"])
+def hr_send_selected_email():
+    user, err = _require_hr()
+    if err:
+        return err
+    payload = request.get_json(silent=True) or request.form
+    job_id = (payload.get("job_id") or "").strip()
+    subject = (payload.get("subject") or "").strip()
+    message = (payload.get("message") or "").strip()
+    start_date = (payload.get("start_date") or "").strip()
+    start_time = (payload.get("start_time") or "").strip()
+    location = (payload.get("location") or "").strip()
+
+    if not job_id or not subject or not message:
+        return jsonify({"ok": False, "error": "Job ID, subject, and message are required"}), 400
+
+    job = JOBS.get(job_id)
+    if not job:
+        return jsonify({"ok": False, "error": "Job not found"}), 404
+
+    # Find all selected candidates for this job
+    selected_apps = [app for app in APPLICATIONS.values() if app.get("job_id") == job_id and app.get("selected")]
+    if not selected_apps:
+        return jsonify({"ok": False, "error": "No selected candidates found for this job"}), 400
+
+    sent_count = 0
+    failed_count = 0
+    errors = []
+
+    for app_data in selected_apps:
+        candidate_name = _candidate_full_name(app_data)
+        format_values = {
+            "candidate_name": candidate_name,
+            "job_title": job.get("title", "the position"),
+            "start_date": start_date or "To be confirmed",
+            "start_time": start_time or "To be confirmed",
+            "location": location or "To be confirmed",
+        }
+        body = _personalize_message(message, format_values)
+
+        sent, error = send_email_message(
+            app_data.get("email"), subject, body,
+            sender_id=user["id"], application_id=app_data.get("id"), email_type="selection",
+            candidate_name=candidate_name,
+        )
+        if sent:
+            sent_count += 1
+            app_data["selected_email_sent"] = True
+        else:
+            failed_count += 1
+            errors.append(f"Failed for {candidate_name}: {error}")
+
+    save_applications()
+    log_activity(user["id"], "send_selection_emails", f"Sent selection emails for {job.get('title')}: {sent_count} success, {failed_count} failed", "success")
+    return jsonify({"ok": True, "sent": sent_count, "failed": failed_count, "errors": errors})
 
 
 @app.route("/hr/bulk-email", methods=["POST"])
@@ -1837,11 +3184,11 @@ def hr_bulk_email():
     subject = (payload.get("subject") or "").strip()
     message = (payload.get("message") or "").strip()
     status_filter = (payload.get("filter") or "all").strip()
+    group_by_job = _to_bool(payload.get("group_by_job", True))
 
     if not subject or not message:
         return jsonify({"ok": False, "error": "Subject and message are required"}), 400
 
-    # Filter applications
     filtered_apps = []
     for app_data in APPLICATIONS.values():
         if status_filter == "all" or app_data.get("status") == status_filter:
@@ -1850,39 +3197,66 @@ def hr_bulk_email():
     if not filtered_apps:
         return jsonify({"ok": False, "error": "No applicants found with selected filter"}), 400
 
-    # Send emails
+    if group_by_job:
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for app_data in filtered_apps:
+            job_title = JOBS.get(app_data.get("job_id", ""), {}).get("title", "General Application")
+            grouped[job_title].append(app_data)
+        send_batches = list(grouped.items())
+    else:
+        send_batches = [("All Applicants", filtered_apps)]
+
     sent_count = 0
     failed_count = 0
+    job_summaries = []
 
-    for app_data in filtered_apps:
-        email = app_data.get("email")
-        if not email:
-            failed_count += 1
-            continue
+    for job_title, apps_in_job in send_batches:
+        job_sent = 0
+        for app_data in apps_in_job:
+            email = app_data.get("email")
+            if not email:
+                failed_count += 1
+                continue
 
-        # Personalize the message
-        format_values = {
-            "candidate_name": f"{app_data.get('name', '')} {app_data.get('surname', '')}".strip(),
-            "job_title": JOBS.get(app_data.get("job_id", ""), {}).get("title", "the position"),
-            "application_status": (app_data.get("status") or "pending").upper(),
-        }
+            format_values = {
+                "candidate_name": _candidate_full_name(app_data),
+                "job_title": JOBS.get(app_data.get("job_id", ""), {}).get("title", job_title),
+                "application_status": (app_data.get("status") or "pending").upper(),
+            }
 
-        body = _personalize_message(message, format_values)
-        personalized_subject = _personalize_message(subject, format_values)
+            body = _personalize_message(message, format_values)
+            personalized_subject = _personalize_message(subject, format_values)
+            if group_by_job and "(job title)" not in subject.lower() and "{job_title}" not in subject:
+                personalized_subject = f"[{format_values['job_title']}] {personalized_subject}"
 
-        sent, error = send_email_message(
-            email, personalized_subject, body,
-            sender_id=user["id"], application_id=app_data.get("id"), email_type="bulk",
-            candidate_name=format_values["candidate_name"],
-        )
-        if sent:
-            sent_count += 1
-        else:
-            failed_count += 1
+            sent, error = send_email_message(
+                email, personalized_subject, body,
+                sender_id=user["id"], application_id=app_data.get("id"), email_type="bulk",
+                candidate_name=format_values["candidate_name"],
+            )
+            if sent:
+                sent_count += 1
+                job_sent += 1
+            else:
+                failed_count += 1
+        if job_sent:
+            job_summaries.append(f"{job_title}: {job_sent}")
 
     save_applications()
-    log_activity(user["id"], "bulk_email", f"Sent bulk email to {sent_count} applicants (filter: {status_filter})", "success")
-    return jsonify({"ok": True, "count": len(filtered_apps), "sent": sent_count, "failed": failed_count})
+    log_activity(
+        user["id"], "bulk_email",
+        f"Sent bulk email to {sent_count} applicants (filter: {status_filter}, grouped: {group_by_job})",
+        "success",
+    )
+    return jsonify({
+        "ok": True,
+        "count": len(filtered_apps),
+        "sent": sent_count,
+        "failed": failed_count,
+        "grouped_by_job": group_by_job,
+        "job_summaries": job_summaries,
+    })
 
 
 @app.route("/applicants/<application_id>")
@@ -1890,8 +3264,8 @@ def applicant_page(application_id):
     user = get_current_user()
     if user and user.get("role") in HR_ROLES:
         return redirect(url_for("hr_dashboard"))
-    flash("Application not found.", "danger")
-    return redirect(url_for("index"))
+        flash("Application not found.", "danger")
+        return redirect(url_for("index"))
 
 
 @app.route("/hr/report")
@@ -1953,6 +3327,12 @@ def apply(job_id):
     if request.method == "POST":
         import uuid
         from werkzeug.utils import secure_filename
+
+        form_email = request.form.get("email", "").strip()
+        if _has_application_for_job(job_id, form_email):
+            flash("You have already submitted an application for this position. Only one CV submission is allowed per job.", "warning")
+            return redirect(url_for("apply", job_id=job_id))
+
         app_id = str(uuid.uuid4())
         resume_path = ""
         certification_paths = []
@@ -1983,7 +3363,6 @@ def apply(job_id):
 
         form_name = request.form.get("name", "").strip()
         form_surname = request.form.get("surname", "").strip()
-        form_email = request.form.get("email", "").strip()
         form_phone = request.form.get("phone", "").strip()
         form_education = request.form.get("highest_education", "").strip()
 
@@ -2061,6 +3440,9 @@ def uploaded_file(filename):
         return "File not found", 404
     as_attachment = request.args.get("download") == "1"
     return send_from_directory(str(upload_dir), safe_name, as_attachment=as_attachment)
+
+
+load_all_data()
 
 
 if __name__ == "__main__":
